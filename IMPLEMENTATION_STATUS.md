@@ -76,3 +76,9 @@ The clean starter contains 104 files with no source-site credentials, uploaded a
 The requested typography extension adds a live Theme sample, independently selectable heading/body fonts and heading/body/emphasis weights, with real self-hosted font files. Twelve unit checks, the production build, lint and all five local browser flows pass. The additive migration preserves existing theme values and versions with the original system-font defaults. See DESIGN_HANDOFF.md for the next design task's baseline, inputs and starting prompt.
 
 Obtain explicit Phase 4 authorization, then read this status, V5, ARCHITECTURE.md and AI_SITE_CONTRACT.md. Run the existing tests and inspect the real editor before modifying templates. Obtain approved company references and visual direction. Extend shared sections and schemas together; preserve draft isolation, structured records and existing content migrations. Keep demo content clearly identified until approved content replaces it.
+
+## 0.2.1 release verification
+
+Published v0.2.1 at c4718a2219b5c760bf4f6af45977e1b18e7e065d. The public installer asset was launched successfully using npm 12 with the documented allow-remote flag. Full CI passed on the final code commit 0345801 (the tag adds handoff documentation only). Hosted demo admin, context export, branding and publication browser checks passed; temporary editor removed. Git history credential scan found no leaks.
+
+RHP maintenance PR: https://github.com/RockingHorsePictures/rhp-website/pull/1. Its existing design folder now contains the update and working private code-preview AI connection; pre-existing discovery changes are intact. Its GitHub/Vercel link was repaired and verified via the project API. Production rollout/account provisioning is pending the explicit approval requested in this conversation; no RHP Production migration, account creation or deployment has been performed. Private database snapshots were saved before repair.
