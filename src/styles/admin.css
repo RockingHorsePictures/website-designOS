@@ -1,0 +1,559 @@
+@import '@fontsource-variable/inter/wght.css';
+
+/* Admin-only stylesheet. Payload owns behaviour; these supported BEM hooks own presentation. */
+:root {
+  --font-body: 'Inter Variable', system-ui, sans-serif;
+  --style-radius-s: 6px;
+  --style-radius-m: 10px;
+  --style-radius-l: 14px;
+  --dos-accent: #175cd3;
+  --dos-on-accent: #ffffff;
+  --dos-muted: #5b6270;
+  --dos-surface: #ffffff;
+  --dos-soft: #edf4ff;
+  --dos-border: #e1e4e8;
+  --dos-shadow: 0 2px 6px rgb(25 49 39 / 4%);
+}
+html:not([data-theme='dark']) {
+  --theme-bg: #fafafa;
+  --theme-input-bg: #ffffff;
+  --theme-text: #18181b;
+  --theme-border-color: #e1e4e8;
+  --theme-elevation-50: #f4f4f5;
+  --theme-elevation-100: #e4e4e7;
+  --theme-elevation-150: #d4d4d8;
+  --theme-elevation-200: #c5c5cc;
+}
+html[data-theme='dark'] {
+  --dos-accent: #78a9ff;
+  --dos-on-accent: #09111f;
+  --dos-muted: #a7a7b0;
+  --dos-surface: #171719;
+  --dos-soft: #17233a;
+  --dos-border: #333338;
+  --dos-shadow: none;
+  --theme-bg: #0a0a0b;
+  --theme-input-bg: #171719;
+  --theme-text: #ededf0;
+  --theme-border-color: #333338;
+}
+html {
+  font-size: 14px;
+}
+body {
+  font-family: var(--font-body);
+}
+:is(a, button, input, textarea, select, summary):focus-visible {
+  outline: 2px solid var(--dos-accent);
+  outline-offset: 3px;
+}
+.dos-mark {
+  width: 100%;
+  height: 100%;
+  color: var(--dos-accent);
+  flex-shrink: 0;
+}
+.dos-color-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 44px;
+  gap: 8px;
+  align-items: start;
+}
+.dos-color-field .field-type {
+  margin-bottom: 0;
+}
+.dos-color-field input[type='color'] {
+  width: 44px;
+  height: 40px;
+  margin-top: 25px;
+  border: 1px solid var(--dos-border);
+  border-radius: 8px;
+  padding: 4px;
+  background: var(--dos-surface);
+  cursor: pointer;
+}
+.dos-brand {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  text-align: left;
+}
+.dos-brand .dos-mark {
+  width: 52px;
+  height: 52px;
+}
+.dos-brand strong {
+  display: block;
+  font-size: 27px;
+  letter-spacing: -1px;
+  font-weight: 650;
+}
+.dos-brand span {
+  display: block;
+  color: var(--dos-muted);
+  font-size: 13px;
+  margin-top: 4px;
+}
+.dos-environment {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--dos-border);
+  border-radius: 30px;
+  padding: 7px 11px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--dos-surface);
+  color: var(--theme-text);
+}
+.dos-environment > span {
+  width: 6px;
+  height: 6px;
+  background: #b17b19;
+  border-radius: 50%;
+}
+.dos-environment--production > span {
+  background: #2a8b57;
+}
+.dos-environment--local > span {
+  background: #788780;
+}
+.dos-nav-home {
+  margin: 0 0 20px;
+}
+.dos-nav-home a {
+  display: flex;
+  justify-content: space-between;
+  padding: 11px 12px;
+  background: var(--dos-soft);
+  color: var(--dos-accent);
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+}
+.dos-nav-home p {
+  margin: 22px 0 4px;
+  color: var(--dos-muted);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.nav {
+  background: var(--dos-surface);
+  border-inline-end: 1px solid var(--dos-border);
+}
+.nav-group {
+  margin-bottom: 22px;
+}
+.nav-group__toggle {
+  color: var(--dos-muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.nav-group__content .nav__link {
+  border-radius: 6px;
+  padding: 7px 10px;
+  margin-inline: -10px;
+}
+.nav__link:hover {
+  background: var(--dos-soft);
+}
+.nav__link--active {
+  color: var(--dos-accent);
+  font-weight: 600;
+  background: var(--dos-soft);
+}
+.app-header {
+  border-bottom: 1px solid var(--dos-border);
+  background: var(--dos-surface);
+}
+.dos-home {
+  padding-top: 12px;
+}
+.dos-welcome {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 28px;
+}
+.dos-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  font-weight: 650;
+  color: var(--dos-muted);
+  margin: 0 0 12px;
+}
+.dos-welcome h1 {
+  font-size: clamp(26px, 3vw, 38px);
+  letter-spacing: -0.045em;
+  font-weight: 550;
+  line-height: 1.15;
+  margin: 0 0 12px;
+}
+.dos-welcome p:last-child {
+  color: var(--dos-muted);
+  margin: 0;
+  line-height: 1.6;
+}
+.dos-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  border: 1px solid var(--dos-border);
+  border-radius: 8px;
+  background: var(--dos-surface);
+  color: var(--theme-text);
+  padding: 12px 17px;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 550;
+  text-decoration: none;
+  cursor: pointer;
+  min-height: 44px;
+  flex-shrink: 0;
+}
+.dos-button--primary {
+  color: var(--dos-on-accent);
+  background: var(--dos-accent);
+  border-color: var(--dos-accent);
+}
+.dos-button:hover {
+  box-shadow: 0 0 0 2px var(--dos-border);
+}
+.dos-shortcuts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.dos-shortcuts > a {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--dos-surface);
+  border: 1px solid var(--dos-border);
+  border-radius: 12px;
+  padding: 22px 18px;
+  text-decoration: none;
+  box-shadow: var(--dos-shadow);
+}
+.dos-shortcuts > a:hover {
+  border-color: var(--dos-accent);
+}
+.dos-shortcuts > a > span:last-child {
+  margin-left: auto;
+  color: var(--dos-muted);
+}
+.dos-shortcut-icon {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--dos-soft);
+  color: var(--dos-accent);
+  font-size: 19px;
+  flex-shrink: 0;
+}
+.dos-shortcuts strong {
+  font-size: 14px;
+  font-weight: 600;
+  display: block;
+}
+.dos-shortcuts div > span {
+  display: block;
+  margin-top: 5px;
+  color: var(--dos-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.dos-workspace-note {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin: 0 0 24px;
+}
+.dos-workspace-note p {
+  color: var(--dos-muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin: 0;
+}
+.dos-build-guide {
+  border: 1px solid var(--dos-border);
+  border-radius: 12px;
+  background: var(--dos-surface);
+  margin-bottom: 34px;
+}
+.dos-build-guide summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px;
+  cursor: pointer;
+  list-style: none;
+  border-radius: 12px;
+}
+.dos-build-guide summary::-webkit-details-marker {
+  display: none;
+}
+.dos-build-symbol {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  background: var(--dos-soft);
+  border-radius: 10px;
+  color: var(--dos-accent);
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.dos-build-guide summary strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+.dos-build-guide summary > span > span {
+  color: var(--dos-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.dos-build-expand {
+  margin-left: auto;
+  font-size: 22px;
+  color: var(--dos-muted);
+}
+.dos-build-guide details[open] .dos-build-expand {
+  transform: rotate(45deg);
+}
+.dos-build-content {
+  border-top: 1px solid var(--dos-border);
+  padding: 8px 24px 24px;
+  line-height: 1.7;
+}
+.dos-build-content > p {
+  max-width: 90ch;
+  color: var(--dos-muted);
+}
+.dos-build-content a {
+  color: var(--dos-accent);
+  text-underline-offset: 3px;
+}
+.dos-build-content label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 16px;
+}
+.dos-build-content select,
+.dos-build-content textarea {
+  display: block;
+  width: 100%;
+  background: var(--theme-input-bg);
+  border: 1px solid var(--dos-border);
+  border-radius: 8px;
+  padding: 12px;
+  color: var(--theme-text);
+  font: inherit;
+  margin-top: 7px;
+}
+.dos-build-content select {
+  max-width: 360px;
+}
+.dos-build-content textarea {
+  font-size: 12px;
+  line-height: 1.7;
+  resize: vertical;
+  margin-bottom: 16px;
+}
+.dos-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.dos-helper {
+  font-size: 12px;
+}
+.dashboard .card {
+  background: var(--dos-surface);
+  border: 1px solid var(--dos-border);
+  border-radius: 10px;
+  padding: 20px;
+  min-height: 78px;
+  box-shadow: var(--dos-shadow);
+}
+.dashboard .card:hover {
+  background: var(--dos-surface);
+  border-color: var(--dos-accent);
+}
+.dashboard .card__title {
+  font-size: 14px;
+  font-weight: 550;
+}
+.dashboard h2 {
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.055em;
+  font-weight: 600;
+  color: var(--dos-muted);
+}
+.field-type
+  :is(
+    input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='color']),
+    textarea
+  ),
+.rs__control {
+  border-radius: 8px;
+  background: var(--theme-input-bg);
+}
+.field-type > label,
+.field-label {
+  font-weight: 550;
+  font-size: 13px;
+}
+.field-description {
+  color: var(--dos-muted);
+  line-height: 1.65;
+}
+.collapsible {
+  border-radius: 10px;
+  border-color: var(--dos-border);
+}
+.collapsible__toggle-wrap {
+  background: var(--dos-surface);
+}
+.table {
+  border: 1px solid var(--dos-border);
+  border-radius: 10px;
+}
+.table th {
+  font-size: 12px;
+  color: var(--dos-muted);
+  background: var(--dos-soft);
+}
+.table td {
+  padding-block: 15px;
+}
+.btn--style-primary {
+  background: var(--dos-accent);
+  color: var(--dos-on-accent);
+  border-radius: 7px;
+}
+.btn--style-secondary {
+  border-radius: 7px;
+}
+.login {
+  max-width: 440px;
+}
+.login__brand {
+  margin-bottom: 36px;
+}
+@media (max-width: 1100px) {
+  .dos-shortcuts {
+    grid-template-columns: 1fr;
+  }
+  .dos-shortcuts > a {
+    padding: 16px;
+  }
+}
+@media (max-width: 600px) {
+  .dos-welcome {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .dos-workspace-note {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .dos-build-guide summary {
+    padding: 16px;
+  }
+  .dos-build-content {
+    padding: 8px 16px 20px;
+  }
+  .dos-environment {
+    font-size: 10px;
+    padding: 5px 8px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dos-home *,
+  .dashboard .card {
+    transition: none;
+  }
+}
+
+.dos-publishing,
+.dos-protection {
+  background: var(--dos-surface);
+  border: 1px solid var(--dos-border);
+  border-radius: 14px;
+  padding: 24px;
+  margin-block: 24px;
+}
+.dos-publishing h2 {
+  margin-top: 0;
+  font-size: 22px;
+}
+.dos-publishing p,
+.dos-protection p {
+  color: var(--dos-muted);
+  max-width: 80ch;
+}
+.dos-publish-actions,
+.dos-publish-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.dos-publish-confirm {
+  border-top: 1px solid var(--dos-border);
+  margin-top: 20px;
+  padding-top: 16px;
+}
+.dos-publish-confirm p {
+  width: 100%;
+}
+.dos-protection summary {
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.dos-policy-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+}
+.dos-policy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--dos-border);
+  border-radius: 8px;
+  padding: 14px;
+}
+.dos-policy span,
+.dos-policy small {
+  display: block;
+  color: var(--dos-muted);
+  margin-top: 4px;
+}
+.dos-policy select {
+  max-width: 100%;
+  padding: 8px;
+  background: var(--theme-input-bg);
+  color: var(--theme-text);
+  border: 1px solid var(--dos-border);
+  border-radius: 6px;
+}

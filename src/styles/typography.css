@@ -1,0 +1,18 @@
+@import '@fontsource-variable/inter/wght.css';
+@import '@fontsource-variable/inter/wght-italic.css';
+@import '@fontsource-variable/source-sans-3/wght.css';
+@import '@fontsource-variable/source-sans-3/wght-italic.css';
+@import '@fontsource-variable/lora/wght.css';
+@import '@fontsource-variable/lora/wght-italic.css';
+
+.site-typography {
+  font-family: var(--font-body, system-ui, sans-serif);
+  font-weight: var(--weight-body, 400);
+}
+.site-typography :where(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--font-heading, system-ui, sans-serif);
+  font-weight: var(--weight-heading, 700);
+}
+.site-typography :where(strong, b) {
+  font-weight: var(--weight-emphasis, 700);
+}

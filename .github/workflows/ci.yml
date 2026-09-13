@@ -1,0 +1,57 @@
+name: Foundation checks
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: designos_test
+          POSTGRES_USER: designos
+          POSTGRES_PASSWORD: ci-only
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      DATABASE_URL: postgresql://designos:ci-only@localhost:5432/designos_test
+      DATABASE_ENV: local
+      SITE_ENV: local
+      DB_PUSH: 'false'
+      PAYLOAD_SECRET: ci-only-random-test-secret-not-for-any-real-environment
+      NEXT_PUBLIC_SERVER_URL: http://localhost:3000
+      SEED_EMAIL: editor@example.test
+      SEED_PASSWORD: ci-only-example-password-not-for-production
+      AI_ENABLED: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci
+      - run: npm run migrate
+      - run: npm run seed
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run test:integration
+      - run: npm run test:releases
+      - run: npm run test:ai
+      - run: npm run test:installer
+      - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - run: npm start > /tmp/designos-server.log 2>&1 &
+      - run: npx wait-on http://localhost:3000 --timeout 60000
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-evidence
+          path: |
+            playwright-report/
+            test-results/

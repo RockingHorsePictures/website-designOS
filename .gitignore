@@ -2,14 +2,16 @@ node_modules/
 .next/
 .cache/
 .local/
+.designos/
 .env*
 !.env.example
 .vercel/
 media/
+font-files/
 test-results/
 playwright-report/
 *.tsbuildinfo
 *.log
 
-.vercel
-.env*
+.agents/
+skills-lock.json
