@@ -32,7 +32,7 @@ Design OS only: V5 Phases 1, 2, 2B and 3. No final company website design is inc
 - Search discovery is enabled by default in production; model-training crawlers are denied by default. Search Strategy can change either policy independently.
 - Published slug changes create redirects. IndexNow notifications are best-effort after publication/deletion and never block editing; a public key endpoint supports ownership validation.
 - The pre-publish panel checks the current form's values and separates blockers, warnings and recommendations. Invalid titles/slugs/sections are also rejected on publish server-side. Factual review is advisory and requires human judgment; this is not a claim-verification engine.
-- Scheduled publication uses Payload's native `schedulePublish` job. Local development has a minute worker; hosted deployments use an authenticated cron request. Minute-level Vercel Cron requires a suitable Vercel plan.
+- Scheduled publication uses Payload's native `schedulePublish` job. Local development has a minute worker; hosted jobs run on an authenticated endpoint. The Preview worker was verified through explicit invocation. Automatic timed execution requires a production scheduler; minute-level Vercel Cron requires a suitable plan and never runs on Preview deployments.
 
 ## Media and optional AI
 

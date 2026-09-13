@@ -2,6 +2,8 @@
 
 Next.js + Payload + PostgreSQL foundation from `COMPANY_WEBSITE_BUILD_SPEC_V5.md`. Scope stops after Phases 1, 2, 2B and 3. All public views are deliberately neutral proof scaffolding. Final website design requires separate authorization.
 
+Verified hosted Preview: https://designos-preview-rockinghorse.vercel.app; editor at `/admin`. Vercel sign-in protects the Preview; the CMS has its own editor login. On the original setup computer, credentials are in the ignored `.local/preview-access.txt`. Review the foundation in https://github.com/RockingHorsePictures/website-designOS/pull/1.
+
 ## Local setup
 
 Requirements: Node 22+ (Node 24 tested), npm, PostgreSQL 17/18 or the included native local server.
@@ -62,6 +64,8 @@ Default topology is GitHub → Vercel with separate managed PostgreSQL and Blob 
 9. Promote/merge only after review and separate production approval. This foundation run does not start the final visual-design phase.
 
 A temporary static deployment cannot validate Payload persistence and is not a substitute for Phase 3. See IMPLEMENTATION_STATUS for actual hosted verification status.
+
+Vercel requires a first Production-labelled deployment for a new project. This project's approved static bootstrap has no public alias or app credentials; the actual application is on Preview. Keep `.vercelignore`: the CLI does not use all Git exclusions when uploading local source. The protected Preview, hosted editing and media persistence after redeploy have been verified.
 
 ## Documents
 
