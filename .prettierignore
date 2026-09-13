@@ -1,0 +1,12 @@
+node_modules
+.next
+.cache
+.local
+.agents
+.vercel
+test-results
+playwright-report
+package-lock.json
+src/payload-types.ts
+src/migrations
+COMPANY_WEBSITE_BUILD_SPEC_V5.md

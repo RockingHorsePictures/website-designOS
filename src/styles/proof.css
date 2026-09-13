@@ -1,0 +1,89 @@
+/* Neutral infrastructure scaffolding. Final visual design is a separately authorised phase. */
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  line-height: 1.6;
+  color: var(--color-text);
+  background: var(--color-canvas);
+}
+.site-header,
+.site-footer,
+main {
+  padding: 1.25rem;
+}
+.site-header,
+.site-footer {
+  border-block: 1px solid var(--color-border);
+}
+.site-header nav,
+.site-footer nav {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+main > article,
+main > section {
+  max-width: 56rem;
+  margin-inline: auto;
+}
+a {
+  color: var(--color-accent);
+  text-underline-offset: 0.2em;
+}
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 4px;
+}
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+}
+.notice,
+.proof-section {
+  padding: 1rem;
+  border: 1px solid var(--color-border);
+  margin-block: 1rem;
+}
+.surface,
+.notice {
+  background: var(--color-surface);
+}
+.skip {
+  position: absolute;
+  left: -9999px;
+}
+.skip:focus {
+  left: 1rem;
+  top: 1rem;
+  background: var(--color-canvas);
+  padding: 1rem;
+  z-index: 100;
+}
+iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+}
+.composer-bar {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  padding: 1rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
