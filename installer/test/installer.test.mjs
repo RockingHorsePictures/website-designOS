@@ -5,7 +5,7 @@ import { validateSetup, createWorkflow } from '../workflow.mjs'
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { planUpgrade } from '../../scripts/upgrade.mjs'
+import { hash, planUpgrade } from '../../scripts/upgrade.mjs'
 
 test('setup rejects shell-like names, weak credentials and missing resource approval', () => {
   const good = {
@@ -29,6 +29,11 @@ test('setup rejects shell-like names, weak credentials and missing resource appr
     assert.throws(() => validateSetup({ ...good, ...change }))
 })
 test('upgrades preserve site changes and stop on conflicting upstream edits', () => {
+  assert.equal(hash(Buffer.from('code\r\n'), 'app.ts'), hash(Buffer.from('code\n'), 'app.ts'))
+  assert.notEqual(
+    hash(Buffer.from('code\r\n'), 'file.bin'),
+    hash(Buffer.from('code\n'), 'file.bin'),
+  )
   const baseline = { 'core.ts': 'a', 'custom.ts': 'b', 'removed.ts': 'c' }
   assert.deepEqual(
     planUpgrade(

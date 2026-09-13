@@ -13,7 +13,15 @@ import path from 'node:path'
 import os from 'node:os'
 import { pathToFileURL } from 'node:url'
 
-export const hash = (bytes) => createHash('sha256').update(bytes).digest('hex')
+export const hash = (bytes, name = '') =>
+  createHash('sha256')
+    .update(
+      /\.(?:ts|tsx|js|mjs|cjs|json|md|css|html|yml|yaml|svg|txt)$/.test(name) ||
+        /(?:^|\/)\.(?:gitignore|vercelignore|prettierignore|env\.example)$/.test(name)
+        ? bytes.toString('utf8').replaceAll('\r\n', '\n')
+        : bytes,
+    )
+    .digest('hex')
 export function planUpgrade(baseline, current, next) {
   const changes = []
   const conflicts = []
@@ -87,7 +95,7 @@ export function upgrade(args = process.argv.slice(2), root = process.cwd()) {
     ...Object.keys(nextInstallation.files),
   ])) {
     const filename = safePath(root, name)
-    if (existsSync(filename)) current[name] = hash(readFileSync(filename))
+    if (existsSync(filename)) current[name] = hash(readFileSync(filename), name)
   }
   const plan = planUpgrade(installation.files, current, nextInstallation.files)
   mkdirSync(path.join(root, '.designos'), { recursive: true })

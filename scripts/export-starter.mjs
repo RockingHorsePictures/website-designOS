@@ -2,7 +2,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { createHash } from 'node:crypto'
+import { hash } from './upgrade.mjs'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 if (!process.argv[2])
@@ -121,8 +121,7 @@ const excluded = new Set(['site-workspace.json', 'IMPLEMENTATION_STATUS.md'])
 for (const name of files) {
   if (excluded.has(name)) continue
   const filename = path.join(destination, name)
-  if (existsSync(filename))
-    managed[name] = createHash('sha256').update(readFileSync(filename)).digest('hex')
+  if (existsSync(filename)) managed[name] = hash(readFileSync(filename), name)
 }
 const release = JSON.parse(readFileSync(path.join(destination, 'designos-release.json'), 'utf8'))
 writeFileSync(
@@ -130,6 +129,7 @@ writeFileSync(
   JSON.stringify(
     {
       version: release.version,
+      hashAlgorithm: 'sha256-lf-text-v1',
       sourceCommit: revision,
       installedAt: new Date().toISOString(),
       files: managed,
