@@ -31,6 +31,12 @@ Changing a **published** URL creates an internal redirect from the previous URL.
 
 Navigation manages ordered primary, secondary and footer links. Site Settings manages company/contact/footer/social information. Theme tokens expose a small set of semantic colours. These globals save directly and affect the next public request; version history supports recovery. They do not have a separate draft-preview workflow in this foundation.
 
+### Fonts and weights
+
+Open **Theme tokens → Fonts & weights**. Choose body and heading fonts independently, then choose regular (400), medium (500), semibold (600) or bold (700) weights. Emphasis weight controls bold text. The sample responds before saving; **Save** applies the selection to the website and page composer without a code deployment. Refresh an already-open website/composer tab to see the saved choice. Payload's admin interface keeps its own typography.
+
+Inter, Source Sans 3 and Lora are served with the app, including normal and italic styles. System sans serif, serif and monospace choices use fonts installed on the visitor's device; their exact appearance and intermediate weights can vary by device. Existing pages retain system fonts until changed. To add a specific brand font, provide its webfont files and licence to a coding agent, who adds it to the approved library. Font sizes and layout remain part of the website design.
+
 ## Media descriptions
 
 Write what the image communicates in context. Avoid generic “image of” wording and unsupported identity/location guesses. Mark decoration as decorative to output an empty description. A page's per-use description can override the asset description.

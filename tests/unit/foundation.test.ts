@@ -1,12 +1,25 @@
 import { describe, it, expect } from 'vitest'
 import { safeLink, contentPath, validSlug, vimeoID } from '../../src/lib/urls'
 import { tokenStyle } from '../../src/design-system/tokens'
+import { typographyStyle } from '../../src/design-system/typography'
 import { compositionSchema } from '../../src/editor/registry/schema'
 import { auditContent } from '../../src/lib/quality'
 import { indexable, serializeSchema } from '../../src/lib/search/metadata'
 import { DisabledAIProvider } from '../../src/lib/ai/providers'
 
 describe('content contracts', () => {
+  it('keeps typography defaults for old versions and rejects arbitrary CSS values', () => {
+    expect(
+      typographyStyle({ bodyFont: 'url(https://example.com)', headingWeight: '900;display:none' }),
+    ).toEqual(typographyStyle())
+    expect(
+      typographyStyle({ bodyFont: 'inter', headingFont: 'lora', headingWeight: '600' }),
+    ).toMatchObject({
+      '--font-body': '"Inter Variable", system-ui, sans-serif',
+      '--font-heading': '"Lora Variable", Georgia, serif',
+      '--weight-heading': '600',
+    })
+  })
   it('accepts Puck empty zones but rejects unsupported nested layouts', () => {
     expect(compositionSchema.safeParse({ root: {}, content: [], zones: {} }).success).toBe(true)
     expect(

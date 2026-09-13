@@ -30,7 +30,7 @@ V5 supersedes V4. **Phases 1, 2, 2B and 3 are complete within the foundation sco
 
 - Next.js 16.3.5, Payload packages 3.89.0, React 19.3.0 and Puck 0.23.0, exact versions pinned.
 - Payload is the only content source. Shared React section renderers serve the composer and public pages. Registry schemas constrain stored layouts and stable section IDs.
-- Semantic colors are editor-controlled; typography, spacing, motion, grids and responsive behavior stay in code. No final design decisions have been made.
+- Semantic colours, approved heading/body fonts and heading/body/emphasis weights are editor-controlled. Font sizes, spacing, motion, grids and responsive behaviour stay in code. The font controls were added by explicit follow-up request; no final website design has begun.
 - Dynamic public rendering makes published changes visible without a deployment. Standard Payload live preview refreshes saved drafts; it does not stream unsaved normal-form keystrokes. Puck previews unsaved section changes directly.
 - Globals save directly with version history; they do not have an independent draft-release workflow.
 - Separate Preview/Production database, storage and signing credentials are required. Current app resources are Preview only; real Production resources and the company application are not deployed. Only the approved static bootstrap occupies Vercel's initial Production slot.
@@ -43,5 +43,7 @@ V5 supersedes V4. **Phases 1, 2, 2B and 3 are complete within the foundation sco
 - Remaining moderate dependency advisories are in transitive migration tooling; see OPERATIONS.md.
 
 ## How a future design agent begins
+
+The requested typography extension adds a live Theme sample, independently selectable heading/body fonts and heading/body/emphasis weights, with real self-hosted font files. Twelve unit checks, the production build, lint and all five local browser flows pass. The additive migration preserves existing theme values and versions with the original system-font defaults. See DESIGN_HANDOFF.md for the next design task's baseline, inputs and starting prompt.
 
 Obtain explicit Phase 4 authorization, then read this status, V5, ARCHITECTURE.md and AI_SITE_CONTRACT.md. Run the existing tests and inspect the real editor before modifying templates. Obtain approved company references and visual direction. Extend shared sections and schemas together; preserve draft isolation, structured records and existing content migrations. Keep demo content clearly identified until approved content replaces it.

@@ -1,4 +1,7 @@
 import type { Config } from '@puckeditor/core'
+import type { Theme } from '../../payload-types'
+import { tokenStyle } from '../../design-system/tokens'
+import { typographyStyle } from '../../design-system/typography'
 import {
   Intro,
   CallToAction,
@@ -16,9 +19,19 @@ type Props = {
     limit: number
   }
 }
-export function createPuckConfig(projects: ProjectSummary[]): Config<Props> {
+export function createPuckConfig(projects: ProjectSummary[], theme: Theme): Config<Props> {
   return {
-    root: { fields: {}, render: ({ children }) => <>{children}</> },
+    root: {
+      fields: {},
+      render: ({ children }) => (
+        <div
+          className="site-typography"
+          style={{ ...tokenStyle(theme), ...typographyStyle(theme) }}
+        >
+          {children}
+        </div>
+      ),
+    },
     components: {
       Intro: {
         label: 'Introduction',

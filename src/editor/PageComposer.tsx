@@ -6,6 +6,7 @@ import { createPuckConfig } from './registry/config'
 import { previewWidths } from '../design-system/tokens'
 import type { ProjectSummary } from '../components/sections'
 import { compositionSchema, type Composition } from './registry/schema'
+import type { Theme } from '../payload-types'
 
 export function PageComposer({
   id,
@@ -13,12 +14,14 @@ export function PageComposer({
   initial,
   updatedAt,
   projects,
+  theme,
 }: {
   id: number
   title: string
   initial: Composition
   updatedAt: string
   projects: ProjectSummary[]
+  theme: Theme
 }) {
   const [version, setVersion] = useState(updatedAt)
   const currentData = useRef<Data>(initial as Data)
@@ -61,7 +64,7 @@ export function PageComposer({
         </span>
       </div>
       <Puck
-        config={createPuckConfig(projects)}
+        config={createPuckConfig(projects, theme)}
         data={initial as Data}
         onChange={(data) => {
           currentData.current = data

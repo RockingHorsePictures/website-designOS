@@ -1,6 +1,8 @@
 import '@/styles/proof.css'
+import '@/styles/typography.css'
 import { cms, previewUser } from '@/lib/cms'
 import { tokenStyle } from '@/design-system/tokens'
+import { typographyStyle } from '@/design-system/typography'
 import { draftMode } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { LiveRefresh } from '@/editor/LiveRefresh'
@@ -31,7 +33,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   ])
   return (
     <html lang="en">
-      <body style={tokenStyle(theme)}>
+      <body className="site-typography" style={{ ...tokenStyle(theme), ...typographyStyle(theme) }}>
         {user && <LiveRefresh />}
         <a className="skip" href="#main">
           Skip to content

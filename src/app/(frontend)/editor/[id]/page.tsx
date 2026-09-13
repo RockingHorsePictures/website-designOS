@@ -29,6 +29,7 @@ export default async function Editor({ params }: { params: Promise<{ id: string 
       initial={parsed.success ? parsed.data : emptyComposition}
       updatedAt={page.updatedAt}
       projects={docs}
+      theme={await payload.findGlobal({ slug: 'theme' })}
     />
   )
 }

@@ -1265,6 +1265,14 @@ export interface Theme {
   highlight: string;
   border: string;
   inverse: string;
+  bodyFont: 'system-sans' | 'system-serif' | 'system-mono' | 'inter' | 'source-sans-3' | 'lora';
+  headingFont: 'system-sans' | 'system-serif' | 'system-mono' | 'inter' | 'source-sans-3' | 'lora';
+  bodyWeight: '400' | '500' | '600' | '700';
+  headingWeight: '400' | '500' | '600' | '700';
+  /**
+   * Used for bold/emphasised text. Choose a weight at least as heavy as the body weight.
+   */
+  emphasisWeight: '400' | '500' | '600' | '700';
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1374,6 +1382,11 @@ export interface ThemeSelect<T extends boolean = true> {
   highlight?: T;
   border?: T;
   inverse?: T;
+  bodyFont?: T;
+  headingFont?: T;
+  bodyWeight?: T;
+  headingWeight?: T;
+  emphasisWeight?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

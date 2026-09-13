@@ -16,6 +16,8 @@ Design OS only: V5 Phases 1, 2, 2B and 3. No final company website design is inc
 
 ## Editor and preview
 
+Theme typography uses a stable approved-font registry and CSS variables shared by the public layout, Puck preview root and live admin sample. Inter, Source Sans 3 and Lora are self-hosted through pinned Fontsource variable packages with normal/italic faces; system stacks are also available. The additive typography migration supplies the original system-font defaults to existing globals and their versions. Adding a font must update the registry, bundled assets and enum migration. CMS values never supply raw CSS or external stylesheet URLs.
+
 - Payload is the primary editing shell. Its forms support create, duplicate, draft, publish, unpublish, schedule and version restore.
 - `/editor/[id]` is an authenticated Puck composer for Pages only. Three neutral sections prove the component contract: Introduction, Call to action, Selected case studies.
 - The JSON field is replaced with a human-readable outline and composer link. Authors do not edit JSON.

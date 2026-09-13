@@ -1,7 +1,8 @@
-import type { GlobalConfig } from 'payload'
+import type { GlobalConfig, Field } from 'payload'
 import { authenticated } from '../access'
 import { linkFields } from '../fields/shared'
 import { tokenDefaults, validColor } from '../../design-system/tokens'
+import { fontOptions, weightOptions, typographyDefaults } from '../../design-system/typography'
 
 const publicAccess = { read: () => true, update: authenticated }
 export const Navigation: GlobalConfig = {
@@ -38,13 +39,76 @@ export const Theme: GlobalConfig = {
   admin: { group: 'Website' },
   access: publicAccess,
   versions: { max: 20 },
-  fields: Object.entries(tokenDefaults).map(([name, value]) => ({
-    name,
-    type: 'text',
-    required: true,
-    defaultValue: value,
-    validate: (v: unknown) => validColor(v) || 'Use a six-digit hex colour, for example #333333.',
-  })),
+  fields: [
+    ...Object.entries(tokenDefaults).map(
+      ([name, value]): Field => ({
+        name,
+        type: 'text',
+        required: true,
+        defaultValue: value,
+        validate: (v: unknown) =>
+          validColor(v) || 'Use a six-digit hex colour, for example #333333.',
+      }),
+    ),
+    {
+      type: 'collapsible',
+      label: 'Fonts & weights',
+      admin: { initCollapsed: false },
+      fields: [
+        {
+          name: 'bodyFont',
+          label: 'Body font',
+          type: 'select',
+          options: fontOptions,
+          defaultValue: typographyDefaults.bodyFont,
+          required: true,
+        },
+        {
+          name: 'headingFont',
+          label: 'Heading font',
+          type: 'select',
+          options: fontOptions,
+          defaultValue: typographyDefaults.headingFont,
+          required: true,
+        },
+        {
+          name: 'bodyWeight',
+          label: 'Body weight',
+          type: 'select',
+          options: weightOptions,
+          defaultValue: typographyDefaults.bodyWeight,
+          required: true,
+        },
+        {
+          name: 'headingWeight',
+          label: 'Heading weight',
+          type: 'select',
+          options: weightOptions,
+          defaultValue: typographyDefaults.headingWeight,
+          required: true,
+        },
+        {
+          name: 'emphasisWeight',
+          label: 'Emphasis weight',
+          type: 'select',
+          options: weightOptions,
+          defaultValue: typographyDefaults.emphasisWeight,
+          required: true,
+          admin: {
+            description:
+              'Used for bold/emphasised text. Choose a weight at least as heavy as the body weight.',
+          },
+        },
+        {
+          name: 'typographySample',
+          type: 'ui',
+          admin: {
+            components: { Field: '/src/editor/TypographyPreview#TypographyPreview' },
+          },
+        },
+      ],
+    },
+  ],
 }
 export const SearchProfile: GlobalConfig = {
   slug: 'search-profile',
