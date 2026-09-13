@@ -50,4 +50,6 @@ Search & quality checks identify missing metadata, unsafe composition and factua
 
 Document Versions restore content into the workspace, without overwriting Live. Scheduled document operations affect workspace state only. Whole-site scheduled publication is not implemented; publish the reviewed site explicitly from Overview.
 
+Version restoration cannot reset approvals or bypass a current lock. If an older version carries different approval records, copy the desired values into unlocked fields and save them instead; approval controls remain the place to change locks.
+
 Expand Build your website with AI on Overview for a copyable handoff. Continue in the connected coding workspace. For a separate company, use NEW_SITE.md; each website gets its own repository, database, uploads and credentials.

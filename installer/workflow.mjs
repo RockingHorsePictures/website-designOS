@@ -129,7 +129,13 @@ export function createWorkflow({ execute = run, fetcher = fetch } = {}) {
       )
     const user = await github('GET', '/user')
     const orgs = await github('GET', '/user/orgs').catch(() => [])
-    current.github = { login: user.login, owners: [user.login, ...orgs.map((org) => org.login)] }
+    if (!Number.isSafeInteger(user.id))
+      throw new Error('GitHub did not return an account identity.')
+    current.github = {
+      id: user.id,
+      login: user.login,
+      owners: [user.login, ...orgs.map((org) => org.login)],
+    }
     try {
       const output = await vercel(['teams', 'ls', '--json'])
       const start = output.indexOf('{')
@@ -225,6 +231,31 @@ export function createWorkflow({ execute = run, fetcher = fetch } = {}) {
     const options = { cwd: data.folder }
     const vc = (args, extra = {}) =>
       vercel([...args, '--scope', data.team], { ...options, ...extra })
+    const deploy = async (flags = []) => {
+      const output = await vc(['deploy', ...flags, '--yes', '--no-wait'])
+      const urls = output.match(/https:\/\/[a-z0-9-]+\.vercel\.app/g)
+      if (!urls?.length)
+        throw new Error(
+          'Vercel did not return a deployment address. Inspect the project before retrying.',
+        )
+      const deadline = Date.now() + 20 * 60 * 1000
+      while (Date.now() < deadline) {
+        const details = await vc(['inspect', urls.at(-1), '--json'])
+        const info = JSON.parse(details.slice(details.indexOf('{'), details.lastIndexOf('}') + 1))
+        const status = info.readyState || info.status
+        if (status === 'READY') return info
+        if (status === 'BLOCKED')
+          throw new Error(
+            'Vercel blocked deployment. Make sure the connected GitHub account can deploy to the selected Vercel team, then resume.',
+          )
+        if (['ERROR', 'CANCELED'].includes(status))
+          throw new Error(
+            'Deployment failed. Review the build log in Vercel, correct the issue, then resume.',
+          )
+        await new Promise((resolve) => setTimeout(resolve, 5000))
+      }
+      throw new Error('Deployment is still pending. Check Vercel before resuming setup.')
+    }
     await step('Download Design OS', async () => {
       const temp = mkdtempSync(path.join(os.tmpdir(), 'design-os-source-'))
       await execute('git', [
@@ -274,8 +305,16 @@ export function createWorkflow({ execute = run, fetcher = fetch } = {}) {
     const repository = state.steps['Create your private GitHub repository']
     await step('Initialize your website repository', async () => {
       await execute('git', ['init', '-b', 'main'], options)
-      await execute('git', ['config', 'user.name', 'Design OS setup'], options)
-      await execute('git', ['config', 'user.email', data.email], options)
+      await execute('git', ['config', 'user.name', current.github.login], options)
+      await execute(
+        'git',
+        [
+          'config',
+          'user.email',
+          `${current.github.id}+${current.github.login}@users.noreply.github.com`,
+        ],
+        options,
+      )
       await execute('git', ['remote', 'add', 'origin', repository.cloneURL], options)
     })
     await step('Commit your website foundation', async () => {
@@ -405,16 +444,7 @@ export function createWorkflow({ execute = run, fetcher = fetch } = {}) {
       })
     }
     await step('Deploy your unpublished website', async () => {
-      const output = await vc(['deploy', '--prod', '--yes'])
-      const urls = output.match(/https:\/\/[a-z0-9-]+\.vercel\.app/g)
-      if (!urls?.length)
-        throw new Error(
-          'Deployment finished without an address. Inspect the project before retrying.',
-        )
-      const details = await vc(['inspect', urls[urls.length - 1], '--json'])
-      const info = JSON.parse(details.slice(details.indexOf('{'), details.lastIndexOf('}') + 1))
-      if (info.readyState !== 'READY' && info.status !== 'READY')
-        throw new Error('The website deployment is not ready.')
+      const info = await deploy(['--prod'])
       const aliases = (info.alias || info.aliases || [])
         .map((alias) => (typeof alias === 'string' ? alias : alias.alias))
         .filter((alias) => typeof alias === 'string' && /^[a-z0-9.-]+\.vercel\.app$/.test(alias))
@@ -430,9 +460,9 @@ export function createWorkflow({ execute = run, fetcher = fetch } = {}) {
         await vc(['env', 'add', 'NEXT_PUBLIC_SERVER_URL', environment, '--yes', '--force'], {
           input: siteURL,
         })
-      await vc(['deploy', '--prod', '--yes'])
+      await deploy(['--prod'])
     })
-    await step('Deploy the code testing environment', () => vc(['deploy', '--yes']))
+    await step('Deploy the code testing environment', () => deploy())
     await step('Connect automatic branch previews', () =>
       vc(['git', 'connect', repository.url, '--non-interactive']),
     )
@@ -458,6 +488,22 @@ export function createWorkflow({ execute = run, fetcher = fetch } = {}) {
           { mode: 0o600 },
         )
       }
+    })
+    await step('Record your completed setup', async () => {
+      writeFileSync(
+        path.join(data.folder, 'IMPLEMENTATION_STATUS.md'),
+        `# Website setup status\n\nDesign OS ${release.version} was installed into this independent website.\n\n- Repository: ${repository.url}\n- Admin: ${siteURL}/admin\n- Saved content Preview: ${siteURL}/preview\n- Live: ${siteURL}\n- Production and code-testing environments have separate databases, upload stores and signing secrets. Migrations and initial administrator creation completed. The editor URL responded successfully.\n- No company website design has begun. Live starts on Coming soon until publication from the admin.\n- Configure your company identity, content, branding, email delivery and recovery arrangements. Run your own design and launch checks.\n\nRead START_HERE.md and AI_SITE_CONTRACT.md before making changes. Never copy another environment's database over this site's content.\n`,
+      )
+      const changed = await execute(
+        'git',
+        ['status', '--porcelain', '--', 'IMPLEMENTATION_STATUS.md'],
+        options,
+      )
+      if (changed.trim()) {
+        await execute('git', ['add', 'IMPLEMENTATION_STATUS.md'], options)
+        await execute('git', ['commit', '-m', 'Record completed website setup'], options)
+      }
+      await execute('git', ['push', 'origin', 'main'], { ...options, env: gitEnv() })
     })
     current.result = {
       folder: data.folder,

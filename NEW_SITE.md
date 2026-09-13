@@ -10,6 +10,8 @@ The wizard may pause for Neon terms or Vercel GitHub-app repository access. Comp
 
 Local environment files contain this site's service credentials and are ignored by Git and deployment uploads. Store the administrator password in your password manager. The installer does not configure a custom domain, transactional email, paid backup policy or a whole-site scheduler; these remain explicit launch choices. Public uploads are intended for website assets.
 
+Setup commits use the connected GitHub account's private commit identity, independently of the CMS administrator email. That GitHub account must have deployment access to the chosen Vercel team. A blocked or failed deployment stops with a recovery message; it does not wait indefinitely or silently change accounts.
+
 ## Reviewed updates
 
 Every exported site records its originating version, commit and baseline file hashes in designos-installation.json. Plan an upgrade with `npm run upgrade -- vX.Y.Z`. Review .designos/upgrade-review.json, then add `--apply` to prepare a separate upgrade branch. Neither command changes the database or deploys anything.

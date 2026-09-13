@@ -105,8 +105,9 @@ test('wizard requires its launch token, rejects cross-origin requests and expose
   }
 })
 
-for (const sharedDatabase of [false, true]) {
-  test(`installer ${sharedDatabase ? 'stops before migrating shared resources' : 'completes isolated setup without deploying bootstrap passwords'}`, async () => {
+for (const mode of ['success', 'shared', 'blocked']) {
+  const sharedDatabase = mode === 'shared'
+  test(`installer workflow: ${mode}`, async () => {
     const temp = mkdtempSync(path.join(os.tmpdir(), 'designos-installer-test-'))
     const commands = []
     const execute = async (command, args, options = {}) => {
@@ -132,12 +133,15 @@ for (const sharedDatabase of [false, true]) {
       }
       if (args.includes('deploy')) return 'https://test-assigned.vercel.app'
       if (args.includes('inspect'))
-        return JSON.stringify({ readyState: 'READY', alias: ['test-assigned.vercel.app'] })
+        return JSON.stringify({
+          readyState: mode === 'blocked' ? 'BLOCKED' : 'READY',
+          alias: ['test-assigned.vercel.app'],
+        })
       return ''
     }
     const fetcher = async (url) => {
       const value = url.endsWith('/user')
-        ? { login: 'test-owner' }
+        ? { id: 4242, login: 'test-owner' }
         : url.endsWith('/user/orgs')
           ? []
           : {
@@ -167,8 +171,18 @@ for (const sharedDatabase of [false, true]) {
       if (sharedDatabase) {
         assert.match(workflow.status().error, /different resources/)
         assert.equal(migrations.length, 0)
+      } else if (mode === 'blocked') {
+        assert.match(workflow.status().error, /connected GitHub account/)
+        assert.equal(workflow.status().result, null)
       } else {
         assert.equal(workflow.status().error, null)
+        assert(
+          commands.some(
+            ({ args }) =>
+              args.includes('user.email') &&
+              args.includes('4242+test-owner@users.noreply.github.com'),
+          ),
+        )
         assert.equal(workflow.status().result.admin, 'https://test-assigned.vercel.app/admin')
         assert.equal(migrations.length, 2)
         assert(

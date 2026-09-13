@@ -158,6 +158,8 @@ export interface UserAuthOperations {
   };
 }
 /**
+ * Save edits here. Use Overview → Save to Preview → Publish to Live to release the whole site.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "pages".
  */
@@ -283,6 +285,8 @@ export interface Media {
   };
 }
 /**
+ * Save edits here. Use Overview → Save to Preview → Publish to Live to release the whole site.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "services".
  */
@@ -376,6 +380,8 @@ export interface Service {
   _status?: ('draft' | 'published') | null;
 }
 /**
+ * Save edits here. Use Overview → Save to Preview → Publish to Live to release the whole site.
+ *
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "case-studies".
  */
