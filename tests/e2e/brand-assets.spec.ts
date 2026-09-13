@@ -14,6 +14,7 @@ test('AI handoff, font upload and brand assets work across editor and website', 
   await expect(page).toHaveURL(/\/admin$/)
   const guide = page.getByRole('region', { name: 'Build your website with AI' })
   await expect(guide).toBeVisible()
+  await guide.locator('summary').click()
   await expect(guide.getByLabel('Instructions to give your AI workspace')).toHaveValue(
     /AI_SITE_CONTRACT.md/,
   )

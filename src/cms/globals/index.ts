@@ -77,16 +77,27 @@ export const Theme: GlobalConfig = {
   access: publicAccess,
   versions: { max: 20 },
   fields: [
-    ...Object.entries(tokenDefaults).map(
-      ([name, value]): Field => ({
-        name,
-        type: 'text',
-        required: true,
-        defaultValue: value,
-        validate: (v: unknown) =>
-          validColor(v) || 'Use a six-digit hex colour, for example #333333.',
-      }),
-    ),
+    {
+      type: 'collapsible',
+      label: 'Colours',
+      admin: { initCollapsed: false },
+      fields: [
+        {
+          type: 'row',
+          fields: Object.entries(tokenDefaults).map(
+            ([name, value]): Field => ({
+              name,
+              type: 'text',
+              required: true,
+              defaultValue: value,
+              admin: { width: '50%', components: { Field: '/src/editor/ColorField#ColorField' } },
+              validate: (v: unknown) =>
+                validColor(v) || 'Use a six-digit hex colour, for example #333333.',
+            }),
+          ),
+        },
+      ],
+    },
     {
       type: 'collapsible',
       label: 'Fonts & weights',

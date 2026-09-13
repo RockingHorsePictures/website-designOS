@@ -29,7 +29,17 @@ Changing a **published** URL creates an internal redirect from the previous URL.
 
 ## Global content and colours
 
+The admin Overview provides shortcuts for pages, assets and company settings. The navigation groups records into Content, Assets, Website, Search & evidence, and Administration. The environment badge identifies Local, Preview or Production on every admin screen. Expand **Build your website with AI** when you need its handoff instructions. The admin supports light and dark mode independently of website branding.
+
 Navigation manages ordered primary, secondary and footer links. Site Settings manages company/contact/footer/social information. Theme tokens expose a small set of semantic colours. These globals save directly and affect the next public request; version history supports recovery. They do not have a separate draft-preview workflow in this foundation.
+
+Use the colour swatches to choose colours visually, or enter a six-digit hex code. The swatch and text field stay in sync. Editing a colour does not save it until you press Save.
+
+### Which workspace should I edit?
+
+Before launch, this project's Preview is the working test site. After launch, use the **Production admin** for day-to-day editorial work: save page drafts, check their authenticated preview, then publish. A draft preview is different from the separate Preview deployment used to test code changes. Theme, logo and navigation globals currently apply immediately when saved in their environment.
+
+Website design, features and admin UI changes are tested in Preview and released together as application code. Content, uploads, font selections, logo selections and navigation values live in that environment's database/storage and are not automatically copied with a deployment. Moving approved initial content from Preview to Production requires a deliberate transfer and verification before launch; there is no automatic content-sync feature.
 
 ### Fonts and weights
 

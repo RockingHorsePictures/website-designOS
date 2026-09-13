@@ -1,4 +1,3 @@
-import { MediaActions as MediaActions_5625d81197fd14ec925f801ba4c65ea2 } from '../../../../src/editor/MediaActions'
 import { CompositionField as CompositionField_64112cfcd012c4b9bc97ea3818e4159a } from '../../../../src/editor/CompositionField'
 import { QualityPanel as QualityPanel_3b8342939f5192e87d588a687f346775 } from '../../../../src/editor/QualityPanel'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -24,14 +23,19 @@ import { StrikethroughFeatureClient as StrikethroughFeatureClient_e70f5e05f09f93
 import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
+import { MediaActions as MediaActions_5625d81197fd14ec925f801ba4c65ea2 } from '../../../../src/editor/MediaActions'
+import { ColorField as ColorField_25a97ef5de04efea1e828c9fe3a483ab } from '../../../../src/editor/ColorField'
 import { TypographyPreview as TypographyPreview_0d876beb142f494e8a71d1b7d6c6c808 } from '../../../../src/editor/TypographyPreview'
-import { BuildGuide as BuildGuide_2becd48c1e59b8979db5855f499a9bfe } from '../../../../src/editor/BuildGuide'
+import { WorkspaceIcon as WorkspaceIcon_e3dfc9e9e1ac49569523ec8001d064e2 } from '../../../../src/editor/Workspace'
+import { WorkspaceLogo as WorkspaceLogo_e3dfc9e9e1ac49569523ec8001d064e2 } from '../../../../src/editor/Workspace'
+import { EnvironmentBadge as EnvironmentBadge_e3dfc9e9e1ac49569523ec8001d064e2 } from '../../../../src/editor/Workspace'
+import { WorkspaceHome as WorkspaceHome_e3dfc9e9e1ac49569523ec8001d064e2 } from '../../../../src/editor/Workspace'
+import { WorkspaceNav as WorkspaceNav_e3dfc9e9e1ac49569523ec8001d064e2 } from '../../../../src/editor/Workspace'
 import { VercelBlobClientUploadHandler as VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e } from '@payloadcms/storage-vercel-blob/client'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 /** @type import('payload').ImportMap */
 export const importMap = {
-  "/src/editor/MediaActions#MediaActions": MediaActions_5625d81197fd14ec925f801ba4c65ea2,
   "/src/editor/CompositionField#CompositionField": CompositionField_64112cfcd012c4b9bc97ea3818e4159a,
   "/src/editor/QualityPanel#QualityPanel": QualityPanel_3b8342939f5192e87d588a687f346775,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
@@ -57,8 +61,14 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#UnderlineFeatureClient": UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  "/src/editor/MediaActions#MediaActions": MediaActions_5625d81197fd14ec925f801ba4c65ea2,
+  "/src/editor/ColorField#ColorField": ColorField_25a97ef5de04efea1e828c9fe3a483ab,
   "/src/editor/TypographyPreview#TypographyPreview": TypographyPreview_0d876beb142f494e8a71d1b7d6c6c808,
-  "/src/editor/BuildGuide#BuildGuide": BuildGuide_2becd48c1e59b8979db5855f499a9bfe,
+  "/src/editor/Workspace#WorkspaceIcon": WorkspaceIcon_e3dfc9e9e1ac49569523ec8001d064e2,
+  "/src/editor/Workspace#WorkspaceLogo": WorkspaceLogo_e3dfc9e9e1ac49569523ec8001d064e2,
+  "/src/editor/Workspace#EnvironmentBadge": EnvironmentBadge_e3dfc9e9e1ac49569523ec8001d064e2,
+  "/src/editor/Workspace#WorkspaceHome": WorkspaceHome_e3dfc9e9e1ac49569523ec8001d064e2,
+  "/src/editor/Workspace#WorkspaceNav": WorkspaceNav_e3dfc9e9e1ac49569523ec8001d064e2,
   "@payloadcms/storage-vercel-blob/client#VercelBlobClientUploadHandler": VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

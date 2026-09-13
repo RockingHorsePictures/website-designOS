@@ -37,7 +37,15 @@ export default buildConfig({
     user: 'users',
     importMap: { baseDir: dirname },
     meta: { titleSuffix: ' | Design OS' },
-    components: { beforeDashboard: ['/src/editor/BuildGuide#BuildGuide'] },
+    components: {
+      beforeDashboard: ['/src/editor/Workspace#WorkspaceHome'],
+      beforeNavLinks: ['/src/editor/Workspace#WorkspaceNav'],
+      actions: ['/src/editor/Workspace#EnvironmentBadge'],
+      graphics: {
+        Logo: '/src/editor/Workspace#WorkspaceLogo',
+        Icon: '/src/editor/Workspace#WorkspaceIcon',
+      },
+    },
   },
   db: postgresAdapter({
     pool: { connectionString: process.env.DATABASE_URL },
@@ -47,18 +55,28 @@ export default buildConfig({
   editor: lexicalEditor(),
   sharp,
   collections: [
-    Users,
-    Media,
-    Fonts,
     Pages,
     CaseStudies,
     Services,
     TeamMembers,
     Clients,
+    Media,
+    Fonts,
     ApprovedFacts,
     Redirects,
+    Users,
     AIUsage,
-  ],
+  ].map((collection) => ({
+    ...collection,
+    admin: {
+      ...collection.admin,
+      ...(['pages', 'case-studies', 'services', 'team-members', 'clients'].includes(collection.slug)
+        ? { group: 'Content' }
+        : ['media', 'fonts'].includes(collection.slug)
+          ? { group: 'Assets' }
+          : {}),
+    },
+  })),
   globals: [Navigation, SiteSettings, Theme, SearchProfile],
   jobs: {
     access: {

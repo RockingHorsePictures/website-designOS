@@ -2,6 +2,10 @@
 
 ## Environment isolation
 
+Application releases include both the public website and Payload admin. Test code changes on a feature-branch Preview, review the checks, apply any compatible schema migrations to Production using its own credentials, then release the reviewed code using Production configuration. Do not merely assign the production domain to a Preview instance connected to preview data.
+
+The code release does not transfer CMS records or Blob objects. After launch, routine content work belongs in the Production CMS with draft/preview/publish for versioned documents. Global settings currently save immediately. For initial launch, transfer only reviewed content and assets into the new Production resources, remap relationship IDs where needed, verify metadata and uploads, and provision production users separately. This is an operational plan, not an implemented automatic content-transfer feature. Never overwrite a populated Production database with a Preview snapshot as part of a routine release.
+
 Separate preview and production PostgreSQL databases, database users, Blob stores, Payload secrets, cron secrets and optional AI provider credentials. Never copy production connection strings into local/preview settings. The app rejects known environment-label mismatches; operators must also verify the actual resource identities.
 
 Use deployment protection for hosted previews. Never disable it to simplify testing. Preview noindex/crawler blocking is defense in depth, not authentication. Uploaded media is intended for public website delivery: do not upload confidential material to this public media library.
