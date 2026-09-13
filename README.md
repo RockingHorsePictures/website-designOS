@@ -5,8 +5,10 @@
 Install Node.js 22+ and Git, then run:
 
 ```sh
-npx --yes --package=https://github.com/RockingHorsePictures/website-designOS/releases/download/v0.2.0/design-os-installer-0.2.0.tgz design-os
+npx --yes --allow-remote=all --package="https://github.com/RockingHorsePictures/website-designOS/releases/download/v0.2.0/design-os-installer-0.2.0.tgz" design-os
 ```
+
+The command permits downloading the installer URL for this invocation only; it does not change your global npm settings. npm 12 blocks URL packages by default and otherwise reports `EALLOWREMOTE`. Copy the plain command from the code block, without Markdown link formatting.
 
 The guided browser setup connects your GitHub and Vercel accounts, creates a separate private website repository, provisions isolated hosting resources, creates your administrator and deploys a Coming soon website. Each site is independent of this product repository. See NEW_SITE.md for permissions, setup steps, recovery and upgrades. The original product demo remains a separate Preview environment.
 
