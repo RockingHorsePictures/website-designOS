@@ -141,11 +141,11 @@ test('AI handoff, font upload and brand assets work across editor and website', 
       'alt',
       originalSettings.companyName,
     )
-    expect(
-      await page
-        .locator('.site-header img')
-        .evaluate((el) => (el as HTMLImageElement).naturalWidth),
-    ).toBeGreaterThan(0)
+    await expect
+      .poll(() =>
+        page.locator('.site-header img').evaluate((el) => (el as HTMLImageElement).naturalWidth),
+      )
+      .toBeGreaterThan(0)
     await expect(page.locator('link[rel="icon"]').last()).toHaveAttribute('href', /test-logo-/)
     expect(
       await page.evaluate(
