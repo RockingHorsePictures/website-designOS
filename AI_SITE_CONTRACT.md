@@ -40,3 +40,7 @@ Code deployments update renderers and the admin together. They must not seed, re
 Read START_HERE.md for the workspace entry point, DESIGN_HANDOFF.md for the practical workflow and NEW_SITE.md when creating a separate company's site. Until the foundation PR is merged, start from foundation/design-os, not main.
 
 After explicit authorization, inventory references and agree the sitemap, templates and visual direction. Design normal React components first, then expose their smallest useful editable API. Replace neutral proof renderers while retaining their content contracts or supply migrations. Use the existing authentication, collections, search helpers, preview routes, media and deployment wiring. Run unit, integration, browser and accessibility tests before review.
+
+## AI connection (0.2.1)
+
+Before CMS work, read AI_CONNECTION.md. In the installed website folder run `npm run ai:check` and `npm run ai:context`; read fresh Production and code-preview approvals from `.designos/ai-context.json`. The installer provisions separate restricted accounts. If missing, use the documented `npm run ai:connect` repair after upgrading/migrating, not a request for the owner to paste passwords into chat. Use `npm run ai:request` for automated CMS operations. Production access is read-only and its approvals are authoritative. Browser-only conversations can use the admin’s credential-free context download for planning, but need a connected coding runtime for writes.

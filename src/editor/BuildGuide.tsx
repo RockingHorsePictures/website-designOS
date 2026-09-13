@@ -8,7 +8,7 @@ export function BuildGuide() {
   const repository = workspace.repositoryUrl || 'the Design OS repository open in this workspace'
   const prompt =
     mode === 'existing'
-      ? `I want to start designing and building this company's website using the existing Design OS foundation. Open ${repository}${workspace.foundationBranch ? `, starting from ${workspace.foundationBranch}` : ''}. Read START_HERE.md, AI_SITE_CONTRACT.md and DESIGN_HANDOFF.md first. Read current field approvals through /api/protection before changing brand or content values; defaults are editable, approved choices require care, and locked values must not be changed or bypassed. Use an AI contributor account for automated CMS writes. Ask the owner to unlock any conflicting field, then have it locked again after review. This authorises the website design phase. Preserve the CMS, editable content, brand assets, section contracts and whole-site Preview/Live releases. Gather my company brief, approved content and visual references, then establish the sitemap and representative desktop/mobile designs. Implement and test in a feature branch and show a protected code preview. Keep Production unchanged until a separate code release approval.`
+      ? `I want to start designing and building this company's website using the existing Design OS foundation. Open ${repository}${workspace.foundationBranch ? `, starting from ${workspace.foundationBranch}` : ''}. Read START_HERE.md, AI_SITE_CONTRACT.md and DESIGN_HANDOFF.md first. Read AI_CONNECTION.md, run npm run ai:check and npm run ai:context in this installed website folder, and read the resulting .designos/ai-context.json before changing brand or content values. If the connection is missing, follow the documented ai:connect repair; never ask me to paste passwords into chat. In a browser-only chat, use the attached website context for planning and explain the connected coding workspace needed for writes. Production approvals are authoritative; defaults are editable, approved choices require care, and locked values must not be changed or bypassed. Use an AI contributor account for automated CMS writes. Ask the owner to unlock any conflicting field, then have it locked again after review. This authorises the website design phase. Preserve the CMS, editable content, brand assets, section contracts and whole-site Preview/Live releases. Gather my company brief, approved content and visual references, then establish the sitemap and representative desktop/mobile designs. Implement and test in a feature branch and show a protected code preview. Keep Production unchanged until a separate code release approval.`
       : `Create a separate new company website using the guided Design OS installer from https://github.com/RockingHorsePictures/website-designOS. Read START_HERE.md and NEW_SITE.md. Use the installer or clean starter export to make a fresh project; preserve AI_SITE_CONTRACT.md, approval locks and whole-site publishing. Give it its own repository, database, media storage, secrets and hosting project. Do not copy this site's customisations or connect it to this site's resources. Gather my company name, site brief and approved assets, then build and test its website in a feature branch. Live stays on Coming soon until the owner publishes a reviewed site release.`
   async function copy() {
     try {
@@ -98,10 +98,34 @@ export function BuildGuide() {
               Open Codex on the web
             </a>
           </p>
+          <h3>Connect your AI workspace</h3>
           <p>
-            For another computer or a cloud session, connect the repository and configure a
-            development environment. Access to this editor alone does not grant code or deployment
-            access. Keep passwords and service keys in environment settings.
+            On the computer used for installation, open this website’s folder and ask your AI to run{' '}
+            <code>npm run ai:check</code>, then <code>npm run ai:context</code>. Setup provides a
+            code-preview contributor and read-only Production access. Passwords stay in private
+            local files; you do not need to paste a login into chat.
+          </p>
+          <p>
+            Upgrading an older installation? Ask your coding workspace to follow
+            <strong> AI_CONNECTION.md</strong> and run <code>npm run ai:connect</code> after
+            applying the update and its migration. This preserves your content and administrator
+            account.
+          </p>
+          <p>
+            In a browser chat, attach the instructions and download below. It contains your current
+            content, brand choices and locks, with no credentials. Refresh it before further
+            changes. A download supplies context; building and saving changes requires a coding
+            workspace connected to your repository and this site’s private development
+            configuration.
+          </p>
+          <a className="dos-button" href="/api/ai-context" download>
+            Download website context
+          </a>
+          <p className="dos-helper">
+            Only this CMS environment is included. Use Production’s admin for authoritative brand
+            approvals. The export may contain unpublished editorial content: share it with your
+            chosen AI workspace only. Another computer or cloud session needs its own secure
+            connection setup; your browser login is not shared automatically.
           </p>
           <p>
             Prepare your assets: <a href="/admin/globals/site-settings">Company &amp; logos</a> ·{' '}

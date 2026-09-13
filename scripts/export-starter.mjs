@@ -35,6 +35,7 @@ const allowedRoot = new Set([
   'NEW_SITE.md',
   'README.md',
   'AI_SITE_CONTRACT.md',
+  'AI_CONNECTION.md',
   'DESIGN_HANDOFF.md',
   'ARCHITECTURE.md',
   'EDITOR_GUIDE.md',

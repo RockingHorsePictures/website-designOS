@@ -17,6 +17,17 @@ test('admin workspace remains accessible on mobile, in dark mode and with keyboa
   await guide.locator('summary').focus()
   await page.keyboard.press('Enter')
   await expect(guide.getByLabel('What are you starting?')).toBeVisible()
+  await expect(guide.getByRole('link', { name: 'Download website context' })).toHaveAttribute(
+    'href',
+    '/api/ai-context',
+  )
+  const snapshot = await page.request.get('/api/ai-context')
+  expect(snapshot.status()).toBe(200)
+  expect(snapshot.headers()['cache-control']).toContain('no-store')
+  const context = await snapshot.json()
+  expect(context.format).toBe('design-os-ai-context-v1')
+  expect(context.globals.some((item: { slug: string }) => item.slug === 'theme')).toBe(true)
+  expect(context.collections.some((item: { slug: string }) => item.slug === 'users')).toBe(false)
   for (const width of [390, 768, 1440]) {
     await page.setViewportSize({ width, height: 1000 })
     expect(

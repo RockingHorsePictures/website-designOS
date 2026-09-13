@@ -1,7 +1,10 @@
-const token = location.hash.slice(1)
+const token = location.hash.slice(1) || sessionStorage.getItem('designos-launch-token')
+if (token) sessionStorage.setItem('designos-launch-token', token)
 history.replaceState(null, '', location.pathname)
 const $ = (id) => document.getElementById(id)
 let connected = false
+let restoredDetails = false
+let actionError = ''
 async function api(path, data) {
   const response = await fetch(`/api/${path}`, {
     method: data ? 'POST' : 'GET',
@@ -31,7 +34,13 @@ function render(state) {
   $('version').textContent = `v${state.version}`
   $('footer-version').textContent = state.version
   $('status').textContent = state.message
-  $('error').textContent = state.error || ''
+  $('error').textContent = actionError || (state.failure ? '' : state.error || '')
+  $('failure').hidden = !state.failure
+  if (state.failure) {
+    $('failed-step').textContent = state.failure.step
+    $('failed-reason').textContent = state.failure.reason
+    $('failed-recovery').textContent = state.failure.recovery
+  }
   $('auth').hidden = !state.authURL
   if (state.authURL) $('auth').href = state.authURL
   if (state.github) {
@@ -42,10 +51,19 @@ function render(state) {
     }
   }
   if (state.teams.length) options($('team'), state.teams, 'slug', 'name')
+  if (state.details && !restoredDetails) {
+    for (const [name, value] of Object.entries(state.details)) {
+      const field = $('details').elements.namedItem(name)
+      if (field) field.value = value
+    }
+    restoredDetails = true
+  }
   $('details').hidden = !state.github || !state.teams.length || state.step === 'done'
   $('connect').hidden = state.step === 'install' || state.step === 'done'
-  $('progress').hidden = state.step !== 'install'
+  $('progress').hidden = !['install', 'paused'].includes(state.step)
+  $('resume').disabled = state.busy
   $('install').disabled = state.busy
+  $('install').hidden = Boolean(state.failure)
   $('install').textContent = state.error
     ? 'Resume setup'
     : state.busy
@@ -82,10 +100,12 @@ function render(state) {
     $('details').reset()
   }
 }
-async function act(fn) {
+async function act(fn, polling = false) {
+  if (!polling) actionError = ''
   try {
     render(await fn())
   } catch (error) {
+    if (!polling) actionError = error.message
     $('error').textContent = error.message
   }
 }
@@ -102,10 +122,12 @@ $('details').onsubmit = (event) => {
   data.approved = Boolean(data.approved)
   void act(() => api('install', data))
 }
+$('resume').onclick = () => $('details').requestSubmit()
 $('close').onclick = async () => {
   await api('close', {})
   $('status').textContent = 'Setup finished. You can close this tab and terminal.'
   clearInterval(poll)
+  sessionStorage.removeItem('designos-launch-token')
 }
-const poll = setInterval(() => act(() => api('status')), 2500)
+const poll = setInterval(() => act(() => api('status'), true), 2500)
 void act(() => api('status'))

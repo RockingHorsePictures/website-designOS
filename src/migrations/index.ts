@@ -3,6 +3,7 @@ import * as migration_20260913_101024_typography from './20260913_101024_typogra
 import * as migration_20260913_102714_brand_assets from './20260913_102714_brand_assets';
 import * as migration_20260913_103239_font_weight_range from './20260913_103239_font_weight_range';
 import * as migration_20260913_115655_publishing_locks from './20260913_115655_publishing_locks';
+import * as migration_20260913_184614_ai_reader from './20260913_184614_ai_reader';
 
 export const migrations = [
   {
@@ -28,6 +29,11 @@ export const migrations = [
   {
     up: migration_20260913_115655_publishing_locks.up,
     down: migration_20260913_115655_publishing_locks.down,
-    name: '20260913_115655_publishing_locks'
+    name: '20260913_115655_publishing_locks',
+  },
+  {
+    up: migration_20260913_184614_ai_reader.up,
+    down: migration_20260913_184614_ai_reader.down,
+    name: '20260913_184614_ai_reader'
   },
 ];

@@ -30,3 +30,7 @@ Keep `site-workspace.json` updated when a site's repository or working branch ch
 3. Provide the AI with goals, audiences, pages, factual sources, copy, imagery and design references.
 4. Ask it to begin website design using the dashboard handoff. Review the sitemap and representative pages before extending the design.
 5. Review a working Preview; launch is a separate release decision.
+
+## AI connection (0.2.1)
+
+Before CMS work, read AI_CONNECTION.md. In the installed website folder run `npm run ai:check` and `npm run ai:context`; read fresh Production and code-preview approvals from `.designos/ai-context.json`. The installer provisions separate restricted accounts. If missing, use the documented `npm run ai:connect` repair after upgrading/migrating, not a request for the owner to paste passwords into chat. Use `npm run ai:request` for automated CMS operations. Production access is read-only and its approvals are authoritative. Browser-only conversations can use the admin’s credential-free context download for planning, but need a connected coding runtime for writes.

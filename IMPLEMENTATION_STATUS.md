@@ -1,3 +1,11 @@
+## 0.2.1 — AI connections and installer recovery
+
+The installer now provisions a code-preview AI contributor and a read-only Production AI account. The local bridge authenticates each account, uses normal CMS access and lock hooks, binds private connection files to the site database, and provides check/context/request commands. The admin can export authenticated, credential-free current content and approvals for browser chats. Updated handoffs distinguish local runtime access from browser/cloud context.
+
+Installer failures pause with a named step, reason, recovery instructions and Resume control. GitHub repository access is checked before databases are created; only the selected repository needs permission. Checkpoints survive restarting the installer; browser refresh preserves its session and non-secret details.
+
+Verified locally: additive migration, typecheck, lint, 13 unit tests, 8 installer tests (including restart/resume without duplicate repository creation), AI read-only/locks/publication regression tests, full AI bridge provisioning/check/context/read/write-denial smoke tests, production build, admin accessibility/context download and publishing browser tests, and installer recovery browser test. Hosted rollout and release verification are recorded separately below when complete.
+
 # Implementation status
 
 ## Scope and current phase

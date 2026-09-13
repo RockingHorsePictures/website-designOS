@@ -41,6 +41,7 @@ jobs:
       - run: npm test
       - run: npm run test:integration
       - run: npm run test:releases
+      - run: npm run test:ai
       - run: npm run test:installer
       - run: npm run build
       - run: npx playwright install --with-deps chromium

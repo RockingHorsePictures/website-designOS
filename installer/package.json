@@ -1,6 +1,6 @@
 {
   "name": "design-os-installer",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "Guided setup for independent Design OS websites",
   "license": "MIT",
@@ -15,7 +15,8 @@
     "server.mjs",
     "workflow.mjs",
     "public",
-    "release.json"
+    "release.json",
+    "recovery.mjs"
   ],
   "scripts": {
     "test": "node --test test/*.test.mjs"

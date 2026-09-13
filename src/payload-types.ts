@@ -671,6 +671,10 @@ export interface Redirect {
  */
 export interface User {
   id: number;
+  /**
+   * Production AI connections can read content and approvals but cannot change them.
+   */
+  aiReadOnly?: boolean | null;
   name: string;
   role: 'admin' | 'editor' | 'ai';
   updatedAt: string;
@@ -1294,6 +1298,7 @@ export interface RedirectsSelect<T extends boolean = true> {
  * via the `definition` "users_select".
  */
 export interface UsersSelect<T extends boolean = true> {
+  aiReadOnly?: T;
   name?: T;
   role?: T;
   updatedAt?: T;

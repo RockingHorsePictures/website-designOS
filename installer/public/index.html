@@ -22,6 +22,19 @@
       </ol>
       <div role="status" id="status">Connecting to the local installer…</div>
       <div role="alert" id="error"></div>
+      <section id="failure" hidden role="alert">
+        <h2>Setup paused</h2>
+        <p><strong id="failed-step"></strong></p>
+        <p id="failed-reason"></p>
+        <h3>How to continue</h3>
+        <p id="failed-recovery"></p>
+        <button id="resume" class="primary" type="button">Resume setup</button>
+        <p class="small">
+          Completed steps are saved in your website folder. Keep the same website details when
+          resuming. If you restart the installer, reconnect your accounts, select this folder and
+          re-enter your administrator password.
+        </p>
+      </section>
       <a id="auth" class="button" hidden target="_blank" rel="noreferrer"
         >Complete account step ↗</a
       >
@@ -112,6 +125,10 @@
           <ul>
             <li>One new private GitHub repository and a separate Vercel project.</li>
             <li>Separate Production and code-testing databases and upload stores.</li>
+            <li>
+              Automatic AI accounts: read-only Production access and a code-preview contributor.
+              Connection files stay private in your website folder.
+            </li>
             <li>Neon Free plans; Vercel usage follows your account’s plan and limits.</li>
             <li>
               A new administrator and a neutral starting page. Your live URL shows
@@ -139,6 +156,11 @@
         <p>
           Use the admin to edit and publish. Open the local website folder in your AI coding
           workspace to design the site.
+        </p>
+        <p>
+          Your AI connection is ready. Ask your coding workspace to read START_HERE.md and run
+          <code>npm run ai:check</code>. For a browser chat, download your instructions and website
+          context from the admin's Build your website with AI panel.
         </p>
         <div id="links" class="actions"></div>
         <p id="folder-result"></p>

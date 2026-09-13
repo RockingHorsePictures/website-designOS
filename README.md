@@ -5,7 +5,7 @@
 Install Node.js 22+ and Git, then run:
 
 ```sh
-npx --yes --allow-remote=all --package="https://github.com/RockingHorsePictures/website-designOS/releases/download/v0.2.0/design-os-installer-0.2.0.tgz" design-os
+npx --yes --allow-remote=all --package="https://github.com/RockingHorsePictures/website-designOS/releases/download/v0.2.1/design-os-installer-0.2.1.tgz" design-os
 ```
 
 The command permits downloading the installer URL for this invocation only; it does not change your global npm settings. npm 12 blocks URL packages by default and otherwise reports `EALLOWREMOTE`. Copy the plain command from the code block, without Markdown link formatting.

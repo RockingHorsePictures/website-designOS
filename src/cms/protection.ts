@@ -7,6 +7,15 @@ import {
 } from 'payload'
 import { advisoryLock } from '../lib/transaction'
 import { protectReleasedAsset } from '../lib/releases'
+import { readOnlyAI } from './access'
+
+function requireWritable(req: PayloadRequest) {
+  if (readOnlyAI(req.user))
+    throw new APIError(
+      'This AI connection is read-only. Make changes in the code-preview workspace.',
+      403,
+    )
+}
 
 export const policyApproval = Symbol('explicit human policy change')
 export type Policy = { state: 'default' | 'approved' | 'locked'; by?: string; at?: string }
@@ -56,6 +65,7 @@ export async function checkProtection({
   req: PayloadRequest
   fields: Field[]
 }) {
+  requireWritable(req)
   const policies = (originalDoc?.protection || {}) as Policies
   const approved =
     req.context.policyApproval === policyApproval && req.user && req.user.role !== 'ai'
@@ -101,6 +111,18 @@ export function protectCollection(config: CollectionConfig): CollectionConfig {
     ...config,
     access: {
       ...config.access,
+      create: (args) =>
+        readOnlyAI(args.req.user)
+          ? false
+          : (config.access?.create?.(args) ?? Boolean(args.req.user)),
+      update: (args) =>
+        readOnlyAI(args.req.user)
+          ? false
+          : (config.access?.update?.(args) ?? Boolean(args.req.user)),
+      delete: (args) =>
+        readOnlyAI(args.req.user)
+          ? false
+          : (config.access?.delete?.(args) ?? Boolean(args.req.user)),
       read: ['media', 'fonts'].includes(config.slug)
         ? config.access?.read
         : ({ req }) => Boolean(req.user),
@@ -111,6 +133,8 @@ export function protectCollection(config: CollectionConfig): CollectionConfig {
       beforeOperation: [
         ...(config.hooks?.beforeOperation || []),
         async ({ req, operation, args }) => {
+          if (['create', 'update', 'delete', 'restoreVersion'].includes(operation))
+            requireWritable(req)
           if (['update', 'delete', 'restoreVersion'].includes(operation)) {
             const tx = await req.transactionID
             if (tx) await advisoryLock(req, 742193802)
@@ -171,13 +195,21 @@ export function protectCollection(config: CollectionConfig): CollectionConfig {
 export function protectGlobal(config: GlobalConfig): GlobalConfig {
   return {
     ...config,
-    access: { ...config.access, read: ({ req }) => Boolean(req.user) },
+    access: {
+      ...config.access,
+      read: ({ req }) => Boolean(req.user),
+      update: (args) =>
+        readOnlyAI(args.req.user)
+          ? false
+          : (config.access?.update?.(args) ?? Boolean(args.req.user)),
+    },
     fields: [...config.fields, ...protectionFields()],
     hooks: {
       ...config.hooks,
       beforeOperation: [
         ...(config.hooks?.beforeOperation || []),
         async ({ args, operation, req }) => {
+          if (['update', 'restoreVersion'].includes(operation)) requireWritable(req)
           // Payload restores globals directly in the adapter, skipping beforeChange.
           if (operation === 'restoreVersion') {
             await advisoryLock(req, 742193802)

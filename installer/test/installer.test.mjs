@@ -6,6 +6,29 @@ import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from 'nod
 import os from 'node:os'
 import path from 'node:path'
 import { hash, planUpgrade } from '../../scripts/upgrade.mjs'
+import { setupFailure } from '../recovery.mjs'
+
+test('recovery explains known failures without leaking provider output', () => {
+  const data = { owner: 'owner', name: 'site', team: 'team' }
+  const terms = setupFailure(
+    'Create production database',
+    {
+      providerOutput:
+        'secret=NEVER_SHOW https://vercel.com/team/~/integrations/accept-terms/neon?source=cli',
+    },
+    data,
+  )
+  assert.match(terms.reason, /terms/)
+  assert(!JSON.stringify(terms).includes('NEVER_SHOW'))
+  assert.match(terms.actionURL, /^https:\/\/vercel.com\//)
+  const network = setupFailure(
+    'Download Design OS',
+    { providerOutput: 'token=NEVER_SHOW ECONNRESET' },
+    data,
+  )
+  assert.match(network.recovery, /internet connection/)
+  assert(!JSON.stringify(network).includes('NEVER_SHOW'))
+})
 
 test('setup rejects shell-like names, weak credentials and missing resource approval', () => {
   const good = {
@@ -110,9 +133,11 @@ for (const mode of ['success', 'shared', 'blocked', 'github-access']) {
   test(`installer workflow: ${mode}`, async () => {
     const temp = mkdtempSync(path.join(os.tmpdir(), 'designos-installer-test-'))
     const commands = []
+    let repositoryAccess = mode !== 'github-access'
+    let repositoryCreates = 0
     const execute = async (command, args, options = {}) => {
       commands.push({ command, args, options })
-      if (mode === 'github-access' && args.includes('connect') && args.includes('git'))
+      if (!repositoryAccess && args.includes('connect') && args.includes('git'))
         throw new Error('GitHub app needs repository access')
       if (args.includes('credential')) return 'password=test-only-token\n'
       if (args.includes('teams')) return JSON.stringify({ teams: [{ slug: 'test-team' }] })
@@ -141,7 +166,8 @@ for (const mode of ['success', 'shared', 'blocked', 'github-access']) {
         })
       return ''
     }
-    const fetcher = async (url) => {
+    const fetcher = async (url, options = {}) => {
+      if (options.method === 'POST' && url.endsWith('/repos')) repositoryCreates++
       const value = url.endsWith('/user')
         ? { id: 4242, login: 'test-owner' }
         : url.endsWith('/user/orgs')
@@ -155,7 +181,7 @@ for (const mode of ['success', 'shared', 'blocked', 'github-access']) {
     try {
       const workflow = createWorkflow({ execute, fetcher })
       await workflow.connect()
-      workflow.install({
+      const input = {
         name: 'test-site',
         owner: 'test-owner',
         team: 'test-team',
@@ -164,7 +190,8 @@ for (const mode of ['success', 'shared', 'blocked', 'github-access']) {
         region: 'lhr1',
         approved: true,
         folder: path.join(temp, 'site'),
-      })
+      }
+      workflow.install(input)
       const deadline = Date.now() + 5000
       while (workflow.status().busy && Date.now() < deadline)
         await new Promise((resolve) => setTimeout(resolve, 10))
@@ -176,6 +203,26 @@ for (const mode of ['success', 'shared', 'blocked', 'github-access']) {
       } else if (mode === 'github-access') {
         assert.match(workflow.status().error, /Allow the Vercel GitHub app/)
         assert.equal(workflow.status().authURL, 'https://github.com/settings/installations')
+        assert.equal(workflow.status().step, 'paused')
+        assert.equal(workflow.status().failure.step, 'Connect automatic branch previews')
+        assert.equal(migrations.length, 0, 'Permissions are checked before provisioning databases')
+        assert(!commands.some(({ args }) => args.includes('integration')))
+        const checkpoint = JSON.parse(readFileSync(path.join(temp, 'site', '.designos/setup.json')))
+        assert.equal(checkpoint.failure.step, 'Connect automatic branch previews')
+        repositoryAccess = true
+        // A fresh installer process resumes the same on-disk checkpoint.
+        const resumed = createWorkflow({ execute, fetcher })
+        await resumed.connect()
+        resumed.install(input)
+        const resumeDeadline = Date.now() + 5000
+        while (resumed.status().busy && Date.now() < resumeDeadline)
+          await new Promise((resolve) => setTimeout(resolve, 10))
+        assert.equal(resumed.status().step, 'done')
+        assert.equal(resumed.status().error, null)
+        assert.equal(resumed.status().failure, null)
+        assert.equal(repositoryCreates, 1)
+        assert.equal(commands.filter(({ args }) => args.includes('migrate')).length, 2)
+        assert.equal(commands.filter(({ args }) => args.includes('scripts/ai-client.ts')).length, 2)
       } else if (mode === 'blocked') {
         assert.match(workflow.status().error, /connected GitHub account/)
         assert.equal(workflow.status().result, null)

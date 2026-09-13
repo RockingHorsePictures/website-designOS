@@ -1,5 +1,5 @@
 import type { CollectionConfig } from 'payload'
-import { administrator, adminField } from '../access'
+import { administrator, adminField, readOnlyAI } from '../access'
 
 export const Users: CollectionConfig = {
   slug: 'users',
@@ -11,9 +11,26 @@ export const Users: CollectionConfig = {
     read: ({ req }) =>
       req.user?.role === 'admin' ? true : req.user ? { id: { equals: req.user.id } } : false,
     update: ({ req }) =>
-      req.user?.role === 'admin' ? true : req.user ? { id: { equals: req.user.id } } : false,
+      readOnlyAI(req.user)
+        ? false
+        : req.user?.role === 'admin'
+          ? true
+          : req.user
+            ? { id: { equals: req.user.id } }
+            : false,
   },
   fields: [
+    {
+      name: 'aiReadOnly',
+      type: 'checkbox',
+      defaultValue: false,
+      label: 'Read-only AI connection',
+      admin: {
+        description:
+          'Production AI connections can read content and approvals but cannot change them.',
+      },
+      access: { create: adminField, update: adminField },
+    },
     { name: 'name', type: 'text', required: true },
     {
       name: 'role',

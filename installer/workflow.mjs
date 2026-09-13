@@ -4,6 +4,7 @@ import { parseEnv } from 'node:util'
 import { randomBytes } from 'node:crypto'
 import path from 'node:path'
 import os from 'node:os'
+import { setupFailure } from './recovery.mjs'
 
 const release = JSON.parse(readFileSync(new URL('./release.json', import.meta.url), 'utf8'))
 const npmCLI =
@@ -72,6 +73,7 @@ export function createWorkflow({ execute = run, fetcher = fetch } = {}) {
     authURL: null,
     result: null,
     error: null,
+    failure: null,
   }
   const update = (message) => {
     current.message = message
@@ -187,19 +189,19 @@ export function createWorkflow({ execute = run, fetcher = fetch } = {}) {
       )
     busy = true
     current.error = null
+    current.failure = null
+    current.authURL = null
     current.step = 'install'
+    current.details = Object.fromEntries(
+      ['name', 'owner', 'team', 'region', 'folder', 'email'].map((key) => [key, data[key]]),
+    )
     executeInstall(data, statePath)
       .catch((error) => {
-        const output = error.providerOutput || ''
-        const terms = output.match(/https:\/\/vercel\.com\/[^\s\u001b]*accept-terms[^\s\u001b]*/)
-        const githubAccess = current.message === 'Connect automatic branch previews'
-        current.authURL =
-          terms?.[0] || (githubAccess ? 'https://github.com/settings/installations' : null)
-        current.error = terms
-          ? 'Accept the provider terms using the link, then choose Resume setup.'
-          : githubAccess
-            ? `Allow the Vercel GitHub app to access ${data.owner}/${data.name} using the account-step link, then choose Resume setup.`
-            : `${error.message} Setup is saved. Resolve the account or resource issue, then resume; completed steps will not be repeated.`
+        current.failure ||= setupFailure(current.message, error, data)
+        current.authURL = current.failure.actionURL
+        current.error = `${current.failure.reason} ${current.failure.recovery}`
+        current.step = 'paused'
+        update(`Setup paused: ${current.failure.step}`)
       })
       .finally(() => {
         busy = false
@@ -228,9 +230,17 @@ export function createWorkflow({ execute = run, fetcher = fetch } = {}) {
     const step = async (name, fn) => {
       if (state.steps[name]) return
       update(name)
-      const result = await fn()
-      state.steps[name] = result && typeof result === 'object' ? result : true
-      save()
+      try {
+        const result = await fn()
+        state.steps[name] = result && typeof result === 'object' ? result : true
+        delete state.failure
+        save()
+      } catch (error) {
+        current.failure = setupFailure(name, error, data)
+        state.failure = current.failure
+        save()
+        throw error
+      }
     }
     const options = { cwd: data.folder }
     const vc = (args, extra = {}) =>
@@ -334,6 +344,9 @@ export function createWorkflow({ execute = run, fetcher = fetch } = {}) {
     })
     await step('Create your Vercel project', () => vc(['project', 'add', data.name]))
     await step('Link your Vercel project', () => vc(['link', '--yes', '--project', data.name]))
+    await step('Connect automatic branch previews', () =>
+      vc(['git', 'connect', repository.url, '--non-interactive']),
+    )
     await step('Install application dependencies', () => npm(['ci'], options))
     for (const environment of ['production', 'preview']) {
       await step(`Create ${environment} database`, () =>
@@ -446,6 +459,18 @@ export function createWorkflow({ execute = run, fetcher = fetch } = {}) {
           { ...options, env: { ...values, SETUP_SITE_NAME: data.name } },
         )
       })
+      await step(`Connect ${environment} AI access`, async () => {
+        const values = parseEnv(readFileSync(envFile, 'utf8'))
+        await execute(
+          process.execPath,
+          [
+            path.join(data.folder, 'node_modules/tsx/dist/cli.mjs'),
+            'scripts/ai-client.ts',
+            'connect',
+          ],
+          { ...options, env: { ...values, DESIGNOS_AI_PROFILE: environment } },
+        )
+      })
     }
     await step('Deploy your unpublished website', async () => {
       const info = await deploy(['--prod'])
@@ -467,9 +492,6 @@ export function createWorkflow({ execute = run, fetcher = fetch } = {}) {
       await deploy(['--prod'])
     })
     await step('Deploy the code testing environment', () => deploy())
-    await step('Connect automatic branch previews', () =>
-      vc(['git', 'connect', repository.url, '--non-interactive']),
-    )
     await step('Verify your editor', async () => {
       const response = await fetcher(`${siteURL}/admin/login`)
       if (!response.ok)
