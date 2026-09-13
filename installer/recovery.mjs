@@ -10,7 +10,9 @@ export function setupFailure(step, error, data) {
     recovery =
       'Open the account-step link, accept the terms in Vercel, return here and choose Resume setup.'
     actionURL = terms[0]
-  } else if (step === 'Connect automatic branch previews') {
+  } else if (
+    ['Connect automatic branch previews', 'Verify automatic branch previews'].includes(step)
+  ) {
     reason = 'Vercel could not connect to your GitHub repository.'
     recovery = `Allow the Vercel GitHub app to access ${data.owner}/${data.name}: open the account-step link, choose Configure for Vercel, and add this repository under Only select repositories. Save, return here and choose Resume setup. You do not need to allow all repositories. Also check that your GitHub account can deploy to the selected Vercel team.`
     actionURL = 'https://github.com/settings/installations'

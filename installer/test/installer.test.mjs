@@ -128,17 +128,26 @@ test('wizard requires its launch token, rejects cross-origin requests and expose
   }
 })
 
-for (const mode of ['success', 'shared', 'blocked', 'github-access']) {
+for (const mode of ['success', 'shared', 'blocked', 'github-access', 'github-silent']) {
   const sharedDatabase = mode === 'shared'
   test(`installer workflow: ${mode}`, async () => {
     const temp = mkdtempSync(path.join(os.tmpdir(), 'designos-installer-test-'))
     const commands = []
-    let repositoryAccess = mode !== 'github-access'
+    let repositoryAccess = !['github-access', 'github-silent'].includes(mode)
     let repositoryCreates = 0
     const execute = async (command, args, options = {}) => {
       commands.push({ command, args, options })
-      if (!repositoryAccess && args.includes('connect') && args.includes('git'))
+      if (
+        mode === 'github-access' &&
+        !repositoryAccess &&
+        args.includes('connect') &&
+        args.includes('git')
+      )
         throw new Error('GitHub app needs repository access')
+      if (args.includes('/v9/projects/test-site'))
+        return JSON.stringify({
+          link: repositoryAccess ? { type: 'github', org: 'test-owner', repo: 'test-site' } : null,
+        })
       if (args.includes('credential')) return 'password=test-only-token\n'
       if (args.includes('teams')) return JSON.stringify({ teams: [{ slug: 'test-team' }] })
       if (args.some((arg) => arg.endsWith('export-starter.mjs'))) {
@@ -200,15 +209,19 @@ for (const mode of ['success', 'shared', 'blocked', 'github-access']) {
       if (sharedDatabase) {
         assert.match(workflow.status().error, /different resources/)
         assert.equal(migrations.length, 0)
-      } else if (mode === 'github-access') {
+      } else if (['github-access', 'github-silent'].includes(mode)) {
         assert.match(workflow.status().error, /Allow the Vercel GitHub app/)
         assert.equal(workflow.status().authURL, 'https://github.com/settings/installations')
         assert.equal(workflow.status().step, 'paused')
-        assert.equal(workflow.status().failure.step, 'Connect automatic branch previews')
+        const failedStep =
+          mode === 'github-access'
+            ? 'Connect automatic branch previews'
+            : 'Verify automatic branch previews'
+        assert.equal(workflow.status().failure.step, failedStep)
         assert.equal(migrations.length, 0, 'Permissions are checked before provisioning databases')
         assert(!commands.some(({ args }) => args.includes('integration')))
         const checkpoint = JSON.parse(readFileSync(path.join(temp, 'site', '.designos/setup.json')))
-        assert.equal(checkpoint.failure.step, 'Connect automatic branch previews')
+        assert.equal(checkpoint.failure.step, failedStep)
         repositoryAccess = true
         // A fresh installer process resumes the same on-disk checkpoint.
         const resumed = createWorkflow({ execute, fetcher })

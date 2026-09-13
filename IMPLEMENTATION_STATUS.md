@@ -4,7 +4,7 @@ The installer now provisions a code-preview AI contributor and a read-only Produ
 
 Installer failures pause with a named step, reason, recovery instructions and Resume control. GitHub repository access is checked before databases are created; only the selected repository needs permission. Checkpoints survive restarting the installer; browser refresh preserves its session and non-secret details.
 
-Verified locally: additive migration, typecheck, lint, 13 unit tests, 8 installer tests (including restart/resume without duplicate repository creation), AI read-only/locks/publication regression tests, full AI bridge provisioning/check/context/read/write-denial smoke tests, production build, admin accessibility/context download and publishing browser tests, and installer recovery browser test. Hosted rollout and release verification are recorded separately below when complete.
+Verified locally: additive migration, typecheck, lint, 13 unit tests, 9 installer tests (including restart/resume without duplicate repository creation and CLI false-success detection), AI read-only/locks/publication regression tests, full AI bridge provisioning/check/context/read/write-denial smoke tests, production build, admin accessibility/context download and publishing browser tests, and installer recovery browser test. Full GitHub CI passed for fbc1cd8. The demo Preview deployment dpl_BgWeDxiR9cbueYCSEuVH2QdXQURT is Ready and serves the updated admin at the stable preview alias. RHP received a separate maintenance branch and review PR; its previously missing GitHub/Vercel connection was repaired and independently verified.
 
 # Implementation status
 

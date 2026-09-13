@@ -345,8 +345,25 @@ export function createWorkflow({ execute = run, fetcher = fetch } = {}) {
     await step('Create your Vercel project', () => vc(['project', 'add', data.name]))
     await step('Link your Vercel project', () => vc(['link', '--yes', '--project', data.name]))
     await step('Connect automatic branch previews', () =>
-      vc(['git', 'connect', repository.url, '--non-interactive']),
+      vc(['git', 'connect', repository.cloneURL, '--yes']),
     )
+    await step('Verify automatic branch previews', async () => {
+      const linked = async () => {
+        const output = await vc(['api', `/v9/projects/${data.name}`, '--raw'])
+        const project = JSON.parse(output.slice(output.indexOf('{'), output.lastIndexOf('}') + 1))
+        return (
+          project.link?.type === 'github' &&
+          project.link.org?.toLowerCase() === data.owner.toLowerCase() &&
+          project.link.repo?.toLowerCase() === data.name.toLowerCase()
+        )
+      }
+      if (!(await linked())) {
+        // Some CLI failures are printed as warnings with exit code zero.
+        await vc(['git', 'connect', repository.cloneURL, '--yes'])
+        if (!(await linked()))
+          throw new Error('Vercel has not linked the requested GitHub repository.')
+      }
+    })
     await step('Install application dependencies', () => npm(['ci'], options))
     for (const environment of ['production', 'preview']) {
       await step(`Create ${environment} database`, () =>
