@@ -1,0 +1,16 @@
+.local
+.cache
+.agents
+.git
+.github
+.next
+.vercel
+node_modules
+.env
+.env.*
+media
+test-results
+playwright-report
+*.tsbuildinfo
+*.log
+skills-lock.json

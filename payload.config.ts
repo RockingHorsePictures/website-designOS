@@ -21,6 +21,11 @@ if (process.env.DATABASE_ENV === 'production' && process.env.SITE_ENV !== 'produ
   throw new Error('Non-production app cannot use production data.')
 if (process.env.VERCEL_ENV === 'preview' && process.env.DATABASE_ENV !== 'preview')
   throw new Error('Vercel preview requires explicitly separate preview data.')
+if (
+  process.env.VERCEL_ENV === 'production' &&
+  (process.env.DATABASE_ENV !== 'production' || process.env.SITE_ENV !== 'production')
+)
+  throw new Error('Vercel production requires explicitly configured production resources.')
 if (process.env.VERCEL && !process.env.BLOB_READ_WRITE_TOKEN)
   throw new Error('Hosted media requires persistent Blob storage.')
 

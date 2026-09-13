@@ -19,7 +19,9 @@ V5 supersedes V4. Phases 1, 2 and 2B are implemented. Phase 3 hosted acceptance 
 - TypeScript production build and lint passed. Eleven unit tests passed.
 - Integration tests passed for anonymous draft isolation, role escalation denial, unpublishing and scheduled publish/unpublish execution.
 - Four browser scenarios passed: responsive public/navigation/accessibility checks; real admin draft/preview/publish/redirect flow; anonymous API restrictions and noindex; Puck editing and draft/public separation.
-- GitHub private repository created and connected to Vercel. Hosted deployment, persistence after redeploy and remote CI results are pending and will be recorded before handoff.
+- GitHub private repository created and connected to Vercel; both branch and draft-PR CI runs passed, including fresh PostgreSQL migration/seed, integration tests, production build and Linux browser tests. Draft PR: https://github.com/RockingHorsePictures/website-designOS/pull/1.
+- Hosted acceptance is pending Vercel's initial-deployment constraint: the platform classifies a new project's first deployment as Production even with Preview explicitly requested. Unintended builds were removed or failed without a running application; Production has no app credentials. A credential-free, unaliased bootstrap is prepared and awaits explicit user approval before further deployment attempts.
+- Added and dry-run verified .vercelignore: local databases, credentials, caches and test artifacts are excluded from uploads. Git ignores alone were insufficient for this CLI.
 
 ## Architectural decisions affecting later design
 

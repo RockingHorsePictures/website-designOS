@@ -8,6 +8,7 @@ export default defineConfig({
   timeout: 90000,
   expect: { timeout: 15000 },
   use: {
+    storageState: process.env.TEST_STORAGE_STATE || undefined,
     baseURL: process.env.TEST_BASE_URL || 'http://localhost:3000',
     actionTimeout: 15000,
     headless: true,
