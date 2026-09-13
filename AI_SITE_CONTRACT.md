@@ -19,7 +19,7 @@ Payload owns all editorial data. React components own rendering and responsive b
 
 ## Approved values and locks
 
-Before changing content, colours, typography, logos, navigation or composition, read the target's current approvals with an authenticated `GET /api/protection?global=theme` (or `global=site-settings`, `global=navigation`, `global=search-profile`, or `collection=pages&id=123`). The response includes field names, current values, schema defaults and recorded approval states. The record's `protection` field also holds these states. Never infer approval just because a value matches a default.
+Before changing content, colours, typography, logos, navigation or composition, run `npm run ai:check` and `npm run ai:context` in the installed site folder and read `.designos/ai-context.json`. This bridge authenticates automatically using the installer-provisioned accounts; it does not need the owner's browser session. Read AI_CONNECTION.md if a connection is missing. Production approvals are authoritative. In an authenticated browser or API client, the same field-approval information is available through `GET /api/protection?global=theme` (or `global=site-settings`, `global=navigation`, `global=search-profile`, or `collection=pages&id=123`). The response includes field names, current values, schema defaults and recorded approval states. The record's `protection` field also holds these states. Never infer approval just because a value matches a default.
 
 - **default**: an editable starting point, not a branding decision.
 - **approved**: a person approved the value; it remains editable and should be changed only within the requested scope.

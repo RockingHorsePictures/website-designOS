@@ -4,6 +4,8 @@
 
 The CMS is the place to edit content, upload brand assets and publish. The connected AI coding workspace is the place to design and build the website. This foundation does not include a chat-based site generator inside the CMS.
 
+**Check AI access first:** read AI_CONNECTION.md, then run `npm run ai:check` and `npm run ai:context` in this installed website folder. Setup provides the restricted accounts automatically. Do not ask the owner to paste a CMS password into chat.
+
 ## Where to start a conversation
 
 | Goal                                | Where to work                            | What to provide                                                   |
@@ -13,7 +15,7 @@ The CMS is the place to edit content, upload brand assets and publish. The conne
 | Another computer or cloud session   | Codex connected to the GitHub repository | Correct repository/branch plus a working development environment  |
 | Separate website/company            | New project created using `NEW_SITE.md`  | New brief and separate services and credentials                   |
 
-For cloud work, connect the repository in [Codex](https://chatgpt.com/codex), create its environment and select the foundation branch. Install dependencies and configure a disposable development database using README.md. Store credentials in the environment's secret settings. GitHub-backed Vercel previews can deploy pushed branches after setup; direct deployment or hosted content editing requires those additional credentials. A CMS login or a repository link pasted into ordinary chat does not by itself provide a runnable coding environment. See [official cloud setup](https://learn.chatgpt.com/docs/cloud).
+For cloud work, connect the repository in [Codex](https://chatgpt.com/codex), create its environment and select the foundation branch. Install dependencies and configure a disposable development database using README.md. Configure secure runtime access using AI_CONNECTION.md and the provider's current setup guidance; secrets available only during setup do not automatically reach the coding session. GitHub-backed Vercel previews can deploy pushed branches after setup; direct deployment or hosted content editing requires those additional credentials. A CMS login or a repository link pasted into ordinary chat does not by itself provide a runnable coding environment. See [official cloud setup](https://learn.chatgpt.com/docs/cloud).
 
 ## What makes it repeatable
 
