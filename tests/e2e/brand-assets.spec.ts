@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import { readFileSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 import sharp from 'sharp'
 
 test('AI handoff, font upload and brand assets work across editor and website', async ({
@@ -79,11 +80,22 @@ test('AI handoff, font upload and brand assets work across editor and website', 
     })
     expect(invalid.status()).toBe(400)
     const font = await (await page.request.get(`/api/fonts/${fontID}`)).json()
-    const uploaded = await page.request.get(`/api/fonts/file/${encodeURIComponent(font.filename)}`)
-    expect(uploaded.ok()).toBe(true)
-    expect(await uploaded.body()).toEqual(
-      readFileSync('node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2'),
+    const digest = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex')
+    const expectedFont = readFileSync(
+      'node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2',
     )
+    // The remote store can acknowledge an upload before its delivery endpoint serves the bytes.
+    await expect
+      .poll(
+        async () => {
+          const uploaded = await page.request.get(
+            `/api/fonts/file/${encodeURIComponent(font.filename)}`,
+          )
+          return { status: uploaded.status(), hash: digest(await uploaded.body()) }
+        },
+        { timeout: 30_000 },
+      )
+      .toEqual({ status: 200, hash: digest(expectedFont) })
     await page.goto('/admin/globals/theme')
     for (const role of ['body', 'heading']) {
       await page.locator(`#field-${role}Font`).click()
