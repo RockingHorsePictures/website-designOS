@@ -13,6 +13,7 @@ const admin = {
   collection: 'users' as const,
 }
 const original = await payload.findGlobal({ slug: 'theme', depth: 0 })
+const originalSettings = await payload.findGlobal({ slug: 'site-settings', depth: 0 })
 const state = await payload.findGlobal({ slug: 'publication', depth: 0 })
 const ai = await payload.create({
   collection: 'users',
@@ -28,6 +29,31 @@ const releases: number[] = []
 try {
   const previous = await payload.findGlobalVersions({ slug: 'theme', limit: 1, sort: '-updatedAt' })
   const req = await createLocalReq({ user: admin, context: { policyApproval } }, payload)
+  const asset = (await payload.find({ collection: 'media', limit: 1 })).docs[0]
+  if (asset) {
+    await payload.updateGlobal({ slug: 'site-settings', data: { logo: asset.id }, req })
+    await payload.updateGlobal({
+      slug: 'site-settings',
+      data: { protection: { logo: { state: 'locked' } } },
+      req,
+    })
+    await assert.rejects(
+      payload.update({
+        collection: 'media',
+        id: asset.id,
+        data: { alt: 'Changed linked logo' },
+        user: aiUser,
+        overrideAccess: false,
+      }),
+      /locked brand field/,
+    )
+    await payload.updateGlobal({ slug: 'site-settings', data: { protection: {} }, req })
+    await payload.updateGlobal({
+      slug: 'site-settings',
+      data: { logo: originalSettings.logo || null, protection: originalSettings.protection || {} },
+      req,
+    })
+  }
   await payload.updateGlobal({
     slug: 'theme',
     data: { protection: { canvas: { state: 'locked', by: admin.email } } },
@@ -134,6 +160,12 @@ try {
   )
 } finally {
   const req = await createLocalReq({ user: admin, context: { policyApproval } }, payload)
+  await payload.updateGlobal({ slug: 'site-settings', data: { protection: {} }, req })
+  await payload.updateGlobal({
+    slug: 'site-settings',
+    data: { logo: originalSettings.logo || null, protection: originalSettings.protection || {} },
+    req,
+  })
   await payload.updateGlobal({
     slug: 'theme',
     data: { protection: { canvas: { state: 'default' } } },

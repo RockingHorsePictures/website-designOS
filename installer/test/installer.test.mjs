@@ -105,13 +105,15 @@ test('wizard requires its launch token, rejects cross-origin requests and expose
   }
 })
 
-for (const mode of ['success', 'shared', 'blocked']) {
+for (const mode of ['success', 'shared', 'blocked', 'github-access']) {
   const sharedDatabase = mode === 'shared'
   test(`installer workflow: ${mode}`, async () => {
     const temp = mkdtempSync(path.join(os.tmpdir(), 'designos-installer-test-'))
     const commands = []
     const execute = async (command, args, options = {}) => {
       commands.push({ command, args, options })
+      if (mode === 'github-access' && args.includes('connect') && args.includes('git'))
+        throw new Error('GitHub app needs repository access')
       if (args.includes('credential')) return 'password=test-only-token\n'
       if (args.includes('teams')) return JSON.stringify({ teams: [{ slug: 'test-team' }] })
       if (args.some((arg) => arg.endsWith('export-starter.mjs'))) {
@@ -171,6 +173,9 @@ for (const mode of ['success', 'shared', 'blocked']) {
       if (sharedDatabase) {
         assert.match(workflow.status().error, /different resources/)
         assert.equal(migrations.length, 0)
+      } else if (mode === 'github-access') {
+        assert.match(workflow.status().error, /Allow the Vercel GitHub app/)
+        assert.equal(workflow.status().authURL, 'https://github.com/settings/installations')
       } else if (mode === 'blocked') {
         assert.match(workflow.status().error, /connected GitHub account/)
         assert.equal(workflow.status().result, null)

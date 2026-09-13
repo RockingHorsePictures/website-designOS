@@ -192,10 +192,14 @@ export function createWorkflow({ execute = run, fetcher = fetch } = {}) {
       .catch((error) => {
         const output = error.providerOutput || ''
         const terms = output.match(/https:\/\/vercel\.com\/[^\s\u001b]*accept-terms[^\s\u001b]*/)
-        current.authURL = terms?.[0] || null
+        const githubAccess = current.message === 'Connect automatic branch previews'
+        current.authURL =
+          terms?.[0] || (githubAccess ? 'https://github.com/settings/installations' : null)
         current.error = terms
           ? 'Accept the provider terms using the link, then choose Resume setup.'
-          : `${error.message} Setup is saved. Resolve the account or resource issue, then resume; completed steps will not be repeated.`
+          : githubAccess
+            ? `Allow the Vercel GitHub app to access ${data.owner}/${data.name} using the account-step link, then choose Resume setup.`
+            : `${error.message} Setup is saved. Resolve the account or resource issue, then resume; completed steps will not be repeated.`
       })
       .finally(() => {
         busy = false

@@ -114,9 +114,18 @@ export function protectCollection(config: CollectionConfig): CollectionConfig {
           if (['update', 'delete', 'restoreVersion'].includes(operation)) {
             const tx = await req.transactionID
             if (tx) await advisoryLock(req, 742193802)
-            if (['media', 'fonts'].includes(config.slug) && (operation === 'delete' || req.file)) {
+            if (
+              ['media', 'fonts'].includes(config.slug) &&
+              ['update', 'delete'].includes(operation)
+            ) {
               const id = 'id' in args ? args.id : undefined
-              if (id) await protectReleasedAsset(req, config.slug as 'media' | 'fonts', id)
+              if (id)
+                await protectReleasedAsset(
+                  req,
+                  config.slug as 'media' | 'fonts',
+                  id,
+                  operation === 'delete' || Boolean(req.file),
+                )
               else throw new APIError('Change retained files individually.', 400)
             }
           }

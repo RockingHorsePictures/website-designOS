@@ -161,6 +161,7 @@ export async function protectReleasedAsset(
   req: PayloadRequest,
   collection: CollectionSlug,
   id: unknown,
+  checkRetainedFile = true,
 ) {
   await releaseLock(req)
   for (const slug of ['theme', 'site-settings'] as const) {
@@ -177,11 +178,12 @@ export async function protectReleasedAsset(
         (Array.isArray(value) ? value : [value]).includes(Number(id))
       )
         throw new APIError(
-          'This asset is selected by a locked brand field. Ask its owner to unlock that field before replacing it.',
+          'This asset is selected by a locked brand field. Ask its owner to unlock that field before changing it.',
           423,
         )
     }
   }
+  if (!checkRetainedFile) return
   const found = await req.payload.find({
     collection: 'site-releases',
     pagination: false,
