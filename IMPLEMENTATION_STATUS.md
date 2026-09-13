@@ -2,7 +2,17 @@
 
 ## Scope and current phase
 
-V5 supersedes V4. **Phases 1, 2, 2B and 3 are complete within the foundation scope. Implementation stops here.** Every public template is neutral verification scaffolding, not a company website design proposal. Phase 4 requires a new explicit instruction.
+V5 supersedes V4. Phases 1, 2, 2B and 3 are complete within the foundation scope. Version 0.2 extends that foundation through explicit user requests below. Every public template is neutral verification scaffolding, not a company website design proposal. Phase 4 requires a new explicit instruction.
+
+## Version 0.2 — publishing, approvals and independent installations
+
+- One editorial workspace at `/admin`. Save to Preview captures an immutable whole-site snapshot; Publish to Live promotes the reviewed snapshot; Unpublish clears only the Live pointer. Forms and code deployments do not copy or replace Live content. `/preview` is the saved content preview in the same CMS; Vercel branch deployments are separate code-testing environments with separate resources.
+- Theme, company settings, navigation and editable collections expose field approval states: default, approved and locked. Human approval controls own state changes. Server hooks reject changes to locked fields, including version restores. AI contributor accounts can edit unlocked fields but cannot unlock or publish. Referenced brand files and retained release files cannot be replaced or deleted through normal CMS operations.
+- Admin colours use blue with white/grey in light mode and black/dark grey in dark mode. Native document publication labels now explain that they save to the workspace.
+- The browser installer creates an independent private site repository, Vercel project, isolated Production/Preview databases and upload stores, administrator and starting page. Production initially shows Coming soon. Setup is resumable and refuses to overwrite existing unrelated folders or resources. Bootstrap passwords are used locally, never added to deployed environment variables, and removed from local setup files after completion.
+- The public product uses the MIT license. Each generated website records hashes of its starting files. The upgrade command reviews upstream changes and stops on conflicts; applying a plan creates a separate branch without deployment, database changes or content replacement.
+- Local verification: all migrations applied to a fresh disposable PostgreSQL database; seed and release/lock integration passed; 13 unit tests, five installer tests and eight browser scenarios passed. Installer tests cover origin/token restrictions, shared-resource rejection before migration, setup completion and upgrade conflicts. The production build, lint and type checks passed. Hosted release verification and public download publication are tracked separately below.
+- Current constraints: snapshots support release format 1 and up to 8 MB of content. Assets are conservatively retained by all stored releases; there is no release-pruning UI. Whole-site scheduled publication, email delivery/password reset, managed backups and custom domains remain launch configuration work. Code/database administrators must follow the AI contract; CMS locks cannot sandbox direct infrastructure access.
 
 ## Working foundation
 
@@ -15,7 +25,7 @@ V5 supersedes V4. **Phases 1, 2, 2B and 3 are complete within the foundation sco
 - Metadata defaults/overrides, canonical handling, robots/sitemap policies, redirects, structured data, verification hooks and optional best-effort IndexNow. AI provider contracts and opt-in alt-text suggestion infrastructure; runtime AI is disabled until a compatible provider is configured.
 - GitHub CI, Vercel preview integration, dedicated Neon preview database and persistent Blob preview media, environment guards and operational documentation.
 
-## Verification to date — 2026-09-13
+## Original foundation verification — 2026-09-13
 
 - Fresh local migration and seed passed; Neon preview migration and seed passed.
 - TypeScript production build and lint passed. Eleven unit tests passed.
@@ -34,7 +44,7 @@ V5 supersedes V4. **Phases 1, 2, 2B and 3 are complete within the foundation sco
 - Payload is the only content source. Shared React section renderers serve the composer and public pages. Registry schemas constrain stored layouts and stable section IDs.
 - Semantic colours, approved heading/body fonts and heading/body/emphasis weights are editor-controlled. Font sizes, spacing, motion, grids and responsive behaviour stay in code. The font controls were added by explicit follow-up request; no final website design has begun.
 - Dynamic public rendering makes published changes visible without a deployment. Standard Payload live preview refreshes saved drafts; it does not stream unsaved normal-form keystrokes. Puck previews unsaved section changes directly.
-- Globals save directly with version history; they do not have an independent draft-release workflow.
+- Globals save to the workspace with version history. Version 0.2 captures them together with content in whole-site Preview/Live releases.
 - Separate Preview/Production database, storage and signing credentials are required. Current app resources are Preview only; real Production resources and the company application are not deployed. Only the approved static bootstrap occupies Vercel's initial Production slot.
 
 ## Known launch prerequisites / deferred scope

@@ -83,6 +83,17 @@ export const videoFields: Field = {
   ],
 }
 export const baseFields: Field[] = [
+  {
+    name: 'includeInSite',
+    label: 'Include in site releases',
+    type: 'checkbox',
+    defaultValue: true,
+    admin: {
+      position: 'sidebar',
+      description:
+        'Turn off to exclude this page from the next whole-site Preview. Existing Live releases stay unchanged.',
+    },
+  },
   { name: 'title', type: 'text', required: true },
   {
     name: 'slug',
@@ -140,6 +151,8 @@ export function editorialConfig(
     versions: { drafts: { schedulePublish: { timeFormat: 'HH:mm' } }, maxPerDoc: 30 },
     admin: {
       useAsTitle: 'title',
+      description:
+        'Save edits here. Use Overview → Save to Preview → Publish to Live to release the whole site.',
       group: 'Website',
       defaultColumns: ['title', '_status', 'updatedAt'],
       preview: (data) => `/api/preview?collection=${slug}&id=${data.id}`,

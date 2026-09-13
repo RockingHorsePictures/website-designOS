@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test'
 import { readFileSync } from 'node:fs'
 import { createHash } from 'node:crypto'
 import sharp from 'sharp'
+import { openWorkspacePreview } from './helpers'
 
 test('AI handoff, font upload and brand assets work across editor and website', async ({
   page,
@@ -44,6 +45,10 @@ test('AI handoff, font upload and brand assets work across editor and website', 
   let fontID: number | undefined
   let logoID: number | undefined
   try {
+    await page.request.post('/api/globals/theme', {
+      headers,
+      data: { bodyFontFiles: [], headingFontFiles: [] },
+    })
     const fontName = `Test font ${Date.now()}`
     await page.goto('/admin/collections/fonts/create')
     await page
@@ -147,8 +152,8 @@ test('AI handoff, font upload and brand assets work across editor and website', 
       ).ok(),
     ).toBe(true)
     await page.goto('/admin/globals/site-settings')
-    await expect(page.getByText('Main logo', { exact: true })).toBeVisible()
-    await page.goto('/')
+    await expect(page.locator('#field-logo').getByText('Main logo', { exact: true })).toBeVisible()
+    await openWorkspacePreview(page)
     await expect(page.locator('body')).toHaveCSS('font-family', /DesignOS-body/)
     await expect(page.locator('.site-header img')).toHaveAttribute(
       'alt',

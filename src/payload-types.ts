@@ -78,6 +78,7 @@ export interface Config {
     redirects: Redirect;
     users: User;
     'ai-usage': AiUsage;
+    'site-releases': SiteRelease;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
     'payload-locked-documents': PayloadLockedDocument;
@@ -97,6 +98,7 @@ export interface Config {
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'ai-usage': AiUsageSelect<false> | AiUsageSelect<true>;
+    'site-releases': SiteReleasesSelect<false> | SiteReleasesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
@@ -112,12 +114,14 @@ export interface Config {
     'site-settings': SiteSetting;
     theme: Theme;
     'search-profile': SearchProfile;
+    publication: Publication;
   };
   globalsSelect: {
     navigation: NavigationSelect<false> | NavigationSelect<true>;
     'site-settings': SiteSettingsSelect<false> | SiteSettingsSelect<true>;
     theme: ThemeSelect<false> | ThemeSelect<true>;
     'search-profile': SearchProfileSelect<false> | SearchProfileSelect<true>;
+    publication: PublicationSelect<false> | PublicationSelect<true>;
   };
   locale: null;
   widgets: {
@@ -159,6 +163,10 @@ export interface UserAuthOperations {
  */
 export interface Page {
   id: number;
+  /**
+   * Turn off to exclude this page from the next whole-site Preview. Existing Live releases stay unchanged.
+   */
+  includeInSite?: boolean | null;
   title: string;
   slug: string;
   summary: string;
@@ -207,6 +215,15 @@ export interface Page {
         }[]
       | null;
   };
+  protection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -226,6 +243,15 @@ export interface Media {
   context?: string | null;
   altSource?: ('manual' | 'ai-draft' | 'decorative' | 'needs-review') | null;
   demo?: boolean | null;
+  protection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -262,6 +288,10 @@ export interface Media {
  */
 export interface Service {
   id: number;
+  /**
+   * Turn off to exclude this page from the next whole-site Preview. Existing Live releases stay unchanged.
+   */
+  includeInSite?: boolean | null;
   title: string;
   slug: string;
   summary: string;
@@ -332,6 +362,15 @@ export interface Service {
         }[]
       | null;
   };
+  protection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -342,6 +381,10 @@ export interface Service {
  */
 export interface CaseStudy {
   id: number;
+  /**
+   * Turn off to exclude this page from the next whole-site Preview. Existing Live releases stay unchanged.
+   */
+  includeInSite?: boolean | null;
   title: string;
   slug: string;
   summary: string;
@@ -433,6 +476,15 @@ export interface CaseStudy {
         }[]
       | null;
   };
+  protection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
@@ -447,6 +499,15 @@ export interface Client {
   website?: string | null;
   logo?: (number | null) | Media;
   demo?: boolean | null;
+  protection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -494,6 +555,15 @@ export interface TeamMember {
   order?: number | null;
   active?: boolean | null;
   demo?: boolean | null;
+  protection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -514,6 +584,15 @@ export interface ApprovedFact {
   project?: (number | null) | CaseStudy;
   service?: (number | null) | Service;
   notes?: string | null;
+  protection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -538,6 +617,15 @@ export interface Font {
    */
   weightTo?: number | null;
   style: 'normal' | 'italic';
+  protection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
   url?: string | null;
@@ -559,6 +647,15 @@ export interface Redirect {
   from: string;
   to: string;
   reason?: string | null;
+  protection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -569,7 +666,7 @@ export interface Redirect {
 export interface User {
   id: number;
   name: string;
-  role: 'admin' | 'editor';
+  role: 'admin' | 'editor' | 'ai';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -597,6 +694,29 @@ export interface AiUsage {
   id: number;
   key: string;
   count: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Immutable whole-site snapshots. Use the publishing controls on Overview.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-releases".
+ */
+export interface SiteRelease {
+  id: number;
+  label: string;
+  formatVersion: number;
+  snapshot:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  createdBy: string;
   updatedAt: string;
   createdAt: string;
 }
@@ -759,6 +879,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'ai-usage';
         value: number | AiUsage;
+      } | null)
+    | ({
+        relationTo: 'site-releases';
+        value: number | SiteRelease;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -807,6 +931,7 @@ export interface PayloadMigration {
  * via the `definition` "pages_select".
  */
 export interface PagesSelect<T extends boolean = true> {
+  includeInSite?: T;
   title?: T;
   slug?: T;
   summary?: T;
@@ -845,6 +970,7 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T;
             };
       };
+  protection?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -854,6 +980,7 @@ export interface PagesSelect<T extends boolean = true> {
  * via the `definition` "case-studies_select".
  */
 export interface CaseStudiesSelect<T extends boolean = true> {
+  includeInSite?: T;
   title?: T;
   slug?: T;
   summary?: T;
@@ -932,6 +1059,7 @@ export interface CaseStudiesSelect<T extends boolean = true> {
               id?: T;
             };
       };
+  protection?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -941,6 +1069,7 @@ export interface CaseStudiesSelect<T extends boolean = true> {
  * via the `definition` "services_select".
  */
 export interface ServicesSelect<T extends boolean = true> {
+  includeInSite?: T;
   title?: T;
   slug?: T;
   summary?: T;
@@ -997,6 +1126,7 @@ export interface ServicesSelect<T extends boolean = true> {
               id?: T;
             };
       };
+  protection?: T;
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
@@ -1034,6 +1164,7 @@ export interface TeamMembersSelect<T extends boolean = true> {
   order?: T;
   active?: T;
   demo?: T;
+  protection?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1046,6 +1177,7 @@ export interface ClientsSelect<T extends boolean = true> {
   website?: T;
   logo?: T;
   demo?: T;
+  protection?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1060,6 +1192,7 @@ export interface MediaSelect<T extends boolean = true> {
   context?: T;
   altSource?: T;
   demo?: T;
+  protection?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -1105,6 +1238,7 @@ export interface FontsSelect<T extends boolean = true> {
   weightFrom?: T;
   weightTo?: T;
   style?: T;
+  protection?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -1133,6 +1267,7 @@ export interface ApprovedFactsSelect<T extends boolean = true> {
   project?: T;
   service?: T;
   notes?: T;
+  protection?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1144,6 +1279,7 @@ export interface RedirectsSelect<T extends boolean = true> {
   from?: T;
   to?: T;
   reason?: T;
+  protection?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1178,6 +1314,18 @@ export interface UsersSelect<T extends boolean = true> {
 export interface AiUsageSelect<T extends boolean = true> {
   key?: T;
   count?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site-releases_select".
+ */
+export interface SiteReleasesSelect<T extends boolean = true> {
+  label?: T;
+  formatVersion?: T;
+  snapshot?: T;
+  createdBy?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1279,6 +1427,15 @@ export interface Navigation {
         id?: string | null;
       }[]
     | null;
+  protection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1320,6 +1477,15 @@ export interface SiteSetting {
       }[]
     | null;
   defaultShareImage?: (number | null) | Media;
+  protection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1353,6 +1519,15 @@ export interface Theme {
    * Used for bold/emphasised text. Choose a weight at least as heavy as the body weight.
    */
   emphasisWeight: '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900';
+  protection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1387,6 +1562,28 @@ export interface SearchProfile {
     | null;
   allowSearchCrawlers?: boolean | null;
   allowTrainingCrawlers?: boolean | null;
+  protection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "publication".
+ */
+export interface Publication {
+  id: number;
+  previewRelease?: (number | null) | SiteRelease;
+  liveRelease?: (number | null) | SiteRelease;
+  liveChangedAt?: string | null;
+  changedBy?: string | null;
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1416,6 +1613,7 @@ export interface NavigationSelect<T extends boolean = true> {
         url?: T;
         id?: T;
       };
+  protection?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1448,6 +1646,7 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         id?: T;
       };
   defaultShareImage?: T;
+  protection?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1472,6 +1671,7 @@ export interface ThemeSelect<T extends boolean = true> {
   bodyWeight?: T;
   headingWeight?: T;
   emphasisWeight?: T;
+  protection?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;
@@ -1506,6 +1706,20 @@ export interface SearchProfileSelect<T extends boolean = true> {
       };
   allowSearchCrawlers?: T;
   allowTrainingCrawlers?: T;
+  protection?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "publication_select".
+ */
+export interface PublicationSelect<T extends boolean = true> {
+  previewRelease?: T;
+  liveRelease?: T;
+  liveChangedAt?: T;
+  changedBy?: T;
   updatedAt?: T;
   createdAt?: T;
   globalType?: T;

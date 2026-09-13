@@ -17,7 +17,7 @@ export async function GET(request: Request) {
   return new Response(null, {
     status: 307,
     headers: {
-      Location: contentPath(collection, doc.slug),
+      Location: `/workspace-preview${contentPath(collection, doc.slug)}`,
       'Cache-Control': 'private, no-store',
       'X-Robots-Tag': 'noindex, nofollow',
     },

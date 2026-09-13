@@ -49,6 +49,7 @@ try {
         id: page.id,
         draft: false,
         overrideAccess: false,
+        user: editor,
       })
     ).title,
     'Published original',
@@ -116,7 +117,14 @@ try {
   })
   await payload.jobs.run({ allQueues: true })
   assert.equal(
-    (await payload.findByID({ collection: 'pages', id: page.id, overrideAccess: false }))._status,
+    (
+      await payload.findByID({
+        collection: 'pages',
+        id: page.id,
+        user: editor,
+        overrideAccess: false,
+      })
+    )._status,
     'published',
   )
   await payload.jobs.queue({

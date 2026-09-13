@@ -35,7 +35,7 @@ test('admin workspace remains accessible on mobile, in dark mode and with keyboa
     ).toEqual([])
   }
   await page.getByRole('link', { name: 'Make it yours' }).click()
-  await expect(page.getByText('Main logo', { exact: true })).toBeVisible()
+  await expect(page.locator('#field-logo').getByText('Main logo', { exact: true })).toBeVisible()
   await page.setViewportSize({ width: 390, height: 900 })
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true,

@@ -2,6 +2,7 @@ node_modules/
 .next/
 .cache/
 .local/
+.designos/
 .env*
 !.env.example
 .vercel/

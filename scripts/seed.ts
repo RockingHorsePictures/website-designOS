@@ -203,6 +203,23 @@ if (!media.totalDocs) {
     file: { data: image, name: 'demo-swatch.png', size: image.length, mimetype: 'image/png' },
   })
 }
+if (process.env.SITE_ENV === 'local') {
+  const state = await payload.findGlobal({ slug: 'publication', depth: 0 })
+  if (!state.previewRelease) {
+    const { changePublication, releaseID } = await import('../src/lib/releases')
+    const admin = (
+      await payload.find({ collection: 'users', where: { role: { equals: 'admin' } }, limit: 1 })
+    ).docs[0]
+    await changePublication(payload, { ...admin, collection: 'users' }, 'preview', null)
+    const preview = await payload.findGlobal({ slug: 'publication', depth: 0 })
+    await changePublication(
+      payload,
+      { ...admin, collection: 'users' },
+      'publish',
+      releaseID(preview.previewRelease),
+    )
+  }
+}
 await payload.destroy()
 console.log('Demo seed complete.')
 process.exit(0)

@@ -6,19 +6,25 @@ Design OS only: V5 Phases 1, 2, 2B and 3. No final company website design is inc
 
 ## Data and rendering
 
+Version 0.2 introduces immutable JSON Site Releases and singleton Publication pointers. Snapshot creation runs in a repeatable-read transaction; publication and asset-retention operations use transaction-scoped advisory locks. Publishing checks the reviewed Preview ID; concurrent/stale operations fail rather than replacing an unseen version. Public rendering resolves relationships from the selected snapshot, including metadata, redirects, navigation, font metadata and crawler settings. Referenced source workspace edits do not change snapshot content. Asset replacement/deletion is rejected once an asset belongs to a release. Releases currently have conservative unlimited retention; a future retention workflow must verify references and backups before removing any assets.
+
+The public URL renders Live; /preview renders the fixed Preview; /workspace-preview requires an authenticated draft session to render mutable working drafts. The proxy overwrites the internal view header so callers cannot spoof it. The same deployment owns /admin and both content channels. A separate Vercel Preview deployment still has an isolated test database and must never be bound to the real Production database.
+
+Protection metadata is stored alongside content and globals. Saved schema defaults, explicit human approval and locked states are distinct. CMS hooks reject locked writes and unauthorized policy changes, even with local API access overrides. A dedicated policy route uses a server-only approval marker and optimistic record timestamps. AI contributor accounts cannot approve or publish. These controls are not a sandbox against an infrastructure administrator editing code or issuing direct SQL; the repository contract governs privileged coding agents.
+
 - One TypeScript Next.js App Router app contains the public proof frontend and Payload `/admin` plus REST API.
 - PostgreSQL stores users, content, drafts, version history, relationships, globals, jobs, redirects and AI budget counters.
 - Payload collections: Pages, Case Studies, Services, Team Members, Media, Clients, Approved Facts, Redirects. Hidden AI Usage records enforce optional provider budgets.
-- Globals: Navigation, Site Settings, Theme, Search Strategy.
+- Globals: Navigation, Site Settings, Theme, Search Strategy and internal Publication channel pointers. Site Releases store immutable content snapshots.
 - Capabilities are structured service subrecords initially. Sectors are planning context in Search Strategy. Dedicated taxonomies can be added later if real content justifies them.
-- Public routes query Payload with access control and published mode. They are dynamically server-rendered, so successful publication appears on the next request with no deployment or cache-invalidation race. React request memoization deduplicates page/metadata reads.
+- Public routes read immutable site release snapshots through siteCMS(). Workspace collections and globals require authentication. They are dynamically server-rendered, so successful publication appears on the next request with no deployment or cache-invalidation race. React request memoization deduplicates page/metadata reads.
 - Case study, service and page URLs are derived from their slugs. Reserved infrastructure/index paths cannot be used as page slugs. Missing documents return 404; stored internal redirects return 308.
 
 ## Editor and preview
 
 Theme typography uses a stable approved-font registry and CSS variables shared by the public layout, Puck preview root and live admin sample. Inter, Source Sans 3 and Lora are self-hosted through pinned Fontsource variable packages with normal/italic faces; system stacks are also available. The additive typography migration supplies the original system-font defaults to existing globals and their versions. Adding a font must update the registry, bundled assets and enum migration. CMS values never supply raw CSS or external stylesheet URLs.
 
-- Payload is the primary editing shell. Its forms support create, duplicate, draft, publish, unpublish, schedule and version restore.
+- Payload is the primary editing shell. Its forms support create, duplicate, draft, workspace save, schedule and version restore. Whole-site publication is a separate Overview action.
 - `/editor/[id]` is an authenticated Puck composer for Pages only. Three neutral sections prove the component contract: Introduction, Call to action, Selected case studies.
 - The JSON field is replaced with a human-readable outline and composer link. Authors do not edit JSON.
 - The composer saves drafts through an authenticated same-origin endpoint and detects stale saves using the document update timestamp. It does not publish. Reopen the normal page editor for QA and publication.

@@ -1,0 +1,6 @@
+{
+  "version": "0.2.0",
+  "releaseFormat": 1,
+  "upstream": "https://github.com/RockingHorsePictures/website-designOS.git",
+  "customisationRoots": ["src/components/sections", "src/styles/proof.css", "src/editor/registry"]
+}

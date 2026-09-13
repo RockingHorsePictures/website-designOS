@@ -4,7 +4,7 @@
 
 Application releases include both the public website and Payload admin. Test code changes on a feature-branch Preview, review the checks, apply any compatible schema migrations to Production using its own credentials, then release the reviewed code using Production configuration. Do not merely assign the production domain to a Preview instance connected to preview data.
 
-The code release does not transfer CMS records or Blob objects. After launch, routine content work belongs in the Production CMS with draft/preview/publish for versioned documents. Global settings currently save immediately. For initial launch, transfer only reviewed content and assets into the new Production resources, remap relationship IDs where needed, verify metadata and uploads, and provision production users separately. This is an operational plan, not an implemented automatic content-transfer feature. Never overwrite a populated Production database with a Preview snapshot as part of a routine release.
+The code release does not transfer CMS records or Blob objects. After launch, routine content work belongs in the Production CMS with draft/preview/publish for versioned documents. All forms save to the workspace. The Production CMS creates a frozen whole-site Preview, then explicitly publishes that reviewed release to Live. Globals no longer change Live immediately. For initial launch, transfer only reviewed content and assets into the new Production resources, remap relationship IDs where needed, verify metadata and uploads, and provision production users separately. This is an operational plan, not an implemented automatic content-transfer feature. Never overwrite a populated Production database with a Preview snapshot as part of a routine release.
 
 Separate preview and production PostgreSQL databases, database users, Blob stores, Payload secrets, cron secrets and optional AI provider credentials. Never copy production connection strings into local/preview settings. The app rejects known environment-label mismatches; operators must also verify the actual resource identities.
 
@@ -21,6 +21,8 @@ To recover: restore database and media into a new isolated environment, apply an
 Payload versions recover previous content edits. Restore and review a version, then publish. Deleted-record recovery requires backups. Code rollback uses the prior known-good Vercel deployment. Do not roll code back across an incompatible schema change: prefer a forward fix, or restore a matching database snapshot and media backup into new resources. Generated DOWN migrations can drop data; run them only on disposable test databases unless an explicitly reviewed recovery plan calls for them.
 
 ## Scheduled publishing
+
+Whole-site publication is now explicit from Overview. Legacy scheduled document operations only update workspace state and do not release a site. Do not promise timed whole-site launches using the document job runner.
 
 An authenticated scheduler calls `/api/payload-jobs/run?allQueues=true` with the deployment's CRON_SECRET. Jobs are stored in PostgreSQL and survive process restarts. Review failed jobs in Payload/admin or logs. Local development runs a minute worker. The current Hobby preview has no automatic scheduler; its endpoint is tested by explicit invocation. Configure a production scheduler before relying on timed changes (see README), and verify publication occurs at the scheduled time.
 

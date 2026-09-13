@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test'
+import { openWorkspacePreview } from './helpers'
 
 test('theme fonts preview, persist and render on the website and composer', async ({ page }) => {
   await page.goto('/admin/login')
@@ -30,7 +31,7 @@ test('theme fonts preview, persist and render on the website and composer', asyn
     await expect
       .poll(async () => (await (await page.request.get('/api/globals/theme')).json()).headingFont)
       .toBe('lora')
-    await page.goto('/')
+    await openWorkspacePreview(page)
     await expect(page.locator('body')).toHaveCSS('font-family', /Inter Variable/)
     await expect(page.locator('body')).toHaveCSS('font-weight', '500')
     await expect(page.getByRole('heading', { level: 1 })).toHaveCSS('font-family', /Lora Variable/)

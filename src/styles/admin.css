@@ -6,36 +6,36 @@
   --style-radius-s: 6px;
   --style-radius-m: 10px;
   --style-radius-l: 14px;
-  --dos-accent: #22634f;
+  --dos-accent: #175cd3;
   --dos-on-accent: #ffffff;
-  --dos-muted: #58666a;
+  --dos-muted: #5b6270;
   --dos-surface: #ffffff;
-  --dos-soft: #edf4f0;
-  --dos-border: #dce4e0;
+  --dos-soft: #edf4ff;
+  --dos-border: #e1e4e8;
   --dos-shadow: 0 2px 6px rgb(25 49 39 / 4%);
 }
 html:not([data-theme='dark']) {
-  --theme-bg: #f7f9f8;
+  --theme-bg: #fafafa;
   --theme-input-bg: #ffffff;
-  --theme-text: #20302b;
-  --theme-border-color: #dce4e0;
-  --theme-elevation-50: #f0f4f2;
-  --theme-elevation-100: #e7eeea;
-  --theme-elevation-150: #dce5df;
-  --theme-elevation-200: #cedbd3;
+  --theme-text: #18181b;
+  --theme-border-color: #e1e4e8;
+  --theme-elevation-50: #f4f4f5;
+  --theme-elevation-100: #e4e4e7;
+  --theme-elevation-150: #d4d4d8;
+  --theme-elevation-200: #c5c5cc;
 }
 html[data-theme='dark'] {
-  --dos-accent: #9cdbc0;
-  --dos-on-accent: #10251b;
-  --dos-muted: #b1bfba;
-  --dos-surface: #19221e;
-  --dos-soft: #23372c;
-  --dos-border: #37473e;
+  --dos-accent: #78a9ff;
+  --dos-on-accent: #09111f;
+  --dos-muted: #a7a7b0;
+  --dos-surface: #171719;
+  --dos-soft: #17233a;
+  --dos-border: #333338;
   --dos-shadow: none;
-  --theme-bg: #121a16;
-  --theme-input-bg: #19221e;
-  --theme-text: #e7efe9;
-  --theme-border-color: #37473e;
+  --theme-bg: #0a0a0b;
+  --theme-input-bg: #171719;
+  --theme-text: #ededf0;
+  --theme-border-color: #333338;
 }
 html {
   font-size: 14px;
@@ -490,4 +490,70 @@ body {
   .dashboard .card {
     transition: none;
   }
+}
+
+.dos-publishing,
+.dos-protection {
+  background: var(--dos-surface);
+  border: 1px solid var(--dos-border);
+  border-radius: 14px;
+  padding: 24px;
+  margin-block: 24px;
+}
+.dos-publishing h2 {
+  margin-top: 0;
+  font-size: 22px;
+}
+.dos-publishing p,
+.dos-protection p {
+  color: var(--dos-muted);
+  max-width: 80ch;
+}
+.dos-publish-actions,
+.dos-publish-confirm {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.dos-publish-confirm {
+  border-top: 1px solid var(--dos-border);
+  margin-top: 20px;
+  padding-top: 16px;
+}
+.dos-publish-confirm p {
+  width: 100%;
+}
+.dos-protection summary {
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.dos-policy-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+  gap: 12px;
+}
+.dos-policy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--dos-border);
+  border-radius: 8px;
+  padding: 14px;
+}
+.dos-policy span,
+.dos-policy small {
+  display: block;
+  color: var(--dos-muted);
+  margin-top: 4px;
+}
+.dos-policy select {
+  max-width: 100%;
+  padding: 8px;
+  background: var(--theme-input-bg);
+  color: var(--theme-text);
+  border: 1px solid var(--dos-border);
+  border-radius: 6px;
 }

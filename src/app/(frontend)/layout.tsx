@@ -1,6 +1,8 @@
+import { SiteLink } from '@/components/site/SiteLink'
+import { siteCMS, siteView, siteSnapshot } from '@/lib/site'
 import '@/styles/proof.css'
 import '@/styles/typography.css'
-import { cms, previewUser } from '@/lib/cms'
+import { previewUser } from '@/lib/cms'
 import { tokenStyle } from '@/design-system/tokens'
 import { typographyStyle } from '@/design-system/typography'
 import { CustomFonts } from '@/design-system/CustomFonts'
@@ -11,9 +13,13 @@ import { LiveRefresh } from '@/editor/LiveRefresh'
 
 export const dynamic = 'force-dynamic'
 export async function generateMetadata() {
-  const settings = await (await cms()).findGlobal({ slug: 'site-settings' })
+  const settings = await (await siteCMS()).findGlobal({ slug: 'site-settings' })
   const icon = settings.siteIcon && typeof settings.siteIcon === 'object' ? settings.siteIcon : null
   return {
+    robots: {
+      index: (await siteView()) === 'live' && Boolean(await siteSnapshot()),
+      follow: (await siteView()) === 'live',
+    },
     ...(icon?.url ? { icons: { icon: icon.url, apple: icon.url } } : {}),
     verification: {
       google: process.env.GOOGLE_SITE_VERIFICATION,
@@ -29,7 +35,31 @@ async function exitPreview() {
   redirect('/')
 }
 export default async function Layout({ children }: { children: React.ReactNode }) {
-  const payload = await cms()
+  const view = await siteView()
+  if (view !== 'workspace' && !(await siteSnapshot()))
+    return (
+      <html lang="en">
+        <body>
+          <main
+            id="main"
+            style={{
+              minHeight: '100vh',
+              display: 'grid',
+              placeContent: 'center',
+              textAlign: 'center',
+              padding: 32,
+              background: '#fafafa',
+              color: '#18181b',
+            }}
+          >
+            <h1>Coming soon</h1>
+            <p>We’re preparing something new. Please check back soon.</p>
+            <a href="/admin">Open editor</a>
+          </main>
+        </body>
+      </html>
+    )
+  const payload = await siteCMS()
   const [settings, navigation, theme, user] = await Promise.all([
     payload.findGlobal({ slug: 'site-settings' }),
     payload.findGlobal({ slug: 'navigation' }),
@@ -41,12 +71,17 @@ export default async function Layout({ children }: { children: React.ReactNode }
     <html lang="en">
       <body className="site-typography" style={{ ...tokenStyle(theme), ...typographyStyle(theme) }}>
         <CustomFonts theme={theme} />
+        {view === 'preview' && (
+          <aside className="notice">
+            Site Preview — these changes are not Live. <a href="/admin">Return to editor</a>
+          </aside>
+        )}
         {user && <LiveRefresh />}
         <a className="skip" href="#main">
           Skip to content
         </a>
         <header className="site-header">
-          <a href="/">
+          <SiteLink href="/">
             {logo?.url ? (
               <Image
                 src={logo.url}
@@ -59,12 +94,12 @@ export default async function Layout({ children }: { children: React.ReactNode }
             ) : (
               settings.companyName
             )}
-          </a>
+          </SiteLink>
           <nav aria-label="Main navigation">
             {navigation.primary?.map((l) => (
-              <a key={l.id} href={l.url}>
+              <SiteLink key={l.id} href={l.url}>
                 {l.label}
-              </a>
+              </SiteLink>
             ))}
             <a href="/admin">Open editor</a>
           </nav>
@@ -82,9 +117,9 @@ export default async function Layout({ children }: { children: React.ReactNode }
           <p>{settings.footerText}</p>
           <nav aria-label="Footer navigation">
             {navigation.footer?.map((l) => (
-              <a href={l.url} key={l.id}>
+              <SiteLink href={l.url} key={l.id}>
                 {l.label}
-              </a>
+              </SiteLink>
             ))}
           </nav>
         </footer>

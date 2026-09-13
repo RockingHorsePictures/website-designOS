@@ -87,6 +87,7 @@ export const Theme: GlobalConfig = {
           fields: Object.entries(tokenDefaults).map(
             ([name, value]): Field => ({
               name,
+              ...(name === 'canvas' ? { label: 'Background' } : {}),
               type: 'text',
               required: true,
               defaultValue: value,

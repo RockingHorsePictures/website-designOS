@@ -1,8 +1,20 @@
 # Company Design OS
 
+## Install your own website
+
+Install Node.js 22+ and Git, then run:
+
+```sh
+npx --yes --package=https://github.com/RockingHorsePictures/website-designOS/releases/download/v0.2.0/design-os-installer-0.2.0.tgz design-os
+```
+
+The guided browser setup connects your GitHub and Vercel accounts, creates a separate private website repository, provisions isolated hosting resources, creates your administrator and deploys a Coming soon website. Each site is independent of this product repository. See NEW_SITE.md for permissions, setup steps, recovery and upgrades. The original product demo remains a separate Preview environment.
+
+Version 0.2 adds **Save to Preview → Publish to Live**, site unpublishing, field approvals/locks and AI contributor permissions. Live reads a frozen release, so further content edits do not overwrite it. Read EDITOR_GUIDE.md for the new publishing model; the original V5 specification is historical context where later user-approved changes differ.
+
 **Want AI to build a website with this? Start with [START_HERE.md](START_HERE.md).** The admin dashboard has a **Build your website with AI** panel with instructions for this site or a fresh project. See [NEW_SITE.md](NEW_SITE.md) for the clean starter export.
 
-Next.js + Payload + PostgreSQL foundation from `COMPANY_WEBSITE_BUILD_SPEC_V5.md`. Scope stops after Phases 1, 2, 2B and 3. All public views are deliberately neutral proof scaffolding. Final website design requires separate authorization.
+Next.js + Payload + PostgreSQL foundation from `COMPANY_WEBSITE_BUILD_SPEC_V5.md`. The original scope covers Phases 1, 2, 2B and 3; version 0.2 adds user-requested whole-site publishing, locks, an installer and reviewed upgrades. All public views are deliberately neutral proof scaffolding. Final website design requires separate authorization.
 
 Verified hosted Preview: https://designos-preview-rockinghorse.vercel.app; editor at `/admin`. Vercel sign-in protects the Preview; the CMS has its own editor login. On the original setup computer, credentials are in the ignored `.local/preview-access.txt`. Review the foundation in https://github.com/RockingHorsePictures/website-designOS/pull/1.
 
@@ -39,6 +51,8 @@ npm run typecheck
 npm run lint
 npm test
 npm run test:integration
+npm run test:releases
+npm run test:installer
 npm run build
 npm start
 # separate terminal; uses installed Edge on Windows, Chromium on Linux

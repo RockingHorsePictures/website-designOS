@@ -13,6 +13,8 @@ import { CaseStudies, Services, TeamMembers, Clients } from './src/cms/collectio
 import { ApprovedFacts, Redirects } from './src/cms/collections/Search'
 import { Navigation, SiteSettings, Theme, SearchProfile } from './src/cms/globals'
 import { AIUsage } from './src/cms/collections/AIUsage'
+import { Releases, Publication } from './src/cms/collections/Releases'
+import { protectCollection, protectGlobal } from './src/cms/protection'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 if (!process.env.PAYLOAD_SECRET || process.env.PAYLOAD_SECRET.length < 32)
@@ -31,8 +33,29 @@ if (process.env.VERCEL && !process.env.BLOB_READ_WRITE_TOKEN)
   throw new Error('Hosted media requires persistent Blob storage.')
 
 export default buildConfig({
+  i18n: {
+    translations: {
+      en: {
+        version: {
+          publish: 'Save to workspace',
+          publishChanges: 'Save to workspace',
+          unpublish: 'Move to draft',
+          aboutToUnpublish:
+            'Move this document to draft? This does not change the Live site. Use Include in site releases to exclude it from the next Preview.',
+        },
+      },
+    },
+  },
   secret: process.env.PAYLOAD_SECRET,
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
+  csrf: [
+    ...new Set([
+      process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
+      ...[process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL]
+        .filter(Boolean)
+        .map((host) => `https://${host}`),
+    ]),
+  ],
   admin: {
     user: 'users',
     importMap: { baseDir: dirname },
@@ -66,18 +89,25 @@ export default buildConfig({
     Redirects,
     Users,
     AIUsage,
-  ].map((collection) => ({
-    ...collection,
-    admin: {
-      ...collection.admin,
-      ...(['pages', 'case-studies', 'services', 'team-members', 'clients'].includes(collection.slug)
-        ? { group: 'Content' }
-        : ['media', 'fonts'].includes(collection.slug)
-          ? { group: 'Assets' }
-          : {}),
-    },
-  })),
-  globals: [Navigation, SiteSettings, Theme, SearchProfile],
+  ]
+    .map((collection) => ({
+      ...collection,
+      admin: {
+        ...collection.admin,
+        ...(['pages', 'case-studies', 'services', 'team-members', 'clients'].includes(
+          collection.slug,
+        )
+          ? { group: 'Content' }
+          : ['media', 'fonts'].includes(collection.slug)
+            ? { group: 'Assets' }
+            : {}),
+      },
+    }))
+    .map((collection) =>
+      ['users', 'ai-usage'].includes(collection.slug) ? collection : protectCollection(collection),
+    )
+    .concat(Releases),
+  globals: [...[Navigation, SiteSettings, Theme, SearchProfile].map(protectGlobal), Publication],
   jobs: {
     access: {
       run: ({ req }) =>

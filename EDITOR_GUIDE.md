@@ -1,89 +1,53 @@
-# Design OS editor guide
+# Your Design OS workspace
 
-The public pages are neutral test pages. They demonstrate how the editing system works; the company's visual website will be built later.
+Open **your-site.com/admin** and sign in. This is the single place for editing and publishing. The admin has light and dark appearances with blue accents, separate from website branding.
 
-## Sign in
+## Save, preview and publish
 
-Open `/admin` on the running app. Use an administrator-provided account. Local demo credentials are in the ignored `.env` file (`SEED_EMAIL`, `SEED_PASSWORD`). An administrator can create editor accounts under Users. Password-reset delivery needs an email provider before launch; ask an administrator to reset an account meanwhile.
+1. Edit pages, settings, colours, fonts, logos or navigation. **Save**, **Save to workspace** and **Save Draft** store edits in the workspace. They do not change Live.
+2. In **Overview**, choose **Save to Preview**. This captures the whole saved workspace, including saved page drafts, as a fixed version. Unsaved form changes are excluded.
+3. Open **View Preview**. Its `/preview` address can be shared and is excluded from search indexing. Later edits do not change it until you save another Preview.
+4. Choose **Publish to Live**, then confirm. The exact reviewed Preview version becomes Live. Later workspace edits stay separate.
+5. **Unpublish site** replaces Live with **Coming soon**, preserving content, assets and Preview. Publish again whenever ready.
 
-## Edit a page
+New installations show Coming soon until first publication. Code deployments do not reset the saved releases or overwrite content with another environment's data. Code releases can change rendering and admin features, so developers must test and review those separately.
 
-1. Open Pages and choose a record.
-2. Edit its title, summary and hero image. Use Media to upload an image, then write a meaningful description or mark it decorative.
-3. Save Draft. Public visitors continue to see the previously published version.
-4. Use Preview or Live Preview to see the saved draft. You must remain signed in. Choose Mobile, Tablet or Desktop. Standard form changes appear after saving; the page composer previews section changes immediately.
-5. Open Search & quality and run Check this page. Fix blockers. Review warnings and recommendations; these are advisory.
-6. Publish. A fresh public request sees the change immediately, without a code deployment.
+## Edit content
 
-## Arrange page sections
+Pages, Case Studies and Services hold structured content. Edit the title, URL slug, summary, images and relationships, then save. **Include in site releases** controls whether a page belongs in the next Preview. Turn it off to remove a page from the next release without deleting its workspace record. Moving a document to draft does not exclude it from a whole-site release.
 
-Save the normal form first, then click Open page composer. Add, edit, remove or reorder approved sections using the component library and outline. Selected case studies references real project records. Use the device controls to check widths. Click **Save draft** to persist changes. Return to the page editor to review and publish. If another window changed the page, reload before saving again.
+The individual **Preview / Live Preview** controls show an authenticated working draft at `/workspace-preview`. This is separate from the fixed, shareable site Preview. The page composer previews unsaved section edits; choose **Save draft** before creating a site Preview.
 
-## Case studies, services and team
+Use **Open page composer** to arrange approved sections. Structured project and service sections reference their records rather than copying their content. Use Team's Active setting to include or exclude people from the next release, and Order to arrange them. Saved URL changes can create workspace redirects, included in the next release.
 
-Case Studies and Services are separate collections. Create a record, enter the required fields, select relationships/media and save a draft. Their public URLs are created automatically. Duplicate a record from its document menu, assign a unique URL slug, then review all copied fields before publication.
+## Approvals and locks
 
-Add people under Team. Change Order to reorder them. Deactivate a person to remove them from the public team list. The layout adjusts to the number of active records.
+Open **Approvals & locks** at the bottom of a saved record or settings form. Save the form first.
 
-Changing a **published** URL creates an internal redirect from the previous URL. Use Redirects for legacy URLs, then verify the destination. Loops and infrastructure destinations are rejected.
+| State            | Meaning                                            |
+| ---------------- | -------------------------------------------------- |
+| Editable default | A starting point AI may adapt within your brief.   |
+| Approved         | A person approved the choice; it remains editable. |
+| Locked           | Changes are rejected until a person unlocks it.    |
 
-## Global content and colours
+For example, lock **Background** to preserve white while leaving Accent editable. Human edits are recorded as approved; matching a default does not imply approval or a lock. Changes record who approved them and when. Reload the form after changing approvals.
 
-The admin Overview provides shortcuts for pages, assets and company settings. The navigation groups records into Content, Assets, Website, Search & evidence, and Administration. The environment badge identifies Local, Preview or Production on every admin screen. Expand **Build your website with AI** when you need its handoff instructions. The admin supports light and dark mode independently of website branding.
+An **AI contributor** account can read approvals and edit unlocked content. It cannot unlock or publish. If AI needs a locked value changed, it should identify the conflict and ask you to unlock it. Review and save the change, then lock it again. Repository/database administrators retain infrastructure-level control; coding workspaces must obey AI_SITE_CONTRACT.md as well as these CMS checks.
 
-Navigation manages ordered primary, secondary and footer links. Site Settings manages company/contact/footer/social information. Theme tokens expose a small set of semantic colours. These globals save directly and affect the next public request; version history supports recovery. They do not have a separate draft-preview workflow in this foundation.
+## Colours, fonts and logos
 
-Use the colour swatches to choose colours visually, or enter a six-digit hex code. The swatch and text field stay in sync. Editing a colour does not save it until you press Save.
+In Theme tokens, use the colour swatch or enter a six-digit hex value. Under Fonts & weights, select heading/body fonts and weights; the sample updates while editing. Save, then create a Preview to review the website together.
 
-### Which workspace should I edit?
+Upload licensed WOFF2 or WOFF fonts, up to 2 MB each, in Font files. Add regular/bold/italic faces separately, or enter minimum and maximum weights for a variable font. Choose Custom uploaded font in Theme and select the matching family files. Font sizes and layout stay in website design code.
 
-Before launch, this project's Preview is the working test site. After launch, use the **Production admin** for day-to-day editorial work: save page drafts, check their authenticated preview, then publish. A draft preview is different from the separate Preview deployment used to test code changes. Theme, logo and navigation globals currently apply immediately when saved in their environment.
+Site Settings contains main/inverse logos and the browser icon. The library accepts PNG, WebP, JPEG and AVIF; SVG uploads are not enabled. Transparent PNG/WebP suits logos; use a square PNG for the icon.
 
-Website design, features and admin UI changes are tested in Preview and released together as application code. Content, uploads, font selections, logo selections and navigation values live in that environment's database/storage and are not automatically copied with a deployment. Moving approved initial content from Preview to Production requires a deliberate transfer and verification before launch; there is no automatic content-sync feature.
+Files included in a saved release are retained. Upload a new file instead of replacing or deleting a retained file. Release content and font/image metadata remain frozen; later selections apply to a later release. Upload only fonts licensed for this website.
 
-### Fonts and weights
+## Search, history and AI
 
-Open **Theme tokens → Fonts & weights**. Choose body and heading fonts independently, then choose a weight from thin (100) through regular (400) to black (900). Match the weight to one your font supports. Emphasis weight controls bold text. The sample responds before saving; **Save** applies the selection to the website and page composer without a code deployment. Refresh an already-open website/composer tab to see the saved choice. Payload's admin interface keeps its own typography.
+Search & quality checks identify missing metadata, unsafe composition and factual claims needing review. Verified facts belong in Approved Facts & Evidence. Warnings are advisory; publication blockers must be fixed. Crawler choices are released with the site. Local, code-testing and content Preview pages are not indexed.
 
-Inter, Source Sans 3 and Lora are served with the app, including normal and italic styles. System sans serif, serif and monospace choices use fonts installed on the visitor's device; their exact appearance and intermediate weights can vary by device. Existing pages retain system fonts until changed. Font sizes and layout remain part of the website design.
+Document Versions restore content into the workspace, without overwriting Live. Scheduled document operations affect workspace state only. Whole-site scheduled publication is not implemented; publish the reviewed site explicitly from Overview.
 
-### Upload a custom font
-
-1. Open **Font files → Create new**. Upload a licensed **WOFF2** (recommended) or **WOFF** webfont, up to 2 MB. Desktop TTF/OTF files need a webfont version from the font supplier.
-2. Give it a helpful name such as “Brand Sans Bold”. Set its weight (regular 400, bold 700) and normal/italic style. For a variable font, enter its minimum and maximum supported weights; otherwise leave maximum weight empty.
-3. Add each additional weight/style as another font file.
-4. In **Theme tokens**, choose **Custom uploaded font** for body or headings. Select that family's files together. Choose the text weights, check the live sample and save. Missing weights/styles may be synthesised by the browser, so upload matching variants for accurate results.
-
-Font files are publicly served website assets. Upload fonts whose licence permits use on this website. Removing a selected font falls back to a system font; changing a file or selection affects the next page load. Avoid overlapping weight/style ranges within the same selected family.
-
-### Logos and browser icon
-
-Open **Site Settings → Brand assets**. Upload/select the **Main logo** for the header, an optional **Logo for dark backgrounds**, and a square **Browser icon**. Transparent PNG/WebP works well for logos; PNG is recommended for the icon. The current upload library accepts PNG, WebP, JPEG and AVIF, not SVG. The website header uses the main logo with the company name as its accessible label; an empty logo uses the company name as text. The inverse version is available for later design components. Save applies these settings immediately, with version history for recovery.
-
-### Build with AI
-
-Return to the admin dashboard and open **Build your website with AI**. Choose this website or a separate website, then copy/download the instructions. Continue your existing Codex conversation or paste them into a new coding task connected to the correct project. The panel prepares a handoff; it does not start an AI session or deploy changes itself. See START_HERE.md for access and NEW_SITE.md for reuse.
-
-## Media descriptions
-
-Write what the image communicates in context. Avoid generic “image of” wording and unsupported identity/location guesses. Mark decoration as decorative to output an empty description. A page's per-use description can override the asset description.
-
-When an automatic-description service is configured, new images can receive draft suggestions. Review them. Regenerate alt text suggestion loads a proposed replacement; save only after checking it. Your manual override remains intact unless you explicitly request a replacement. When AI is disabled, offline or budget-limited, upload and manual editing still work. Automatic suggestions are not configured by default.
-
-## Evidence and search
-
-Approved Facts & Evidence stores verified statements and source notes. Keep review dates current and attach relevant facts to content. AI-assisted claims require human review; an automated quality check cannot determine whether every statement is true.
-
-Search fields default to the page title/summary and company name. Override them when useful. Hide from search excludes a page from indexing and the sitemap. Demo records are always excluded from production indexing.
-
-Search Strategy stores audiences, topics, terminology, approved facts and reference URLs. It also separates search/discovery crawler access from model-training preferences. Production defaults allow discovery and deny GPTBot, ClaudeBot and Google-Extended training access. Local/preview sites deny all crawling regardless of these settings.
-
-## Schedule and restore
-
-Use the scheduled publish/unpublish controls in a document's publishing menu. Processing depends on the scheduled job runner and normally occurs within one minute of the chosen time when the hosted cron is active. Your administrator must verify that runner before relying on schedules.
-
-Use Versions to compare or restore previous content. Review the restored version and publish it if required. An unpublished document returns 404 publicly. Contact an administrator for deleted-record/database recovery.
-
-## Code changes
-
-New visual sections, layout redesigns and new functionality require a developer/AI coding task. Those changes use Git, tests and a separate hosted preview. Editing ordinary content uses this CMS only.
+Expand Build your website with AI on Overview for a copyable handoff. Continue in the connected coding workspace. For a separate company, use NEW_SITE.md; each website gets its own repository, database, uploads and credentials.

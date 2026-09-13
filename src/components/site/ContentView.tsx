@@ -1,7 +1,8 @@
-import Link from 'next/link'
+import { siteCMS } from '@/lib/site'
+import { SiteLink as Link } from '@/components/site/SiteLink'
 import Image from 'next/image'
 import { RichText } from '@payloadcms/richtext-lexical/react'
-import { cms, previewUser } from '@/lib/cms'
+import { previewUser } from '@/lib/cms'
 import { compositionSchema } from '@/editor/registry/schema'
 import { Intro, CallToAction, SelectedProjects } from '../sections'
 import type { Media, Page, CaseStudy, Service, SiteSetting } from '@/payload-types'
@@ -42,7 +43,7 @@ export async function ContentView({
   collection: ContentCollection
   settings: SiteSetting
 }) {
-  const payload = await cms()
+  const payload = await siteCMS()
   const user = await previewUser()
   const composition = 'composition' in doc ? compositionSchema.safeParse(doc.composition) : null
   return (

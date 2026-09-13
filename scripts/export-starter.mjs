@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { createHash } from 'node:crypto'
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..')
 if (!process.argv[2])
@@ -24,9 +25,11 @@ const files = git('ls-tree', '-r', '--name-only', '-z', 'HEAD')
   .toString()
   .split('\0')
   .filter(Boolean)
-const roots = new Set(['src', 'scripts', 'tests', 'public', '.github'])
+const roots = new Set(['src', 'scripts', 'tests', 'public', '.github', 'installer'])
 const allowedRoot = new Set([
   'AGENTS.md',
+  'LICENSE',
+  'designos-release.json',
   'CLAUDE.md',
   'START_HERE.md',
   'NEW_SITE.md',
@@ -111,6 +114,30 @@ for (const name of ['README.md', 'DESIGN_HANDOFF.md', 'AI_SITE_CONTRACT.md', 'ST
     )
   writeFileSync(target, text)
 }
+
+// Only template-owned files participate in upgrades. Site identity and operational records stay local.
+const managed = {}
+const excluded = new Set(['site-workspace.json', 'IMPLEMENTATION_STATUS.md'])
+for (const name of files) {
+  if (excluded.has(name)) continue
+  const filename = path.join(destination, name)
+  if (existsSync(filename))
+    managed[name] = createHash('sha256').update(readFileSync(filename)).digest('hex')
+}
+const release = JSON.parse(readFileSync(path.join(destination, 'designos-release.json'), 'utf8'))
+writeFileSync(
+  path.join(destination, 'designos-installation.json'),
+  JSON.stringify(
+    {
+      version: release.version,
+      sourceCommit: revision,
+      installedAt: new Date().toISOString(),
+      files: managed,
+    },
+    null,
+    2,
+  ) + '\n',
+)
 console.log(
   `Exported ${count} committed foundation files to ${destination}. No existing site credentials, uploads or deployment links were copied. Open START_HERE.md in the new project.`,
 )

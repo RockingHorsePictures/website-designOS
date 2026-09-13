@@ -1,7 +1,7 @@
-import { cms, findContent, previewUser } from '@/lib/cms'
+import { siteCMS } from '@/lib/site'
+import { findContent, previewUser } from '@/lib/cms'
 import { ContentView } from '@/components/site/ContentView'
 import { metadataFor } from '@/lib/search/metadata'
-import { notFound } from 'next/navigation'
 export const dynamic = 'force-dynamic'
 export async function generateMetadata() {
   const doc = await findContent('pages', 'home')
@@ -9,19 +9,19 @@ export async function generateMetadata() {
     ? metadataFor(
         doc,
         'pages',
-        await (await cms()).findGlobal({ slug: 'site-settings' }),
+        await (await siteCMS()).findGlobal({ slug: 'site-settings' }),
         Boolean(await previewUser()),
       )
-    : { title: 'Foundation demonstration' }
+    : { title: 'Coming soon', robots: { index: false, follow: false } }
 }
 export default async function Home() {
   const doc = await findContent('pages', 'home')
-  if (!doc) notFound()
+  if (!doc) return null
   return (
     <ContentView
       doc={doc}
       collection="pages"
-      settings={await (await cms()).findGlobal({ slug: 'site-settings' })}
+      settings={await (await siteCMS()).findGlobal({ slug: 'site-settings' })}
     />
   )
 }

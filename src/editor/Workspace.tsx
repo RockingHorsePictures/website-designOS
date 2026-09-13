@@ -1,3 +1,4 @@
+import { PublishingPanel } from './PublishingPanel'
 import { BuildGuide } from './BuildGuide'
 
 export function WorkspaceIcon() {
@@ -112,10 +113,11 @@ export function WorkspaceHome() {
         <EnvironmentBadge />
         <p>
           {live
-            ? 'Use drafts to prepare page changes, then publish when ready. Brand and navigation settings apply immediately when saved.'
+            ? 'One editing workspace. Save to Preview, review it, then publish the whole site to Live.'
             : 'This is a test workspace. Content and uploads here stay separate from Production; deploying code does not move them.'}
         </p>
       </aside>
+      <PublishingPanel />
       <BuildGuide />
     </div>
   )

@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Set up Design OS</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <span class="mark">D</span><span>DESIGN OS / SETUP</span><span id="version"></span>
+      </header>
+      <h1>Your next website<br />starts here.</h1>
+      <p class="lead">A workspace you own. Your content, your GitHub repository, your hosting.</p>
+      <ol class="steps">
+        <li>Connect</li>
+        <li>Name your site</li>
+        <li>Set up</li>
+        <li>Start building</li>
+      </ol>
+      <div role="status" id="status">Connecting to the local installer…</div>
+      <div role="alert" id="error"></div>
+      <a id="auth" class="button" hidden target="_blank" rel="noreferrer"
+        >Complete account step ↗</a
+      >
+      <section id="connect">
+        <h2>1. Connect your accounts</h2>
+        <p>
+          GitHub stores your website code. Vercel hosts the website, database and uploads. This
+          installer runs on your computer; credentials are sent only to the relevant provider.
+        </p>
+        <div class="cards">
+          <article>
+            <h3>GitHub</h3>
+            <p id="github-state">
+              Use an existing Git sign-in, or provide a temporary GitHub token.
+            </p>
+            <label for="github-token">GitHub token (only if needed)</label
+            ><input id="github-token" type="password" autocomplete="off" />
+            <p class="small">
+              For a classic token, select <strong>repo</strong> and <strong>workflow</strong>.
+              Authorise your organisation if required. The token stays in this installer’s memory
+              and can be revoked after setup.
+            </p>
+            <a
+              href="https://github.com/settings/tokens/new?description=Design%20OS%20setup&scopes=repo,workflow"
+              target="_blank"
+              rel="noreferrer"
+              >Create a temporary token ↗</a
+            >
+          </article>
+          <article>
+            <h3>Vercel</h3>
+            <p>
+              Your browser will open Vercel’s own sign-in. Choose the account that should own this
+              website.
+            </p>
+            <button id="login-vercel" type="button">Sign in to Vercel</button>
+            <p class="small">If the sign-in tab does not open, use the account-step link above.</p>
+          </article>
+        </div>
+        <button class="primary" id="refresh" type="button">Connect / refresh accounts</button>
+      </section>
+      <form id="details" hidden>
+        <section>
+          <h2>2. Make it yours</h2>
+          <div class="grid">
+            <label
+              >Website name<input
+                name="name"
+                required
+                pattern="[a-z0-9][a-z0-9-]*"
+                maxlength="48"
+                placeholder="my-company" /></label
+            ><label>GitHub owner<select name="owner" id="owner" required></select></label
+            ><label>Vercel team<select name="team" id="team" required></select></label
+            ><label
+              >Local website folder<input
+                name="folder"
+                placeholder="Leave empty to create a folder here" /></label
+            ><label
+              >Administrator email<input
+                name="email"
+                type="email"
+                autocomplete="email"
+                required /></label
+            ><label
+              >Administrator password<input
+                name="password"
+                type="password"
+                minlength="16"
+                autocomplete="new-password"
+                required
+              /><small>At least 16 characters. Save it in your password manager.</small></label
+            ><label
+              >Data region<select name="region">
+                <option value="lhr1">London</option>
+                <option value="fra1">Frankfurt</option>
+                <option value="iad1">Washington, D.C.</option>
+                <option value="pdx1">Portland</option>
+                <option value="syd1">Sydney</option>
+                <option value="sin1">Singapore</option>
+                <option value="gru1">São Paulo</option>
+              </select></label
+            >
+          </div>
+        </section>
+        <section>
+          <h2>3. Review the setup</h2>
+          <ul>
+            <li>One new private GitHub repository and a separate Vercel project.</li>
+            <li>Separate Production and code-testing databases and upload stores.</li>
+            <li>Neon Free plans; Vercel usage follows your account’s plan and limits.</li>
+            <li>
+              A new administrator and a neutral starting page. Your live URL shows
+              <strong>Coming soon</strong> until you publish.
+            </li>
+            <li>Existing website folders and resources are never replaced automatically.</li>
+          </ul>
+          <label class="check"
+            ><input type="checkbox" name="approved" required />I approve creating these resources in
+            my selected accounts.</label
+          ><button class="primary" type="submit" id="install">Create my website</button>
+          <p class="small">
+            Provider terms or GitHub app permissions may require an account step. Setup records
+            completed steps so you can continue afterward.
+          </p>
+        </section>
+      </form>
+      <section id="progress" hidden>
+        <h2>Setting up your website</h2>
+        <ol id="events"></ol>
+        <p>You can leave this browser open while setup runs. Keep the launch terminal open.</p>
+      </section>
+      <section id="done" hidden>
+        <h2>Your workspace is ready.</h2>
+        <p>
+          Use the admin to edit and publish. Open the local website folder in your AI coding
+          workspace to design the site.
+        </p>
+        <div id="links" class="actions"></div>
+        <p id="folder-result"></p>
+        <p>
+          Custom domain setup, email delivery and backup policies remain launch configuration
+          choices. Until you publish, visitors see Coming soon.
+        </p>
+        <button id="close" type="button">Finish setup</button>
+      </section>
+      <footer>
+        Design OS <span id="footer-version"></span> · Accounts and services stay under your
+        ownership.
+      </footer>
+    </main>
+  </body>
+</html>

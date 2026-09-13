@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test'
 import AxeBuilder from '@axe-core/playwright'
+import { publishWorkspace } from './helpers'
 
 test('public navigation and neutral responsive templates', async ({ page }) => {
   for (const width of [390, 768, 1440]) {
@@ -61,10 +62,18 @@ test('editor saves a draft, previews it, publishes it, and changes its URL', asy
   await expect(page.getByRole('heading', { level: 1 })).toHaveText(`Editorial ${marker}`)
   await expect(page.getByText('Authenticated draft preview')).toBeVisible()
   await page.goto(`/admin/collections/pages/${id}`)
-  await page.getByRole('button', { name: /^Publish/ }).click()
+  await page.getByRole('button', { name: /^Save to workspace$/ }).click()
+  await expect
+    .poll(async () => (await (await page.request.get(`/api/pages/${id}`)).json())._status)
+    .toBe('published')
+  await publishWorkspace(page)
   await expect.poll(async () => (await request.get(`/${marker}`)).status()).toBe(200)
   await page.locator('#field-slug').fill(`${marker}-renamed`)
-  await page.getByRole('button', { name: /^Publish/ }).click()
+  await page.getByRole('button', { name: /^Save to workspace$/ }).click()
+  await expect
+    .poll(async () => (await (await page.request.get(`/api/pages/${id}`)).json()).slug)
+    .toBe(`${marker}-renamed`)
+  await publishWorkspace(page)
   await expect
     .poll(async () => (await request.get(`/${marker}`, { maxRedirects: 0 })).status())
     .toBe(308)
@@ -132,6 +141,7 @@ test('page composer previews real sections and saves drafts without publishing',
   })
   expect(create.ok()).toBe(true)
   const { doc } = await create.json()
+  await publishWorkspace(page)
   try {
     await page.goto(`/editor/${doc.id}`)
     await expect(page.getByRole('heading', { name: /^Page composer/ })).toBeVisible()

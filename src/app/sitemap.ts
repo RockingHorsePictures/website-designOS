@@ -1,11 +1,11 @@
+import { siteCMS, siteView } from '@/lib/site'
 import type { MetadataRoute } from 'next'
-import { cms } from '@/lib/cms'
 import { absoluteURL, contentCollections, contentPath } from '@/lib/urls'
 import { indexable } from '@/lib/search/metadata'
 export const dynamic = 'force-dynamic'
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  if (process.env.SITE_ENV !== 'production') return []
-  const payload = await cms()
+  if (process.env.SITE_ENV !== 'production' || (await siteView()) !== 'live') return []
+  const payload = await siteCMS()
   const groups = await Promise.all(
     contentCollections.map(async (collection) => {
       const docs = []

@@ -3,6 +3,7 @@ import { cache } from 'react'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 import { draftMode, headers } from 'next/headers'
+import { siteCMS } from './site'
 import type { ContentCollection } from './urls'
 
 export const cms = () => getPayload({ config })
@@ -10,9 +11,13 @@ export const currentUser = cache(async () => {
   const payload = await cms()
   return (await payload.auth({ headers: await headers() })).user
 })
-export const previewUser = cache(async () => ((await draftMode()).isEnabled ? currentUser() : null))
+export const previewUser = cache(async () =>
+  (await headers()).get('x-designos-view') === 'workspace' && (await draftMode()).isEnabled
+    ? currentUser()
+    : null,
+)
 export const findContent = cache(async (collection: ContentCollection, slug: string) => {
-  const payload = await cms()
+  const payload = await siteCMS()
   const user = await previewUser()
   const result = await payload.find({
     collection,

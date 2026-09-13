@@ -1,5 +1,6 @@
+import { siteCMS, siteView } from '@/lib/site'
 import { notFound, permanentRedirect } from 'next/navigation'
-import { cms, findContent, previewUser } from '@/lib/cms'
+import { findContent, previewUser } from '@/lib/cms'
 import { ContentView } from '@/components/site/ContentView'
 import { metadataFor } from '@/lib/search/metadata'
 import type { ContentCollection } from '@/lib/urls'
@@ -16,7 +17,7 @@ export async function generateMetadata({ params }: { params: Promise<{ path: str
     ? metadataFor(
         doc,
         route![0],
-        await (await cms()).findGlobal({ slug: 'site-settings' }),
+        await (await siteCMS()).findGlobal({ slug: 'site-settings' }),
         Boolean(await previewUser()),
       )
     : { title: 'Page not found', robots: { index: false } }
@@ -25,14 +26,19 @@ export default async function Page({ params }: { params: Promise<{ path: string[
   const { path } = await params
   const route = resolve(path)
   const doc = route && (await findContent(...route))
-  const payload = await cms()
+  const payload = await siteCMS()
   if (!doc) {
     const { docs } = await payload.find({
       collection: 'redirects',
       where: { from: { equals: `/${path.join('/')}` } },
       limit: 1,
     })
-    if (docs[0]) permanentRedirect(docs[0].to)
+    if (docs[0]) {
+      const view = await siteView()
+      const prefix =
+        view === 'preview' ? '/preview' : view === 'workspace' ? '/workspace-preview' : ''
+      permanentRedirect(`${prefix}${docs[0].to}`)
+    }
     notFound()
   }
   return (

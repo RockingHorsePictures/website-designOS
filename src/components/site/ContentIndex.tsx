@@ -1,5 +1,6 @@
-import Link from 'next/link'
-import { cms } from '@/lib/cms'
+import { siteCMS } from '@/lib/site'
+import { previewUser } from '@/lib/cms'
+import { SiteLink as Link } from '@/components/site/SiteLink'
 export async function ContentIndex({
   collection,
   title,
@@ -8,8 +9,15 @@ export async function ContentIndex({
   title: string
 }) {
   const { docs } = await (
-    await cms()
-  ).find({ collection, overrideAccess: false, draft: false, limit: 100, sort: 'order' })
+    await siteCMS()
+  ).find({
+    collection,
+    overrideAccess: false,
+    user: await previewUser(),
+    draft: Boolean(await previewUser()),
+    limit: 100,
+    sort: 'order',
+  })
   return (
     <section>
       <h1>{title}</h1>

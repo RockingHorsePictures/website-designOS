@@ -1,10 +1,17 @@
-import { cms } from '@/lib/cms'
+import { siteCMS } from '@/lib/site'
+import { previewUser } from '@/lib/cms'
 import { ContentImage } from '@/components/site/ContentView'
 export const metadata = { title: 'Team' }
 export default async function Team() {
   const { docs } = await (
-    await cms()
-  ).find({ collection: 'team-members', overrideAccess: false, limit: 200, sort: 'order' })
+    await siteCMS()
+  ).find({
+    collection: 'team-members',
+    overrideAccess: false,
+    user: await previewUser(),
+    limit: 200,
+    sort: 'order',
+  })
   return (
     <section>
       <h1>Team</h1>

@@ -17,6 +17,7 @@ export default async function Editor({ params }: { params: Promise<{ id: string 
     collection: 'case-studies',
     limit: 200,
     draft: false,
+    user,
     overrideAccess: false,
     sort: '-publishedAt',
     select: { title: true, slug: true, summary: true, featured: true },

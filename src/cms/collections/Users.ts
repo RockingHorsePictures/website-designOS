@@ -20,7 +20,11 @@ export const Users: CollectionConfig = {
       type: 'select',
       required: true,
       defaultValue: 'editor',
-      options: ['admin', 'editor'],
+      options: [
+        'admin',
+        'editor',
+        { label: 'AI contributor (cannot approve or publish)', value: 'ai' },
+      ],
       access: { create: adminField, update: adminField },
     },
   ],
