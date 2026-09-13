@@ -2,6 +2,7 @@ import type { Config } from '@puckeditor/core'
 import type { Theme } from '../../payload-types'
 import { tokenStyle } from '../../design-system/tokens'
 import { typographyStyle } from '../../design-system/typography'
+import { CustomFonts } from '../../design-system/CustomFonts'
 import {
   Intro,
   CallToAction,
@@ -28,6 +29,7 @@ export function createPuckConfig(projects: ProjectSummary[], theme: Theme): Conf
           className="site-typography"
           style={{ ...tokenStyle(theme), ...typographyStyle(theme) }}
         >
+          <CustomFonts theme={theme} />
           {children}
         </div>
       ),

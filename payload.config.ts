@@ -8,6 +8,7 @@ import sharp from 'sharp'
 import { Users } from './src/cms/collections/Users'
 import { Pages } from './src/cms/collections/Pages'
 import { Media } from './src/cms/collections/Media'
+import { Fonts } from './src/cms/collections/Fonts'
 import { CaseStudies, Services, TeamMembers, Clients } from './src/cms/collections/Content'
 import { ApprovedFacts, Redirects } from './src/cms/collections/Search'
 import { Navigation, SiteSettings, Theme, SearchProfile } from './src/cms/globals'
@@ -32,7 +33,12 @@ if (process.env.VERCEL && !process.env.BLOB_READ_WRITE_TOKEN)
 export default buildConfig({
   secret: process.env.PAYLOAD_SECRET,
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
-  admin: { user: 'users', importMap: { baseDir: dirname }, meta: { titleSuffix: ' | Design OS' } },
+  admin: {
+    user: 'users',
+    importMap: { baseDir: dirname },
+    meta: { titleSuffix: ' | Design OS' },
+    components: { beforeDashboard: ['/src/editor/BuildGuide#BuildGuide'] },
+  },
   db: postgresAdapter({
     pool: { connectionString: process.env.DATABASE_URL },
     push: process.env.SITE_ENV === 'local' && process.env.DB_PUSH === 'true',
@@ -43,6 +49,7 @@ export default buildConfig({
   collections: [
     Users,
     Media,
+    Fonts,
     Pages,
     CaseStudies,
     Services,
@@ -70,7 +77,7 @@ export default buildConfig({
   plugins: [
     vercelBlobStorage({
       enabled: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
-      collections: { media: true },
+      collections: { media: true, fonts: true },
       token: process.env.BLOB_READ_WRITE_TOKEN,
     }),
   ],

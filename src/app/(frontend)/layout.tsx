@@ -3,13 +3,18 @@ import '@/styles/typography.css'
 import { cms, previewUser } from '@/lib/cms'
 import { tokenStyle } from '@/design-system/tokens'
 import { typographyStyle } from '@/design-system/typography'
+import { CustomFonts } from '@/design-system/CustomFonts'
+import Image from 'next/image'
 import { draftMode } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { LiveRefresh } from '@/editor/LiveRefresh'
 
 export const dynamic = 'force-dynamic'
 export async function generateMetadata() {
+  const settings = await (await cms()).findGlobal({ slug: 'site-settings' })
+  const icon = settings.siteIcon && typeof settings.siteIcon === 'object' ? settings.siteIcon : null
   return {
+    ...(icon?.url ? { icons: { icon: icon.url, apple: icon.url } } : {}),
     verification: {
       google: process.env.GOOGLE_SITE_VERIFICATION,
       other: process.env.BING_SITE_VERIFICATION
@@ -31,15 +36,30 @@ export default async function Layout({ children }: { children: React.ReactNode }
     payload.findGlobal({ slug: 'theme' }),
     previewUser(),
   ])
+  const logo = settings.logo && typeof settings.logo === 'object' ? settings.logo : null
   return (
     <html lang="en">
       <body className="site-typography" style={{ ...tokenStyle(theme), ...typographyStyle(theme) }}>
+        <CustomFonts theme={theme} />
         {user && <LiveRefresh />}
         <a className="skip" href="#main">
           Skip to content
         </a>
         <header className="site-header">
-          <a href="/">{settings.companyName}</a>
+          <a href="/">
+            {logo?.url ? (
+              <Image
+                src={logo.url}
+                alt={settings.companyName}
+                width={logo.width || 240}
+                height={logo.height || 80}
+                unoptimized
+                style={{ maxWidth: 240, maxHeight: 64, width: 'auto', height: 'auto' }}
+              />
+            ) : (
+              settings.companyName
+            )}
+          </a>
           <nav aria-label="Main navigation">
             {navigation.primary?.map((l) => (
               <a key={l.id} href={l.url}>

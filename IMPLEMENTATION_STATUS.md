@@ -44,6 +44,10 @@ V5 supersedes V4. **Phases 1, 2, 2B and 3 are complete within the foundation sco
 
 ## How a future design agent begins
 
+The subsequent requested foundation extension adds a Font files upload library (WOFF2/WOFF, static or variable faces), custom body/heading font selection and standard weights 100–900, main/inverse logos and a browser icon in Site Settings, and an admin dashboard AI handoff. START_HERE.md and NEW_SITE.md explain where to work and how to export a clean starter for another company. The contract is now linked from AGENTS.md so a new task can discover it without this conversation. No website visual design has begun.
+
+All six local browser flows pass, including font upload and persisted bytes, rejection of a disguised non-font, the Theme sample, public page, composer, main logo and icon. Thirteen unit checks, typecheck, lint, integration checks and the production build pass. The AI handoff panel and download work without browser errors. Both additive migrations preserve existing values and are applied to local and Preview databases. Updated hosted verification and starter export checks are pending this extension's release checks.
+
 The requested typography extension adds a live Theme sample, independently selectable heading/body fonts and heading/body/emphasis weights, with real self-hosted font files. Twelve unit checks, the production build, lint and all five local browser flows pass. The additive migration preserves existing theme values and versions with the original system-font defaults. See DESIGN_HANDOFF.md for the next design task's baseline, inputs and starting prompt.
 
 Obtain explicit Phase 4 authorization, then read this status, V5, ARCHITECTURE.md and AI_SITE_CONTRACT.md. Run the existing tests and inspect the real editor before modifying templates. Obtain approved company references and visual direction. Extend shared sections and schemas together; preserve draft isolation, structured records and existing content migrations. Keep demo content clearly identified until approved content replaces it.

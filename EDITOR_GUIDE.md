@@ -33,9 +33,26 @@ Navigation manages ordered primary, secondary and footer links. Site Settings ma
 
 ### Fonts and weights
 
-Open **Theme tokens → Fonts & weights**. Choose body and heading fonts independently, then choose regular (400), medium (500), semibold (600) or bold (700) weights. Emphasis weight controls bold text. The sample responds before saving; **Save** applies the selection to the website and page composer without a code deployment. Refresh an already-open website/composer tab to see the saved choice. Payload's admin interface keeps its own typography.
+Open **Theme tokens → Fonts & weights**. Choose body and heading fonts independently, then choose a weight from thin (100) through regular (400) to black (900). Match the weight to one your font supports. Emphasis weight controls bold text. The sample responds before saving; **Save** applies the selection to the website and page composer without a code deployment. Refresh an already-open website/composer tab to see the saved choice. Payload's admin interface keeps its own typography.
 
-Inter, Source Sans 3 and Lora are served with the app, including normal and italic styles. System sans serif, serif and monospace choices use fonts installed on the visitor's device; their exact appearance and intermediate weights can vary by device. Existing pages retain system fonts until changed. To add a specific brand font, provide its webfont files and licence to a coding agent, who adds it to the approved library. Font sizes and layout remain part of the website design.
+Inter, Source Sans 3 and Lora are served with the app, including normal and italic styles. System sans serif, serif and monospace choices use fonts installed on the visitor's device; their exact appearance and intermediate weights can vary by device. Existing pages retain system fonts until changed. Font sizes and layout remain part of the website design.
+
+### Upload a custom font
+
+1. Open **Font files → Create new**. Upload a licensed **WOFF2** (recommended) or **WOFF** webfont, up to 2 MB. Desktop TTF/OTF files need a webfont version from the font supplier.
+2. Give it a helpful name such as “Brand Sans Bold”. Set its weight (regular 400, bold 700) and normal/italic style. For a variable font, enter its minimum and maximum supported weights; otherwise leave maximum weight empty.
+3. Add each additional weight/style as another font file.
+4. In **Theme tokens**, choose **Custom uploaded font** for body or headings. Select that family's files together. Choose the text weights, check the live sample and save. Missing weights/styles may be synthesised by the browser, so upload matching variants for accurate results.
+
+Font files are publicly served website assets. Upload fonts whose licence permits use on this website. Removing a selected font falls back to a system font; changing a file or selection affects the next page load. Avoid overlapping weight/style ranges within the same selected family.
+
+### Logos and browser icon
+
+Open **Site Settings → Brand assets**. Upload/select the **Main logo** for the header, an optional **Logo for dark backgrounds**, and a square **Browser icon**. Transparent PNG/WebP works well for logos; PNG is recommended for the icon. The current upload library accepts PNG, WebP, JPEG and AVIF, not SVG. The website header uses the main logo with the company name as its accessible label; an empty logo uses the company name as text. The inverse version is available for later design components. Save applies these settings immediately, with version history for recovery.
+
+### Build with AI
+
+Return to the admin dashboard and open **Build your website with AI**. Choose this website or a separate website, then copy/download the instructions. Continue your existing Codex conversation or paste them into a new coding task connected to the correct project. The panel prepares a handoff; it does not start an AI session or deploy changes itself. See START_HERE.md for access and NEW_SITE.md for reuse.
 
 ## Media descriptions
 

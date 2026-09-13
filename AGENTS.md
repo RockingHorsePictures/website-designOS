@@ -1,3 +1,7 @@
+# Design OS project instructions
+
+Read START_HERE.md and AI_SITE_CONTRACT.md before changing this project. They carry the website architecture and handoff across conversations. Consult IMPLEMENTATION_STATUS.md for verified state. Preserve CMS editability and separate each company's resources. Only begin the visual website design phase when the user explicitly requests it.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know

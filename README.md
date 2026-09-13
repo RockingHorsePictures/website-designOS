@@ -1,5 +1,7 @@
 # Company Design OS
 
+**Want AI to build a website with this? Start with [START_HERE.md](START_HERE.md).** The admin dashboard has a **Build your website with AI** panel with instructions for this site or a fresh project. See [NEW_SITE.md](NEW_SITE.md) for the clean starter export.
+
 Next.js + Payload + PostgreSQL foundation from `COMPANY_WEBSITE_BUILD_SPEC_V5.md`. Scope stops after Phases 1, 2, 2B and 3. All public views are deliberately neutral proof scaffolding. Final website design requires separate authorization.
 
 Verified hosted Preview: https://designos-preview-rockinghorse.vercel.app; editor at `/admin`. Vercel sign-in protects the Preview; the CMS has its own editor login. On the original setup computer, credentials are in the ignored `.local/preview-access.txt`. Review the foundation in https://github.com/RockingHorsePictures/website-designOS/pull/1.

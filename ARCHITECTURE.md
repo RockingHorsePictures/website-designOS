@@ -38,6 +38,10 @@ Theme typography uses a stable approved-font registry and CSS variables shared b
 
 ## Media and optional AI
 
+- Brand identity is in Site Settings: main logo, inverse logo and browser icon reference the image library. The neutral header and metadata consume main logo/icon; the inverse logo is available for later design work.
+- Font files are a separate authenticated upload collection with public read/file delivery, WOFF2/WOFF header and size validation, weight ranges and styles. Local files use ignored `font-files/`; hosted files use the existing persistent Blob adapter. Theme relationships select a family's faces for body/headings; shared `CustomFonts` and typography tokens render them in the website, composer and live Theme sample. Family names and file routes are derived safely, not accepted as raw CSS.
+- START_HERE.md and AGENTS.md carry the AI workflow across tasks. The dashboard's handoff uses non-secret site-workspace.json repository/branch metadata. The starter exporter copies committed foundation files into a new folder and resets site-specific setup details; it does not copy data, secrets or hosting links or provision resources.
+
 - Local media lives in ignored `media/`; Vercel requires a Blob token. Uploads preserve metadata, focal point and responsive sizes. Vimeo stores videos; the CMS stores only references/posters/accessibility context.
 - Images support editable alt text, decorative status, a per-use override, context and provenance/review status.
 - `AIProvider` is server-only at runtime. The disabled provider leaves manual editing available. The optional HTTPS provider adapter expects `POST <AI_BASE_URL>/alt-text` with `{model,input:{image:{base64,mimeType},context,approvedFacts},rules}` and responds with `{text,reason?}`. This is a documented service contract, **not a direct OpenAI/Anthropic endpoint**. Supply an implementation before enabling it. No external AI generation has been verified without that service.

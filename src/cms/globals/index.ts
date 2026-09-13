@@ -24,6 +24,43 @@ export const SiteSettings: GlobalConfig = {
   versions: { max: 20 },
   fields: [
     { name: 'companyName', type: 'text', required: true },
+    {
+      type: 'collapsible',
+      label: 'Brand assets',
+      admin: { initCollapsed: false },
+      fields: [
+        {
+          name: 'logo',
+          label: 'Main logo',
+          type: 'upload',
+          relationTo: 'media',
+          admin: {
+            description:
+              'Used in the website header. A transparent PNG or WebP works well. Leave empty to display the company name.',
+          },
+        },
+        {
+          name: 'inverseLogo',
+          label: 'Logo for dark backgrounds',
+          type: 'upload',
+          relationTo: 'media',
+          admin: {
+            description:
+              'Optional light version, available to the website designer for dark sections.',
+          },
+        },
+        {
+          name: 'siteIcon',
+          label: 'Browser icon',
+          type: 'upload',
+          relationTo: 'media',
+          admin: {
+            description:
+              'A square PNG, ideally 512 × 512 pixels. This appears in browser tabs and bookmarks.',
+          },
+        },
+      ],
+    },
     { name: 'description', type: 'textarea' },
     { name: 'email', type: 'email' },
     { name: 'phone', type: 'text' },
@@ -64,12 +101,36 @@ export const Theme: GlobalConfig = {
           required: true,
         },
         {
+          name: 'bodyFontFiles',
+          label: 'Custom body font files',
+          type: 'relationship',
+          relationTo: 'fonts',
+          hasMany: true,
+          admin: {
+            condition: (data) => data.bodyFont === 'custom',
+            description:
+              'Select the regular, bold and italic files from one font family, or its variable font file. You can create and upload a font here.',
+          },
+        },
+        {
           name: 'headingFont',
           label: 'Heading font',
           type: 'select',
           options: fontOptions,
           defaultValue: typographyDefaults.headingFont,
           required: true,
+        },
+        {
+          name: 'headingFontFiles',
+          label: 'Custom heading font files',
+          type: 'relationship',
+          relationTo: 'fonts',
+          hasMany: true,
+          admin: {
+            condition: (data) => data.headingFont === 'custom',
+            description:
+              'Choose files from one font family. Match the heading weight to a weight supported by your files.',
+          },
         },
         {
           name: 'bodyWeight',

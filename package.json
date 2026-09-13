@@ -17,6 +17,7 @@
     "test:integration": "tsx scripts/integration.ts",
     "test:e2e": "playwright test",
     "db:local": "node scripts/local-db.mjs",
+    "starter:export": "node scripts/export-starter.mjs",
     "seed": "tsx scripts/seed.ts",
     "payload": "payload",
     "generate:types": "payload generate:types",

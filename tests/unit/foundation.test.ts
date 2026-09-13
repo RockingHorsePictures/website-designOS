@@ -1,13 +1,33 @@
 import { describe, it, expect } from 'vitest'
 import { safeLink, contentPath, validSlug, vimeoID } from '../../src/lib/urls'
 import { tokenStyle } from '../../src/design-system/tokens'
-import { typographyStyle } from '../../src/design-system/typography'
+import { typographyStyle, customFontCSS } from '../../src/design-system/typography'
 import { compositionSchema } from '../../src/editor/registry/schema'
 import { auditContent } from '../../src/lib/quality'
 import { indexable, serializeSchema } from '../../src/lib/search/metadata'
 import { DisabledAIProvider } from '../../src/lib/ai/providers'
 
 describe('content contracts', () => {
+  it('encodes uploaded font filenames and rejects unsafe or unresolved font metadata', () => {
+    const font = {
+      id: 1,
+      filename: '"></style><script>alert(1)</script>.woff2',
+      weightFrom: 100,
+      weightTo: 900,
+      style: 'normal',
+    }
+    const css = customFontCSS({ bodyFont: 'custom', bodyFontFiles: [font] })
+    expect(css).toContain('font-weight:100 900')
+    expect(css).not.toMatch(/[<>]/)
+    expect(css).toContain('/api/fonts/file/%22%3E')
+    expect(
+      customFontCSS({
+        bodyFont: 'custom',
+        bodyFontFiles: [1, { ...font, weightFrom: '400;display:none' }],
+      }),
+    ).toBe('')
+    expect(typographyStyle({ bodyFont: 'custom', bodyFontFiles: [] })).toEqual(typographyStyle())
+  })
   it('keeps typography defaults for old versions and rejects arbitrary CSS values', () => {
     expect(
       typographyStyle({ bodyFont: 'url(https://example.com)', headingWeight: '900;display:none' }),

@@ -6,6 +6,7 @@ node_modules/
 !.env.example
 .vercel/
 media/
+font-files/
 test-results/
 playwright-report/
 *.tsbuildinfo

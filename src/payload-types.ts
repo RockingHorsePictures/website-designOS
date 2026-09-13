@@ -69,6 +69,7 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    fonts: Font;
     pages: Page;
     'case-studies': CaseStudy;
     services: Service;
@@ -87,6 +88,7 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    fonts: FontsSelect<false> | FontsSelect<true>;
     pages: PagesSelect<false> | PagesSelect<true>;
     'case-studies': CaseStudiesSelect<false> | CaseStudiesSelect<true>;
     services: ServicesSelect<false> | ServicesSelect<true>;
@@ -222,6 +224,39 @@ export interface Media {
       filename?: string | null;
     };
   };
+}
+/**
+ * Upload licensed WOFF2 or WOFF webfonts (up to 2 MB each). Add each regular, bold or italic file separately, then select them together in Theme tokens.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "fonts".
+ */
+export interface Font {
+  id: number;
+  /**
+   * For example: Brand Sans Regular, Brand Sans Bold, or Brand Sans Variable.
+   */
+  name: string;
+  /**
+   * Regular is 400, bold is 700. For a variable font, enter its lowest supported weight.
+   */
+  weightFrom: number;
+  /**
+   * Leave empty for a single-weight font. For a variable font, enter its highest supported weight.
+   */
+  weightTo?: number | null;
+  style: 'normal' | 'italic';
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  focalX?: number | null;
+  focalY?: number | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -690,6 +725,10 @@ export interface PayloadLockedDocument {
         value: number | Media;
       } | null)
     | ({
+        relationTo: 'fonts';
+        value: number | Font;
+      } | null)
+    | ({
         relationTo: 'pages';
         value: number | Page;
       } | null)
@@ -833,6 +872,27 @@ export interface MediaSelect<T extends boolean = true> {
               filename?: T;
             };
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "fonts_select".
+ */
+export interface FontsSelect<T extends boolean = true> {
+  name?: T;
+  weightFrom?: T;
+  weightTo?: T;
+  style?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  url?: T;
+  thumbnailURL?: T;
+  filename?: T;
+  mimeType?: T;
+  filesize?: T;
+  width?: T;
+  height?: T;
+  focalX?: T;
+  focalY?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1229,6 +1289,18 @@ export interface Navigation {
 export interface SiteSetting {
   id: number;
   companyName: string;
+  /**
+   * Used in the website header. A transparent PNG or WebP works well. Leave empty to display the company name.
+   */
+  logo?: (number | null) | Media;
+  /**
+   * Optional light version, available to the website designer for dark sections.
+   */
+  inverseLogo?: (number | null) | Media;
+  /**
+   * A square PNG, ideally 512 × 512 pixels. This appears in browser tabs and bookmarks.
+   */
+  siteIcon?: (number | null) | Media;
   description?: string | null;
   email?: string | null;
   phone?: string | null;
@@ -1265,14 +1337,22 @@ export interface Theme {
   highlight: string;
   border: string;
   inverse: string;
-  bodyFont: 'system-sans' | 'system-serif' | 'system-mono' | 'inter' | 'source-sans-3' | 'lora';
-  headingFont: 'system-sans' | 'system-serif' | 'system-mono' | 'inter' | 'source-sans-3' | 'lora';
-  bodyWeight: '400' | '500' | '600' | '700';
-  headingWeight: '400' | '500' | '600' | '700';
+  bodyFont: 'system-sans' | 'system-serif' | 'system-mono' | 'inter' | 'source-sans-3' | 'lora' | 'custom';
+  /**
+   * Select the regular, bold and italic files from one font family, or its variable font file. You can create and upload a font here.
+   */
+  bodyFontFiles?: (number | Font)[] | null;
+  headingFont: 'system-sans' | 'system-serif' | 'system-mono' | 'inter' | 'source-sans-3' | 'lora' | 'custom';
+  /**
+   * Choose files from one font family. Match the heading weight to a weight supported by your files.
+   */
+  headingFontFiles?: (number | Font)[] | null;
+  bodyWeight: '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900';
+  headingWeight: '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900';
   /**
    * Used for bold/emphasised text. Choose a weight at least as heavy as the body weight.
    */
-  emphasisWeight: '400' | '500' | '600' | '700';
+  emphasisWeight: '100' | '200' | '300' | '400' | '500' | '600' | '700' | '800' | '900';
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1346,6 +1426,9 @@ export interface NavigationSelect<T extends boolean = true> {
  */
 export interface SiteSettingsSelect<T extends boolean = true> {
   companyName?: T;
+  logo?: T;
+  inverseLogo?: T;
+  siteIcon?: T;
   description?: T;
   email?: T;
   phone?: T;
@@ -1383,7 +1466,9 @@ export interface ThemeSelect<T extends boolean = true> {
   border?: T;
   inverse?: T;
   bodyFont?: T;
+  bodyFontFiles?: T;
   headingFont?: T;
+  headingFontFiles?: T;
   bodyWeight?: T;
   headingWeight?: T;
   emphasisWeight?: T;
