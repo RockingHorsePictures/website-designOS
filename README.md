@@ -14,6 +14,8 @@ The guided browser setup connects your GitHub and Vercel accounts, creates a sep
 
 Version 0.2 adds **Save to Preview → Publish to Live**, site unpublishing, field approvals/locks and AI contributor permissions. Live reads a frozen release, so further content edits do not overwrite it. Read EDITOR_GUIDE.md for the new publishing model; the original V5 specification is historical context where later user-approved changes differ.
 
+The next version (in review) adds a full editable **section library** for building pages without code, **contact forms** with an Enquiries inbox, answer-engine-aware crawler controls, `/llms.txt`, richer structured data, an admin **Site health** check, and a Claude-first **AI toolkit**: MCP server, skills and specialist subagents for building bespoke sites and auditing SEO, AEO/GEO, schema, content and accessibility. See AI_TOOLKIT.md.
+
 **Want AI to build a website with this? Start with [START_HERE.md](START_HERE.md).** The admin dashboard has a **Build your website with AI** panel with instructions for this site or a fresh project. See [NEW_SITE.md](NEW_SITE.md) for the clean starter export.
 
 Next.js + Payload + PostgreSQL foundation from `COMPANY_WEBSITE_BUILD_SPEC_V5.md`. The original scope covers Phases 1, 2, 2B and 3; version 0.2 adds user-requested whole-site publishing, locks, an installer and reviewed upgrades. All public views are deliberately neutral proof scaffolding. Final website design requires separate authorization.
@@ -55,6 +57,7 @@ npm test
 npm run test:integration
 npm run test:releases
 npm run test:installer
+npm run test:ai
 npm run build
 npm start
 # separate terminal; uses installed Edge on Windows, Chromium on Linux
@@ -85,11 +88,27 @@ A temporary static deployment cannot validate Payload persistence and is not a s
 
 Vercel requires a first Production-labelled deployment for a new project. This project's approved static bootstrap has no public alias or app credentials; the actual application is on Preview. Keep `.vercelignore`: the CLI does not use all Git exclusions when uploading local source. The protected Preview, hosted editing and media persistence after redeploy have been verified.
 
+## AI tools
+
+Open the folder in Claude Code and approve the `design-os` MCP server; skills `/designos-build`, `/designos-content`, `/designos-audit`, `/designos-new-section`, `/designos-import-design` and `/designos-launch-check` are included. Any agent or person can use the CLI:
+
+```sh
+npm run ai:check && npm run ai:context   # CMS connection and approvals
+npm run ai:health -- local               # whole-site CMS checks
+npm run sections -- catalog              # section library as JSON schema
+npm run audit -- http://localhost:3000   # SEO/AEO/GEO/schema/accessibility crawl
+npm run mcp                              # start the MCP server (stdio)
+```
+
+See AI_TOOLKIT.md.
+
 ## Documents
 
 - `ARCHITECTURE.md`: data flow, editor, preview, search, AI and hosting boundaries.
 - `EDITOR_GUIDE.md`: editing, preview, publish, media, schedules and versions.
 - `AI_SITE_CONTRACT.md`: rules for future site components and agents.
+- `AI_TOOLKIT.md`: Claude Code skills, subagents, MCP server, audits, Claude Design.
+- `SECTIONS.md`: the editable section library and how to add bespoke sections.
 - `OPERATIONS.md`: backup, recovery, credentials and URL/content onboarding.
 - `IMPLEMENTATION_STATUS.md`: completed work, evidence, limitations and next actions.
 

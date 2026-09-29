@@ -15,6 +15,9 @@ import { Navigation, SiteSettings, Theme, SearchProfile } from './src/cms/global
 import { AIUsage } from './src/cms/collections/AIUsage'
 import { Releases, Publication } from './src/cms/collections/Releases'
 import { protectCollection, protectGlobal } from './src/cms/protection'
+import { FormSubmissions } from './src/cms/collections/FormSubmissions'
+import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
+import { siteOrigin } from './src/lib/urls'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 if (!process.env.PAYLOAD_SECRET || process.env.PAYLOAD_SECRET.length < 32)
@@ -47,10 +50,28 @@ export default buildConfig({
     },
   },
   secret: process.env.PAYLOAD_SECRET,
-  serverURL: process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
+  // Optional SMTP delivery for password resets and enquiry notifications. Without it, email is
+  // logged to the server console and enquiries remain available under Enquiries in the admin.
+  ...(process.env.SMTP_HOST
+    ? {
+        email: nodemailerAdapter({
+          defaultFromAddress: process.env.SMTP_FROM || 'no-reply@localhost',
+          defaultFromName: process.env.SMTP_FROM_NAME || 'Website',
+          transportOptions: {
+            host: process.env.SMTP_HOST,
+            port: Number(process.env.SMTP_PORT || 587),
+            secure: process.env.SMTP_PORT === '465',
+            auth: process.env.SMTP_USER
+              ? { user: process.env.SMTP_USER, pass: process.env.SMTP_PASSWORD }
+              : undefined,
+          },
+        }),
+      }
+    : {}),
+  serverURL: siteOrigin(),
   csrf: [
     ...new Set([
-      process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
+      siteOrigin(),
       ...[process.env.VERCEL_URL, process.env.VERCEL_BRANCH_URL]
         .filter(Boolean)
         .map((host) => `https://${host}`),
@@ -89,6 +110,7 @@ export default buildConfig({
     Redirects,
     Users,
     AIUsage,
+    FormSubmissions,
   ]
     .map((collection) => ({
       ...collection,
@@ -104,7 +126,9 @@ export default buildConfig({
       },
     }))
     .map((collection) =>
-      ['users', 'ai-usage'].includes(collection.slug) ? collection : protectCollection(collection),
+      ['users', 'ai-usage', 'form-submissions'].includes(collection.slug)
+        ? collection
+        : protectCollection(collection),
     )
     .concat(Releases),
   globals: [...[Navigation, SiteSettings, Theme, SearchProfile].map(protectGlobal), Publication],
@@ -141,15 +165,20 @@ export default buildConfig({
         throw new Error(
           'Provision the initial administrator using BOOTSTRAP_EMAIL and a strong BOOTSTRAP_PASSWORD before exposing admin.',
         )
-      await payload.create({
-        collection: 'users',
-        data: {
-          email: process.env.BOOTSTRAP_EMAIL,
-          password: process.env.BOOTSTRAP_PASSWORD,
-          name: 'Administrator',
-          role: 'admin',
-        },
-      })
+      try {
+        await payload.create({
+          collection: 'users',
+          data: {
+            email: process.env.BOOTSTRAP_EMAIL,
+            password: process.env.BOOTSTRAP_PASSWORD,
+            name: 'Administrator',
+            role: 'admin',
+          },
+        })
+      } catch (error) {
+        // Another cold-starting instance may have created the administrator first.
+        if (!(await payload.count({ collection: 'users' })).totalDocs) throw error
+      }
     }
   },
 })

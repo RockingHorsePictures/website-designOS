@@ -1,7 +1,8 @@
+import { siteOrigin } from '../urls'
 export async function notifyIndexNow(paths: string[], logger: { warn: (message: string) => void }) {
   const key = process.env.INDEXNOW_KEY
-  const origin = process.env.NEXT_PUBLIC_SERVER_URL
-  if (!key || !origin || process.env.SITE_ENV !== 'production') return
+  const origin = siteOrigin()
+  if (!key || process.env.SITE_ENV !== 'production') return
   try {
     const result = await fetch('https://api.indexnow.org/indexnow', {
       method: 'POST',

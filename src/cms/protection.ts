@@ -7,7 +7,7 @@ import {
 } from 'payload'
 import { advisoryLock } from '../lib/transaction'
 import { protectReleasedAsset } from '../lib/releases'
-import { readOnlyAI } from './access'
+import { isAI, readOnlyAI } from './access'
 
 function requireWritable(req: PayloadRequest) {
   if (readOnlyAI(req.user))
@@ -59,16 +59,21 @@ export async function checkProtection({
   originalDoc,
   req,
   fields,
+  restoring = Boolean(req.context.isRestoringVersion),
 }: {
   data: Record<string, unknown>
   originalDoc?: Record<string, unknown>
   req: PayloadRequest
   fields: Field[]
+  restoring?: boolean
 }) {
   requireWritable(req)
   const policies = (originalDoc?.protection || {}) as Policies
   const approved =
     req.context.policyApproval === policyApproval && req.user && req.user.role !== 'ai'
+  // A restored version carries the approval record from its own time. Current approvals and
+  // locks always win: restoring content never changes policies.
+  if (restoring) delete data.protection
   if ('protection' in data && comparable(data.protection) !== comparable(policies) && !approved)
     throw new APIError('Only the approval controls can change field locks.', 403)
   const next =
@@ -84,8 +89,11 @@ export async function checkProtection({
         `${field.label} is locked. Ask its owner to unlock it in Approvals & locks before changing it.`,
         423,
       )
-    if (req.user && req.user.role !== 'ai' && !approved)
+    if (req.user && !isAI(req.user) && !approved)
       next[field.name] = { state: 'approved', by: req.user.email, at: new Date().toISOString() }
+    // An AI change is not a human approval: the field returns to an editable default.
+    else if (isAI(req.user) && policies[field.name]?.state === 'approved')
+      next[field.name] = { state: 'default', by: req.user!.email, at: new Date().toISOString() }
   }
   data.protection = next
   return data
@@ -119,10 +127,9 @@ export function protectCollection(config: CollectionConfig): CollectionConfig {
         readOnlyAI(args.req.user)
           ? false
           : (config.access?.update?.(args) ?? Boolean(args.req.user)),
+      // AI accounts edit unlocked content but never delete records or files.
       delete: (args) =>
-        readOnlyAI(args.req.user)
-          ? false
-          : (config.access?.delete?.(args) ?? Boolean(args.req.user)),
+        isAI(args.req.user) ? false : (config.access?.delete?.(args) ?? Boolean(args.req.user)),
       read: ['media', 'fonts'].includes(config.slug)
         ? config.access?.read
         : ({ req }) => Boolean(req.user),
@@ -229,9 +236,25 @@ export function protectGlobal(config: GlobalConfig): GlobalConfig {
               originalDoc: { ...current },
               req,
               fields: config.fields,
+              restoring: true,
             })
+            req.context.designosPolicies = current.protection || {}
           }
           return args
+        },
+      ],
+      afterChange: [
+        ...(config.hooks?.afterChange || []),
+        async ({ doc, req }) => {
+          // The adapter wrote the old version's approval record; put the current one back.
+          if (!req.context.isRestoringVersion || !req.context.designosPolicies) return doc
+          const raw = await req.payload.db.findGlobal({ slug: config.slug, req })
+          await req.payload.db.updateGlobal({
+            slug: config.slug,
+            data: { ...raw, protection: req.context.designosPolicies },
+            req,
+          })
+          return { ...doc, protection: req.context.designosPolicies }
         },
       ],
       beforeChange: [

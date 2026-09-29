@@ -32,9 +32,15 @@ Before later content migration, create a CSV inventory with: `old_url,title,cont
 
 For each URL, preserve its path or create a reviewed internal Redirects record. Import content into the matching structured collection, attach evidence/source notes and keep it as draft. Verify titles, summaries, canonical destinations, media/alt text, relationships and redirects. Test a sample of preserved, redirected and removed URLs for 200/308/404, then inspect sitemap/robots. Inferred facts stay unverified until a company user confirms them.
 
+## Email and enquiries
+
+Set `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` and optionally `SMTP_FROM_NAME` per environment to enable password-reset email and enquiry notifications (any SMTP provider, for example your email host, Resend, Postmark or SES). Notifications go to `FORM_NOTIFY_EMAIL`, or the Site Settings email when that is empty. Without SMTP, enquiries are still stored under **Enquiries** and email content is only logged. Test by submitting a Contact section form after each deployment configuration change.
+
+Enquiries are personal data. Only admin/editor accounts can read them (AI accounts cannot). They are not part of site releases or AI context exports. Define a retention period with the owner and delete old enquiries; include the table in backups and data-subject requests. The form stores a salted hash of the sender's network address for rate limiting only (five messages per ten minutes), never the address itself.
+
 ## Credentials and accounts
 
-Secrets remain in ignored local environment files and encrypted hosting variables. Do not paste them into issue trackers or docs. Remove temporary bootstrap credentials after first hosted login. Rotate secrets if exposed. No third-party email adapter is configured; production password reset email delivery must be connected before launch or handled by an administrator.
+Secrets remain in ignored local environment files and encrypted hosting variables. Do not paste them into issue trackers or docs. Remove temporary bootstrap credentials after first hosted login. Rotate secrets if exposed. Password reset email requires SMTP (above); otherwise an administrator resets passwords.
 
 ## Dependency audit
 

@@ -12,6 +12,33 @@ Verified locally: additive migration, typecheck, lint, 13 unit tests, 9 installe
 
 V5 supersedes V4. Phases 1, 2, 2B and 3 are complete within the foundation scope. Version 0.2 extends that foundation through explicit user requests below. Every public template is neutral verification scaffolding, not a company website design proposal. Phase 4 requires a new explicit instruction.
 
+## Version 0.3 (unreleased, branch `feature/v0.3-toolkit`) — section library, forms and AI toolkit
+
+Requested by the owner on 2026-09-29: audit and fix the app, make it a complete framework for bespoke AI-built sites that owners can self-manage, add AI auditing (SEO, AEO, GEO, schema, content, structure), orient tooling to Claude (Claude Code, Desktop, Cowork) while staying tool-neutral, and make Claude Design an optional stage. The owner approved a neutral base section library on the condition that it must not steer design; the contract now states "bespoke first".
+
+**Fixes (from a code audit, each verified against the code):**
+
+- Version restore always failed after later edits, because the old approval record was compared; restores now keep current approvals and locks (collections and globals). Regression tests cover restore under a lock.
+- AI contributor accounts could verify Approved Facts, approve reference URLs, tick "claims reviewed" and delete records. These are now human-only; AI edits reset a person's approval stamp to default.
+- Renaming a published page back to its old slug failed with a redirect loop; stale redirects are removed and chains collapsed.
+- IndexNow fired on workspace/draft saves (the local API never sets `req.query.draft`); it now notifies the changed or removed paths when a release goes Live.
+- `preview`/`workspace-preview` were accepted as page slugs but unreachable; they are reserved.
+- The release asset-retention check loaded every snapshot on each media edit; it is now one JSONB containment query.
+- The installer corrupted `.env` values containing `"` (`JSON.stringify` is not reversed by `parseEnv`); quoting now round-trips, and unstorable passwords are refused up front.
+- Preview deployments inherited the Production `NEXT_PUBLIC_SERVER_URL`; they now fall back to their own Vercel address.
+- First-party media URLs (absolute, via serverURL) crashed `next/image` for local/non-Blob storage; they are served same-origin.
+- The alt-text endpoint spent AI budget before validating the request; bootstrap admin creation could race on cold starts; the upgrade planner missed CRLF normalisation for `LICENSE`.
+
+**Added:** 17-section base library with composer fields, pickers for media/records/facts, Markdown-subset text, and `pageHeader: hidden`; Contact sections with an Enquiries collection (spam trap, rate limit, no-JS fallback, optional SMTP notifications, which also enable password reset); Site Settings address/language/organisation type; separate answer-engine crawler toggle; `/llms.txt`; richer JSON-LD (organisation details, three-level breadcrumbs, CreativeWork, FAQPage and VideoObject from visible sections, CollectionPage/ItemList, AboutPage/Person); `html lang`; index/team metadata; section-aware quality checks; admin **Site health**; crawler audit (`npm run audit`); section catalog/validator; MCP server; Claude Code skills and subagents; `local` bridge profile, `ai:health` and image upload; AI_TOOLKIT.md and SECTIONS.md.
+
+**Migration:** `20260929_204851_sections_forms_answer_engines` is additive (new table and columns with defaults). Existing compositions validate unchanged; a unit test pins 0.2 compositions.
+
+**Verified locally (2026-09-29, Windows, embedded PostgreSQL 18):** migration on the existing local database; typecheck, lint, production build; 36 unit tests; 11 installer tests; integration, release and AI-access suites (including new restore, rename, fact-verification, delete and approval-stamp regressions); 10 Playwright scenarios against the production build, including axe on the section library, the composer and Site health; contact form (stored, honeypot, validation, origin rejection, rate limit, no-JS 303); MCP initialize/list/call over stdio; crawler audit against the local site.
+
+**Not yet verified:** GitHub CI and a hosted Preview deployment of this branch (pending push), SMTP delivery with a real provider, Claude Desktop/Cowork registration of the MCP server on a clean machine, and a Claude Design handoff end to end (its bundle format is not publicly specified, so the import skill inspects whatever arrives). No release has been cut; the installer still points to v0.2.1.
+
+**Upgrade note:** sites that already customised `src/editor/registry/*` or `src/components/sections/*` will see upgrade conflicts for review (by design). Keep their section types and props, and merge the new registry structure.
+
 ## Version 0.2 — publishing, approvals and independent installations
 
 - One editorial workspace at `/admin`. Save to Preview captures an immutable whole-site snapshot; Publish to Live promotes the reviewed snapshot; Unpublish clears only the Live pointer. Forms and code deployments do not copy or replace Live content. `/preview` is the saved content preview in the same CMS; Vercel branch deployments are separate code-testing environments with separate resources.

@@ -25,7 +25,7 @@ Protection metadata is stored alongside content and globals. Saved schema defaul
 Theme typography uses a stable approved-font registry and CSS variables shared by the public layout, Puck preview root and live admin sample. Inter, Source Sans 3 and Lora are self-hosted through pinned Fontsource variable packages with normal/italic faces; system stacks are also available. The additive typography migration supplies the original system-font defaults to existing globals and their versions. Adding a font must update the registry, bundled assets and enum migration. CMS values never supply raw CSS or external stylesheet URLs.
 
 - Payload is the primary editing shell. Its forms support create, duplicate, draft, workspace save, schedule and version restore. Whole-site publication is a separate Overview action.
-- `/editor/[id]` is an authenticated Puck composer for Pages only. Three neutral sections prove the component contract: Introduction, Call to action, Selected case studies.
+- `/editor/[id]` is an authenticated Puck composer for Pages. Seventeen neutral base sections (SECTIONS.md) share one contract: zod schema and metadata (`src/editor/registry/schema.ts`), composer fields (`config.tsx`) and plain React renderers (`src/components/sections`) used by both the composer and the public site. Sites add bespoke sections the same way. `src/components/site/Sections.tsx` resolves referenced records and media from the selected release. Long text uses a safe Markdown subset rendered to React elements, never raw HTML.
 - The JSON field is replaced with a human-readable outline and composer link. Authors do not edit JSON.
 - The composer saves drafts through an authenticated same-origin endpoint and detects stale saves using the document update timestamp. It does not publish. Reopen the normal page editor for QA and publication.
 - Puck previews the real shared components at 390/768/1440px. Entity fields save IDs. Structured summaries are fetched separately for preview.
@@ -41,6 +41,17 @@ Theme typography uses a stable approved-font registry and CSS variables shared b
 - Published slug changes create redirects. IndexNow notifications are best-effort after publication/deletion and never block editing; a public key endpoint supports ownership validation.
 - The pre-publish panel checks the current form's values and separates blockers, warnings and recommendations. Invalid titles/slugs/sections are also rejected on publish server-side. Factual review is advisory and requires human judgment; this is not a claim-verification engine.
 - Scheduled publication uses Payload's native `schedulePublish` job. Local development has a minute worker; hosted jobs run on an authenticated endpoint. The Preview worker was verified through explicit invocation. Automatic timed execution requires a production scheduler; minute-level Vercel Cron requires a suitable plan and never runs on Preview deployments.
+
+## Enquiries
+
+Contact sections post to `/api/forms/contact` (JSON or a plain form POST, so it works without JavaScript). The route checks origin, a hidden trap field, a minimum fill time and a per-sender rate limit (salted address hash), stores a Form Submission, and sends an optional SMTP notification. Submissions are readable by admin/editor roles only and never enter releases or AI context.
+
+## AI toolkit
+
+- `scripts/ai.mjs` + `scripts/ai-client.ts`: restricted CMS bridge (check, context, request, health) for production (read-only), preview and local profiles. Each profile verifies its own database identity and account scope.
+- `scripts/mcp.mjs`: dependency-free stdio MCP server wrapping the bridge, the section catalog/validator (`scripts/sections.ts`), site health (`src/lib/site-audit.ts`) and the crawler (`scripts/audit.ts` + `src/lib/audit/analyze.ts`).
+- `.claude/skills` and `.claude/agents`: Claude Code workflows and read-only specialist reviewers. See AI_TOOLKIT.md.
+- Discovery: robots.txt has separate groups for search engines, AI answer engines and AI training crawlers (`src/lib/search/crawlers.ts`); `/llms.txt` lists the release's indexable pages; IndexNow is notified with the changed paths when a release goes Live, not on workspace saves.
 
 ## Media and optional AI
 

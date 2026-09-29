@@ -203,6 +203,146 @@ if (!media.totalDocs) {
     file: { data: image, name: 'demo-swatch.png', size: image.length, mimetype: 'image/png' },
   })
 }
+// A demo page using every base section, so editors and tests can see the full library.
+const library = await payload.find({
+  collection: 'pages',
+  where: { slug: { equals: 'section-library' } },
+})
+if (!library.totalDocs) {
+  const swatch = (
+    await payload.find({ collection: 'media', where: { filename: { equals: 'demo-swatch.png' } } })
+  ).docs[0]
+  const image = { image: swatch?.id ?? null, alt: '', decorative: false }
+  const none = { image: null, alt: '', decorative: false }
+  const demoText = 'Demo text. Replace with approved copy.'
+  await payload.create({
+    collection: 'pages',
+    data: {
+      title: 'Section library',
+      slug: 'section-library',
+      demo: true,
+      summary: 'Demo page showing every base section. Not a proposed website design.',
+      _status: 'published',
+      composition: {
+        root: { props: { pageHeader: 'default' } },
+        content: [
+          {
+            type: 'Hero',
+            props: {
+              id: 'lib-hero',
+              eyebrow: 'Demo',
+              heading: 'Hero section',
+              body: demoText,
+              media: image,
+              primary: { label: 'Browse demo services', href: '/services' },
+              secondary: { label: '', href: '' },
+              layout: 'split',
+            },
+          },
+          {
+            type: 'Text',
+            props: {
+              id: 'lib-text',
+              heading: 'Text section',
+              body: `${demoText}
+
+## A subheading
+
+- A list item
+- Another item with a [link to the team](/team)`,
+              width: 'narrow',
+            },
+          },
+          {
+            type: 'TextMedia',
+            props: {
+              id: 'lib-text-media',
+              heading: 'Text and image',
+              body: demoText,
+              media: image,
+              link: { label: '', href: '' },
+              mediaPosition: 'end',
+            },
+          },
+          {
+            type: 'Features',
+            props: {
+              id: 'lib-features',
+              heading: 'Feature list',
+              intro: '',
+              columns: '3',
+              items: [1, 2, 3].map((n) => ({
+                title: `Feature ${n}`,
+                body: demoText,
+                link: { label: '', href: '' },
+                media: none,
+              })),
+            },
+          },
+          {
+            type: 'Services',
+            props: {
+              id: 'lib-services',
+              heading: 'Services section',
+              mode: 'all',
+              serviceIds: [],
+              limit: 6,
+            },
+          },
+          {
+            type: 'Team',
+            props: {
+              id: 'lib-team',
+              heading: 'Team section',
+              mode: 'all',
+              memberIds: [],
+              limit: 6,
+            },
+          },
+          {
+            type: 'Logos',
+            props: { id: 'lib-logos', heading: 'Client logos', mode: 'all', clientIds: [] },
+          },
+          {
+            type: 'FAQ',
+            props: {
+              id: 'lib-faq',
+              heading: 'Questions and answers',
+              items: [
+                {
+                  question: 'Is this real content?',
+                  answer: 'No. It is demo content for testing the section library.',
+                },
+                { question: 'Can editors change it?', answer: 'Yes, in the page composer.' },
+              ],
+              structuredData: true,
+            },
+          },
+          {
+            type: 'Gallery',
+            props: {
+              id: 'lib-gallery',
+              heading: 'Gallery',
+              items: [{ media: image, caption: 'Demo image' }],
+            },
+          },
+          {
+            type: 'Contact',
+            props: {
+              id: 'lib-contact',
+              heading: 'Contact',
+              body: demoText,
+              showDetails: true,
+              form: true,
+              submitLabel: 'Send',
+              successMessage: 'Thank you. This is a demo form.',
+            },
+          },
+        ],
+      },
+    },
+  })
+}
 if (process.env.SITE_ENV === 'local') {
   const state = await payload.findGlobal({ slug: 'publication', depth: 0 })
   if (!state.previewRelease) {

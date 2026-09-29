@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
-import { administrator, authenticated } from '../access'
+import { APIError } from 'payload'
+import { administrator, authenticated, humanField } from '../access'
 
 export const ApprovedFacts: CollectionConfig = {
   slug: 'approved-facts',
@@ -41,8 +42,10 @@ export const ApprovedFacts: CollectionConfig = {
       options: ['pending', 'verified', 'rejected'],
       defaultValue: 'pending',
       required: true,
+      access: { create: humanField, update: humanField },
+      admin: { description: 'Only a person can verify or reject a fact.' },
     },
-    { name: 'verifiedAt', type: 'date' },
+    { name: 'verifiedAt', type: 'date', access: { create: humanField, update: humanField } },
     { name: 'reviewAt', type: 'date' },
     { name: 'client', type: 'relationship', relationTo: 'clients' },
     { name: 'project', type: 'relationship', relationTo: 'case-studies' },
@@ -74,11 +77,11 @@ export const Redirects: CollectionConfig = {
           /^\/(?!\/)[a-z0-9\-/]*$/.test(p) &&
           !/^\/(admin|api|editor)(\/|$)/.test(p)
         if (!valid(from) || !valid(to) || from === to)
-          throw new Error('Use distinct internal content paths.')
+          throw new APIError('Use distinct internal content paths.', 400)
         let cursor = to
         const seen = new Set([from])
         for (let i = 0; i < 20; i++) {
-          if (seen.has(cursor)) throw new Error('This redirect creates a loop.')
+          if (seen.has(cursor)) throw new APIError('This redirect creates a loop.', 400)
           seen.add(cursor)
           const { docs } = await req.payload.find({
             collection: 'redirects',
@@ -89,7 +92,7 @@ export const Redirects: CollectionConfig = {
           if (!docs[0]) return data
           cursor = docs[0].to
         }
-        throw new Error('Redirect chain is too long.')
+        throw new APIError('Redirect chain is too long.', 400)
       },
     ],
   },

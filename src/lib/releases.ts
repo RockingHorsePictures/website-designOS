@@ -5,8 +5,12 @@ import {
   type PayloadRequest,
   type CollectionSlug,
 } from 'payload'
+import { sql, type PostgresAdapter } from '@payloadcms/db-postgres'
 import { advisoryLock } from './transaction'
 import { auditContent } from './quality'
+import { indexable } from './search/metadata'
+import { notifyIndexNow } from './search/indexnow'
+import { contentCollections, contentPath } from './urls'
 
 export const releaseCollections = [
   'pages',
@@ -89,6 +93,7 @@ export async function captureSite(payload: Payload, req: PayloadRequest): Promis
       slug === 'search-profile' && 'allowSearchCrawlers' in value
         ? {
             allowSearchCrawlers: value.allowSearchCrawlers,
+            allowAnswerEngines: value.allowAnswerEngines,
             allowTrainingCrawlers: value.allowTrainingCrawlers,
           }
         : (clean(value) as Record<string, unknown>)
@@ -99,6 +104,31 @@ export async function captureSite(payload: Payload, req: PayloadRequest): Promis
       400,
     )
   return snapshot
+}
+// Indexable public paths in a snapshot, with a change marker for each.
+export function releasePaths(snapshot: Snapshot | null | undefined): Map<string, string> {
+  const out = new Map<string, string>()
+  for (const collection of contentCollections)
+    for (const doc of snapshot?.collections?.[collection] || []) {
+      const path = contentPath(collection, String(doc.slug))
+      if (indexable(doc as Parameters<typeof indexable>[0], path, true))
+        out.set(path, String(doc.updatedAt ?? ''))
+    }
+  return out
+}
+// Paths search engines should re-crawl when Live moves from one release to another.
+export function changedPaths(before: Snapshot | null, after: Snapshot | null): string[] {
+  const old = releasePaths(before)
+  const next = releasePaths(after)
+  const changed = [...next].filter(([path, marker]) => old.get(path) !== marker).map(([p]) => p)
+  const removed = [...old.keys()].filter((path) => !next.has(path))
+  return [...changed, ...removed]
+}
+async function releaseSnapshot(payload: Payload, req: PayloadRequest, value: unknown) {
+  const id = releaseID(value)
+  if (!id) return null
+  const release = await payload.findByID({ collection: 'site-releases', id, depth: 0, req })
+  return release.snapshot as Snapshot
 }
 export async function changePublication(
   payload: Payload,
@@ -112,6 +142,7 @@ export async function changePublication(
   req.transactionID =
     (await payload.db.beginTransaction({ isolationLevel: 'repeatable read' })) || undefined
   if (!req.transactionID) throw new Error('Publishing requires database transactions.')
+  let notify: string[] = []
   try {
     await releaseLock(req)
     const state = await payload.findGlobal({ slug: 'publication', depth: 0, req })
@@ -133,6 +164,10 @@ export async function changePublication(
     } else if (action === 'publish') {
       if (!expected || releaseID(state.previewRelease) !== expected)
         throw new APIError('Preview changed. Review the current Preview before publishing.', 409)
+      notify = changedPaths(
+        await releaseSnapshot(payload, req, state.liveRelease),
+        await releaseSnapshot(payload, req, expected),
+      )
       await payload.updateGlobal({
         slug: 'publication',
         data: {
@@ -145,6 +180,7 @@ export async function changePublication(
     } else if (action === 'unpublish') {
       if (releaseID(state.liveRelease) !== expected)
         throw new APIError('Live changed in another session. Refresh first.', 409)
+      notify = changedPaths(await releaseSnapshot(payload, req, state.liveRelease), null)
       await payload.updateGlobal({
         slug: 'publication',
         data: { liveRelease: null, liveChangedAt: new Date().toISOString(), changedBy: user.email },
@@ -156,6 +192,8 @@ export async function changePublication(
     await payload.db.rollbackTransaction(await req.transactionID)
     throw error
   }
+  // Best-effort and after commit: discovery pings never block or undo a publication.
+  if (notify.length) await notifyIndexNow(notify.slice(0, 10000), payload.logger)
 }
 export async function protectReleasedAsset(
   req: PayloadRequest,
@@ -184,20 +222,13 @@ export async function protectReleasedAsset(
     }
   }
   if (!checkRetainedFile) return
-  const found = await req.payload.find({
-    collection: 'site-releases',
-    pagination: false,
-    depth: 0,
-    req,
-  })
-  if (
-    found.docs.some((release) => {
-      const snapshot = release.snapshot as Snapshot
-      return snapshot.collections?.[collection as ReleaseCollection]?.some(
-        (doc) => doc.id === Number(id),
-      )
-    })
+  // One indexed JSONB containment query instead of loading every stored snapshot.
+  const db = (req.payload.db as unknown as PostgresAdapter).sessions[(await req.transactionID)!].db
+  const probe = JSON.stringify([{ id: Number(id) }])
+  const { rows } = await db.execute(
+    sql`SELECT 1 FROM site_releases WHERE snapshot -> 'collections' -> ${collection} @> ${probe}::jsonb LIMIT 1`,
   )
+  if (rows.length)
     throw new APIError(
       'This file is retained by a site release. Upload a new file instead; existing releases keep their original assets.',
       409,

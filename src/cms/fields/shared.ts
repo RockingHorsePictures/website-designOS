@@ -1,5 +1,5 @@
 import type { Field, CollectionConfig } from 'payload'
-import { authenticated, publishedOrAuthenticated } from '../access'
+import { authenticated, humanField, publishedOrAuthenticated } from '../access'
 import { contentPath, safeLink, validSlug, type ContentCollection } from '../../lib/urls'
 import { previewWidths } from '../../design-system/tokens'
 import { beforePublish, afterContentChange, afterContentDelete } from '../hooks/publishing'
@@ -136,6 +136,7 @@ export const evidenceFields: Field[] = [
     type: 'checkbox',
     label: 'A person has checked factual claims',
     defaultValue: false,
+    access: { create: humanField, update: humanField },
   },
 ]
 export function editorialConfig(

@@ -1,5 +1,6 @@
 import { cms, currentUser } from '@/lib/cms'
 import { auditContent, type Finding } from '@/lib/quality'
+import { compositionMedia, compositionSchema, type Composition } from '@/editor/registry/schema'
 import { contentCollections, type ContentCollection } from '@/lib/urls'
 import { schemaFor, type SearchDoc } from '@/lib/search/metadata'
 export async function POST(request: Request) {
@@ -21,7 +22,24 @@ export async function POST(request: Request) {
       overrideAccess: false,
       user,
     })
-  const findings: Finding[] = auditContent(data)
+  const parsed = 'composition' in data ? compositionSchema.safeParse(data.composition) : null
+  const composition = parsed?.success ? (parsed.data as Composition) : null
+  const ids = composition ? compositionMedia(composition) : []
+  const media = ids.length
+    ? (
+        await payload.find({
+          collection: 'media',
+          where: { id: { in: ids } },
+          limit: ids.length,
+          depth: 0,
+          user,
+          overrideAccess: false,
+        })
+      ).docs
+    : []
+  const findings: Finding[] = auditContent(data, {
+    media: Object.fromEntries(media.map((m) => [m.id, m])),
+  })
   for (const fact of data.evidence || []) {
     const record =
       typeof fact === 'object'
@@ -42,6 +60,11 @@ export async function POST(request: Request) {
   }
   return Response.json({
     findings,
-    schema: schemaFor(data, collection, await payload.findGlobal({ slug: 'site-settings' })),
+    schema: schemaFor(
+      data,
+      collection,
+      await payload.findGlobal({ slug: 'site-settings' }),
+      composition,
+    ),
   })
 }

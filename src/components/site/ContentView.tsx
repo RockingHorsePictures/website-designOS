@@ -1,13 +1,11 @@
-import { siteCMS } from '@/lib/site'
 import { SiteLink as Link } from '@/components/site/SiteLink'
 import Image from 'next/image'
 import { RichText } from '@payloadcms/richtext-lexical/react'
-import { previewUser } from '@/lib/cms'
-import { compositionSchema } from '@/editor/registry/schema'
-import { Intro, CallToAction, SelectedProjects } from '../sections'
+import { compositionSchema, type Composition } from '@/editor/registry/schema'
 import type { Media, Page, CaseStudy, Service, SiteSetting } from '@/payload-types'
 import { schemaFor, serializeSchema } from '@/lib/search/metadata'
-import type { ContentCollection } from '@/lib/urls'
+import { contentPath, imageSrc, type ContentCollection } from '@/lib/urls'
+import { Sections } from './Sections'
 
 export function ContentImage({
   asset,
@@ -23,7 +21,7 @@ export function ContentImage({
   return (
     <figure>
       <Image
-        src={media.url}
+        src={imageSrc(media.url)}
         alt={asset?.decorative || media.decorative ? '' : asset?.altOverride || media.alt || ''}
         width={media.width || 800}
         height={media.height || 600}
@@ -43,21 +41,36 @@ export async function ContentView({
   collection: ContentCollection
   settings: SiteSetting
 }) {
-  const payload = await siteCMS()
-  const user = await previewUser()
-  const composition = 'composition' in doc ? compositionSchema.safeParse(doc.composition) : null
+  const parsed = 'composition' in doc ? compositionSchema.safeParse(doc.composition) : null
+  const composition = parsed?.success ? (parsed.data as Composition) : null
+  const hideHeader = composition?.root.props?.pageHeader === 'hidden'
+  const index =
+    collection === 'services' ? 'Services' : collection === 'case-studies' ? 'Case studies' : null
   return (
     <article>
-      <nav aria-label="Breadcrumb">
-        <Link href="/">Home</Link>
-        {doc.slug !== 'home' && <> / {doc.title}</>}
-      </nav>
+      {doc.slug !== 'home' && (
+        <nav aria-label="Breadcrumb" className="breadcrumb">
+          <Link href="/">Home</Link>
+          {index && (
+            <>
+              {' / '}
+              <Link href={`/${collection}`}>{index}</Link>
+            </>
+          )}
+          {' / '}
+          <span aria-current="page">{doc.title}</span>
+        </nav>
+      )}
       {doc.demo && (
         <p className="notice">Demonstration content. This is not a proposed website design.</p>
       )}
-      <h1>{doc.title}</h1>
-      <p>{doc.summary}</p>
-      <ContentImage asset={doc.heroMedia} />
+      {!hideHeader && (
+        <header className="page-header">
+          <h1>{doc.title}</h1>
+          <p>{doc.summary}</p>
+          <ContentImage asset={doc.heroMedia} />
+        </header>
+      )}
       {'client' in doc && typeof doc.client === 'object' && doc.client && (
         <p>Client: {doc.client.name}</p>
       )}
@@ -97,38 +110,13 @@ export async function ContentView({
           <p>{doc.video.transcript}</p>
         </section>
       )}
-      {composition?.success &&
-        (await Promise.all(
-          composition.data.content.map(async (section) => {
-            if (section.type === 'Intro') return <Intro key={section.props.id} {...section.props} />
-            if (section.type === 'CallToAction')
-              return <CallToAction key={section.props.id} {...section.props} />
-            const { mode, projectIds, limit } = section.props
-            const { docs } = await payload.find({
-              collection: 'case-studies',
-              draft: Boolean(user),
-              user,
-              overrideAccess: false,
-              limit,
-              sort: '-publishedAt',
-              where:
-                mode === 'manual'
-                  ? { id: { in: projectIds } }
-                  : mode === 'featured'
-                    ? { featured: { equals: true } }
-                    : {},
-            })
-            const ordered =
-              mode === 'manual' ? projectIds.flatMap((id) => docs.filter((p) => p.id === id)) : docs
-            return (
-              <SelectedProjects
-                key={section.props.id}
-                heading={section.props.heading}
-                projects={ordered}
-              />
-            )
-          }),
-        ))}
+      {composition && (
+        <Sections
+          composition={composition}
+          settings={settings}
+          pagePath={contentPath(collection, doc.slug)}
+        />
+      )}
       {'services' in doc && doc.services?.length ? (
         <section>
           <h2>Related services</h2>
@@ -161,7 +149,9 @@ export async function ContentView({
       ) : null}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: serializeSchema(schemaFor(doc, collection, settings)) }}
+        dangerouslySetInnerHTML={{
+          __html: serializeSchema(schemaFor(doc, collection, settings, composition)),
+        }}
       />
     </article>
   )

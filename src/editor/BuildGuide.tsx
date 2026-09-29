@@ -8,7 +8,7 @@ export function BuildGuide() {
   const repository = workspace.repositoryUrl || 'the Design OS repository open in this workspace'
   const prompt =
     mode === 'existing'
-      ? `I want to start designing and building this company's website using the existing Design OS foundation. Open ${repository}${workspace.foundationBranch ? `, starting from ${workspace.foundationBranch}` : ''}. Read START_HERE.md, AI_SITE_CONTRACT.md and DESIGN_HANDOFF.md first. Read AI_CONNECTION.md, run npm run ai:check and npm run ai:context in this installed website folder, and read the resulting .designos/ai-context.json before changing brand or content values. If the connection is missing, follow the documented ai:connect repair; never ask me to paste passwords into chat. In a browser-only chat, use the attached website context for planning and explain the connected coding workspace needed for writes. Production approvals are authoritative; defaults are editable, approved choices require care, and locked values must not be changed or bypassed. Use an AI contributor account for automated CMS writes. Ask the owner to unlock any conflicting field, then have it locked again after review. This authorises the website design phase. Preserve the CMS, editable content, brand assets, section contracts and whole-site Preview/Live releases. Gather my company brief, approved content and visual references, then establish the sitemap and representative desktop/mobile designs. Implement and test in a feature branch and show a protected code preview. Keep Production unchanged until a separate code release approval.`
+      ? `I want to start designing and building this company's website using the existing Design OS foundation. Open ${repository}${workspace.foundationBranch ? `, starting from ${workspace.foundationBranch}` : ''}. Read START_HERE.md, AI_SITE_CONTRACT.md, DESIGN_HANDOFF.md and AI_TOOLKIT.md first; in Claude Code, use the /designos-build skill and the design-os MCP tools. Read AI_CONNECTION.md, run npm run ai:check and npm run ai:context in this installed website folder, and read the resulting .designos/ai-context.json before changing brand or content values. If the connection is missing, follow the documented ai:connect repair; never ask me to paste passwords into chat. In a browser-only chat, use the attached website context for planning and explain the connected coding workspace needed for writes. Production approvals are authoritative; defaults are editable, approved choices require care, and locked values must not be changed or bypassed. Use an AI contributor account for automated CMS writes. Ask the owner to unlock any conflicting field, then have it locked again after review. This authorises the website design phase. Preserve the CMS, editable content, brand assets, section contracts and whole-site Preview/Live releases. Design something bespoke to this company rather than a template: the base section library is only a safety net for later editing. Build each distinctive part as an editable section so I can maintain the site without AI. Gather my company brief, approved content and visual references, then establish the sitemap and representative desktop/mobile designs (Claude Design exploration is optional). Implement and test in a feature branch and show a protected code preview. Keep Production unchanged until a separate code release approval.`
       : `Create a separate new company website using the guided Design OS installer from https://github.com/RockingHorsePictures/website-designOS. Read START_HERE.md and NEW_SITE.md. Use the installer or clean starter export to make a fresh project; preserve AI_SITE_CONTRACT.md, approval locks and whole-site publishing. Give it its own repository, database, media storage, secrets and hosting project. Do not copy this site's customisations or connect it to this site's resources. Gather my company name, site brief and approved assets, then build and test its website in a feature branch. Live stays on Coming soon until the owner publishes a reviewed site release.`
   async function copy() {
     try {
@@ -45,9 +45,9 @@ export function BuildGuide() {
         </summary>
         <div className="dos-build-content">
           <p>
-            Continue in the Codex project connected to this website, or use these instructions in a
-            new connected coding task. This editor manages content; your AI workspace handles design
-            and code.
+            Open this website’s folder in Claude Code (terminal, desktop app or IDE), or another AI
+            coding tool, and paste these instructions. This editor manages content; your AI
+            workspace handles design and code.
           </p>
           <label htmlFor="build-mode">What are you starting?</label>{' '}
           <select
@@ -94,13 +94,14 @@ export function BuildGuide() {
                 ·{' '}
               </>
             )}
-            <a href="https://chatgpt.com/codex" target="_blank" rel="noreferrer">
-              Open Codex on the web
+            <a href="https://code.claude.com/docs" target="_blank" rel="noreferrer">
+              Claude Code documentation
             </a>
           </p>
           <h3>Connect your AI workspace</h3>
           <p>
-            On the computer used for installation, open this website’s folder and ask your AI to run{' '}
+            On the computer used for installation, open this website’s folder. Claude Code offers
+            the included <code>design-os</code> tools automatically; other tools can run{' '}
             <code>npm run ai:check</code>, then <code>npm run ai:context</code>. Setup provides a
             code-preview contributor and read-only Production access. Passwords stay in private
             local files; you do not need to paste a login into chat.

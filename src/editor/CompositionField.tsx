@@ -1,7 +1,7 @@
 'use client'
 import { useDocumentInfo, useField } from '@payloadcms/ui'
 import type { JSONFieldClientComponent } from 'payload'
-import { compositionSchema } from './registry/schema'
+import { compositionSchema, sectionMeta } from './registry/schema'
 
 export const CompositionField: JSONFieldClientComponent = ({ path }) => {
   const { value } = useField({ path })
@@ -14,7 +14,8 @@ export const CompositionField: JSONFieldClientComponent = ({ path }) => {
         <ol>
           {result.data.content.map((s) => (
             <li key={s.props.id}>
-              {s.type} — {s.props.heading}
+              {sectionMeta[s.type].label}
+              {'heading' in s.props && s.props.heading ? ` — ${s.props.heading}` : ''}
             </li>
           ))}
         </ol>

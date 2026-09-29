@@ -17,7 +17,9 @@ export const hash = (bytes, name = '') =>
   createHash('sha256')
     .update(
       /\.(?:ts|tsx|js|mjs|cjs|json|md|css|html|yml|yaml|svg|txt)$/.test(name) ||
-        /(?:^|\/)\.(?:gitignore|vercelignore|prettierignore|env\.example)$/.test(name)
+        /(?:^|\/)(?:\.(?:gitignore|vercelignore|prettierignore|env\.example|npmrc)|LICENSE)$/.test(
+          name,
+        )
         ? bytes.toString('utf8').replaceAll('\r\n', '\n')
         : bytes,
     )

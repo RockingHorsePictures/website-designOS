@@ -132,6 +132,109 @@ try {
     changePublication(payload, writeUser, 'preview', null),
     /Only|publish|person|editor/i,
   )
+  // AI accounts never delete, verify facts or sign off factual review.
+  await assert.rejects(
+    payload.delete({ collection: 'pages', id: page.id, user: writeUser, overrideAccess: false }),
+    /not allowed/i,
+  )
+  const fact = await payload.create({
+    collection: 'approved-facts',
+    data: {
+      statement: 'AI test fact',
+      category: 'other',
+      sourceNote: 'test',
+      verification: 'verified',
+    },
+    user: writeUser,
+    overrideAccess: false,
+  })
+  assert.equal(fact.verification, 'pending')
+  await payload.update({
+    collection: 'approved-facts',
+    id: fact.id,
+    data: { verification: 'verified' },
+    user: writeUser,
+    overrideAccess: false,
+  })
+  assert.equal(
+    (await payload.findByID({ collection: 'approved-facts', id: fact.id })).verification,
+    'pending',
+  )
+  await payload.delete({ collection: 'approved-facts', id: fact.id })
+  await payload.update({
+    collection: 'pages',
+    id: page.id,
+    draft: true,
+    data: { claimsReviewed: true },
+    user: writeUser,
+    overrideAccess: false,
+  })
+  assert.notEqual(
+    (await payload.findByID({ collection: 'pages', id: page.id, draft: true })).claimsReviewed,
+    true,
+  )
+  // An AI edit to a human-approved field clears the person's approval stamp.
+  await payload.updateGlobal({ slug: 'theme', data: { accent: '#111111' }, user: admin })
+  assert.equal(
+    ((await payload.findGlobal({ slug: 'theme' })).protection as Record<string, { state: string }>)
+      .accent.state,
+    'approved',
+  )
+  await payload.updateGlobal({
+    slug: 'theme',
+    data: { accent: '#222222' },
+    user: writeUser,
+    overrideAccess: false,
+  })
+  assert.equal(
+    ((await payload.findGlobal({ slug: 'theme' })).protection as Record<string, { state: string }>)
+      .accent.state,
+    'default',
+  )
+  // Restoring an older version works after later edits, and never reverts current locks.
+  await payload.updateGlobal({ slug: 'theme', data: { muted: '#333333' }, user: admin })
+  const older = (
+    await payload.findGlobalVersions({
+      slug: 'theme',
+      where: { 'version.accent': { equals: '#111111' } },
+      sort: '-updatedAt',
+      limit: 1,
+    })
+  ).docs[0]
+  await payload.restoreGlobalVersion({ slug: 'theme', id: older.id, user: admin })
+  const restored = await payload.findGlobal({ slug: 'theme' })
+  assert.equal(restored.accent, '#111111')
+  assert.equal(
+    (restored.protection as Record<string, { state: string }>).canvas.state,
+    'locked',
+    'restore must keep the current lock',
+  )
+  // Renaming a published page back to its old URL must not create a redirect loop.
+  const stamp = Date.now()
+  const moving = await payload.create({
+    collection: 'pages',
+    data: {
+      title: 'Rename test',
+      slug: `rename-a-${stamp}`,
+      summary: 'Rename test page.',
+      _status: 'published',
+    },
+  })
+  await payload.update({ collection: 'pages', id: moving.id, data: { slug: `rename-b-${stamp}` } })
+  await payload.update({ collection: 'pages', id: moving.id, data: { slug: `rename-a-${stamp}` } })
+  const hops = (
+    await payload.find({
+      collection: 'redirects',
+      where: { from: { in: [`/rename-a-${stamp}`, `/rename-b-${stamp}`] } },
+    })
+  ).docs
+  assert.deepEqual(
+    hops.map((r) => [r.from, r.to]),
+    [[`/rename-b-${stamp}`, `/rename-a-${stamp}`]],
+  )
+  for (const r of hops) await payload.delete({ collection: 'redirects', id: r.id })
+  await payload.delete({ collection: 'pages', id: moving.id })
+
   const snapshot = await aiContext(payload, readUser)
   const theme = snapshot.globals.find((item) => item.slug === 'theme')!
   assert.equal((theme.document as typeof original).canvas, '#123456')

@@ -14,21 +14,23 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       reason: 'Automatic descriptions are disabled. Enter a description manually.',
     })
   const payload = await cms()
+  const id = Number((await params).id)
+  if (!Number.isInteger(id) || id < 1)
+    return Response.json({ error: 'Unknown image.' }, { status: 400 })
+  const media = await payload
+    .findByID({ collection: 'media', id, user, overrideAccess: false })
+    .catch(() => null)
+  if (!media) return Response.json({ error: 'Unknown image.' }, { status: 404 })
+  if (media.decorative)
+    return Response.json({ text: '', reason: 'Decorative images use an empty description.' })
+  if (!media.filename || !media.mimeType?.startsWith('image/'))
+    return Response.json({ error: 'No image available.' }, { status: 400 })
+  // Spend the daily budget only once the request can actually reach the provider.
   if (!(await reserveAICall(payload)))
     return Response.json(
       { error: 'Daily automatic-description limit reached. You can still edit manually.' },
       { status: 429 },
     )
-  const media = await payload.findByID({
-    collection: 'media',
-    id: Number((await params).id),
-    user,
-    overrideAccess: false,
-  })
-  if (media.decorative)
-    return Response.json({ text: '', reason: 'Decorative images use an empty description.' })
-  if (!media.filename || !media.mimeType?.startsWith('image/'))
-    return Response.json({ error: 'No image available.' }, { status: 400 })
   try {
     let bytes: Buffer
     if (process.env.BLOB_READ_WRITE_TOKEN) {

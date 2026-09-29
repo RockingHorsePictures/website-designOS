@@ -1,4 +1,5 @@
-import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, mkdirSync, writeFileSync, statSync } from 'node:fs'
+import path from 'node:path'
 import { randomBytes, createHash } from 'node:crypto'
 import type { Payload, CollectionSlug, GlobalSlug, TypedUser } from 'payload'
 
@@ -8,7 +9,7 @@ try {
   const [command, requestFile] = process.argv.slice(2)
   const profile = process.env.DESIGNOS_AI_PROFILE || process.env.SITE_ENV
   if (
-    !['production', 'preview'].includes(profile || '') ||
+    !['production', 'preview', 'local'].includes(profile || '') ||
     process.env.SITE_ENV !== profile ||
     process.env.DATABASE_ENV !== profile
   )
@@ -77,12 +78,15 @@ try {
   if (command === 'context') {
     const { aiContext } = await import('../src/lib/ai-context')
     emit(await aiContext(payload, user))
+  } else if (command === 'health') {
+    const { loadSiteAudit } = await import('../src/lib/site-audit-load')
+    emit(await loadSiteAudit(payload, user))
   } else if (command === 'request') {
     if (!requestFile)
       throw new Error('Provide a JSON request file. See AI_CONNECTION.md for examples.')
     const input = JSON.parse(readFileSync(requestFile, 'utf8'))
-    if (!['read', 'create', 'update'].includes(input.action))
-      throw new Error('Supported actions: read, create, update.')
+    if (!['read', 'create', 'update', 'upload'].includes(input.action))
+      throw new Error('Supported actions: read, create, update, upload.')
     if (readOnly && input.action !== 'read')
       throw new Error('Production AI access is read-only. Use preview for changes.')
     if (Boolean(input.collection) === Boolean(input.global))
@@ -93,7 +97,27 @@ try {
     if (!target?.fields.some((field) => 'name' in field && field.name === 'protection'))
       throw new Error('This target is not available to the AI connection.')
     let result
-    if (input.global) {
+    if (input.action === 'upload') {
+      // Upload an image from inside this website folder into the media library.
+      if (input.collection !== 'media')
+        throw new Error('Supported actions: uploads go to the media collection only.')
+      const root = process.cwd()
+      const file = path.resolve(root, String(input.file || ''))
+      if (!file.startsWith(root + path.sep) || !existsSync(file) || !statSync(file).isFile())
+        throw new Error(
+          'Provide a JSON request file whose "file" is an image inside this website folder.',
+        )
+      if (!String(input.data?.alt || '').trim() && input.data?.decorative !== true)
+        throw new Error(
+          'Provide a JSON request file with data.alt describing the image, or data.decorative true.',
+        )
+      result = await payload.create({
+        collection: 'media',
+        data: input.data,
+        filePath: file,
+        ...options,
+      })
+    } else if (input.global) {
       const slug = input.global as GlobalSlug
       if (input.action === 'create') throw new Error('Globals already exist. Use update.')
       result =
@@ -132,7 +156,7 @@ try {
       ready: true,
       scope: readOnly
         ? 'Read Production content and approvals'
-        : 'Edit unlocked code-preview content; cannot approve or publish',
+        : `Edit unlocked ${profile === 'local' ? 'local development' : 'code-preview'} content; cannot approve, delete or publish`,
     })
 } catch (error) {
   // Database/adapter exceptions may contain SQL parameters. Never print them or login tokens.

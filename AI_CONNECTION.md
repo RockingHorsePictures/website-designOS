@@ -1,6 +1,6 @@
 # Connect AI to this website
 
-The installer sets up two AI accounts automatically. Production is read-only; code-preview can edit unlocked content. Both are unable to approve, unlock or publish. Your administrator login is separate. This is CMS access for a coding workspace, not an AI model subscription or an in-editor chat service.
+The installer sets up two AI accounts automatically. Production is read-only; code-preview can edit unlocked content. Both are unable to approve, unlock, delete, verify facts or publish. Your administrator login is separate. This is CMS access for a coding workspace, not an AI model subscription or an in-editor chat service.
 
 ## On the installation computer
 
@@ -16,6 +16,10 @@ Read `.designos/ai-context.json` before design work. It includes fresh Productio
 Credentials are held in ignored `.designos/ai-production.json` and `.designos/ai-preview.json`, alongside the site's ignored environment files. Never print, commit or paste these credentials into a conversation. The bridge authenticates its restricted user and uses Payload's normal access rules and lock hooks. It accesses the CMS from the local runtime, so Vercel's browser deployment protection does not require a shared browser session.
 
 For a missing connection in an existing installation, first upgrade Design OS and apply the additive migration to each site's own database. Then run `npm run ai:connect`. It creates only missing connection accounts, verifies existing accounts and never resets an administrator, seeds content or changes a publication. To revoke access, delete the corresponding AI user in the admin. Reconnecting after revocation is an explicit administrator/owner action. Keep private connection files backed up securely; never borrow another site's files.
+
+## MCP tools and local development
+
+In Claude Code the same bridge is available as MCP tools (`designos_check`, `designos_context`, `cms_read`, `cms_write`, `cms_upload_image`, `site_health`, `list_sections`, `validate_composition`, `audit_site`); see AI_TOOLKIT.md. Before hosting exists, the bridge also works against a local development database: a `.env` labelled `SITE_ENV=local` and `DATABASE_ENV=local` appears as the `local` environment (run `npm run ai:connect` once). Every environment must use its own database.
 
 ## Read and change content
 
@@ -36,7 +40,9 @@ To edit an unlocked preview token within the user's requested scope:
 { "action": "update", "global": "theme", "data": { "accent": "#2563eb" } }
 ```
 
-For collections, use `collection`, optional `id`, and `action` of `read`, `create` or `update`. Writes require `data`; updates require an individual ID. Reads support `where` and `page` (100 records per page). Only collections and globals with approval controls are exposed. Use the admin for file uploads. Do not use infrastructure credentials to bypass this bridge, locks or permissions. Repository/database administrators still retain infrastructure privileges; this bridge does not sandbox arbitrary code.
+To upload an image from inside the website folder: `{ "action": "upload", "collection": "media", "file": "brand/team-photo.jpg", "data": { "alt": "Our team outside the studio" } }`. Run `npm run ai:health -- preview` for whole-site checks.
+
+For collections, use `collection`, optional `id`, and `action` of `read`, `create` or `update`. Writes require `data`; updates require an individual ID. Reads support `where` and `page` (100 records per page). Only collections and globals with approval controls are exposed. Images can be uploaded with the upload action above; use the admin for font files. Do not use infrastructure credentials to bypass this bridge, locks or permissions. Repository/database administrators still retain infrastructure privileges; this bridge does not sandbox arbitrary code.
 
 ## Browser chat, another computer or cloud coding
 
@@ -44,7 +50,7 @@ From the Production admin dashboard, expand **Build your website with AI** and d
 
 An ordinary chat cannot automatically inherit your local files, CMS session, GitHub or Vercel access. To build and save the site, use a coding workspace connected to the correct repository. On another trusted computer, securely restore this site's private environment and AI connection files and install dependencies, then run the checks above. Never copy another site's database or credentials.
 
-A cloud coding environment needs its own explicit secure setup and network access to the required services. Follow that provider's current environment instructions. For Codex cloud, secrets are available during setup scripts and removed from the agent environment afterward; merely adding a secret does not make a local connection appear. Provision private runtime files during the trusted setup stage if using this bridge, or use the credential-free context for planning. Do not upload database credentials to an ordinary chat. See [official Codex cloud environment documentation](https://learn.chatgpt.com/docs/environments/cloud-environment).
+A cloud coding environment needs its own explicit secure setup and network access to the required services. Follow that provider's current environment instructions: secrets available only during a setup step do not automatically reach the agent, and merely adding a secret does not make a local connection appear. Provision private runtime files during the trusted setup stage if using this bridge, or use the credential-free context for planning. Do not upload database credentials to an ordinary chat.
 
 ## If a check fails
 

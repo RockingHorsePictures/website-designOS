@@ -10,6 +10,7 @@ import Image from 'next/image'
 import { draftMode } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { LiveRefresh } from '@/editor/LiveRefresh'
+import { imageSrc, siteOrigin } from '@/lib/urls'
 
 export const dynamic = 'force-dynamic'
 export async function generateMetadata() {
@@ -68,7 +69,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   ])
   const logo = settings.logo && typeof settings.logo === 'object' ? settings.logo : null
   return (
-    <html lang="en">
+    <html lang={settings.language || 'en'}>
       <body className="site-typography" style={{ ...tokenStyle(theme), ...typographyStyle(theme) }}>
         <CustomFonts theme={theme} />
         {view === 'preview' && (
@@ -76,7 +77,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
             Site Preview — these changes are not Live. <a href="/admin">Return to editor</a>
           </aside>
         )}
-        {user && <LiveRefresh />}
+        {user && <LiveRefresh serverURL={siteOrigin()} />}
         <a className="skip" href="#main">
           Skip to content
         </a>
@@ -84,7 +85,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
           <SiteLink href="/">
             {logo?.url ? (
               <Image
-                src={logo.url}
+                src={imageSrc(logo.url)}
                 alt={settings.companyName}
                 width={logo.width || 240}
                 height={logo.height || 80}

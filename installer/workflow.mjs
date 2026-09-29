@@ -6,6 +6,24 @@ import path from 'node:path'
 import os from 'node:os'
 import { setupFailure } from './recovery.mjs'
 
+// Quote a value so node:util parseEnv returns it unchanged (it does not unescape \").
+export function envLine(value) {
+  const text = String(value)
+  if (/[\r\n]/.test(text)) return null
+  if (!text.includes("'")) return `'${text}'`
+  if (!text.includes('"')) return `"${text}"`
+  if (!text.includes('`')) return `\`${text}\``
+  return null
+}
+export const envFileText = (values) =>
+  Object.entries(values)
+    .map(([key, value]) => {
+      const line = envLine(value)
+      if (line === null) throw new Error(`${key} cannot be stored safely in an environment file.`)
+      return `${key}=${line}`
+    })
+    .join('\n') + '\n'
+
 const release = JSON.parse(readFileSync(new URL('./release.json', import.meta.url), 'utf8'))
 const npmCLI =
   process.env.npm_execpath ||
@@ -53,6 +71,10 @@ export function validateSetup(data) {
     throw new Error('Enter an administrator email.')
   if (typeof data.password !== 'string' || data.password.length < 16)
     throw new Error('Use an administrator password of at least 16 characters.')
+  if (envLine(data.password) === null)
+    throw new Error(
+      'Passwords can use any two of \' " ` but not all three, and cannot contain line breaks.',
+    )
   if (!['lhr1', 'iad1', 'fra1', 'syd1', 'sin1', 'pdx1', 'cle1', 'gru1'].includes(data.region))
     throw new Error('Choose a supported region.')
   if (!data.approved) throw new Error('Review and approve the listed resources first.')
@@ -415,19 +437,15 @@ export function createWorkflow({ execute = run, fetcher = fetch } = {}) {
           DATABASE_ENV: environment,
           PAYLOAD_SECRET: values.PAYLOAD_SECRET || randomBytes(48).toString('base64url'),
           CRON_SECRET: values.CRON_SECRET || randomBytes(32).toString('base64url'),
-          NEXT_PUBLIC_SERVER_URL: `https://${data.name}.vercel.app`,
+          ...(environment === 'production'
+            ? { NEXT_PUBLIC_SERVER_URL: `https://${data.name}.vercel.app` }
+            : {}),
           BOOTSTRAP_EMAIL: data.email,
           BOOTSTRAP_PASSWORD: data.password,
           AI_ENABLED: 'false',
           DB_PUSH: 'false',
         })
-        writeFileSync(
-          envFile,
-          Object.entries(values)
-            .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
-            .join('\n') + '\n',
-          { mode: 0o600 },
-        )
+        writeFileSync(envFile, envFileText(values), { mode: 0o600 })
         for (const key of [
           'SITE_ENV',
           'DATABASE_ENV',
@@ -436,7 +454,7 @@ export function createWorkflow({ execute = run, fetcher = fetch } = {}) {
           'NEXT_PUBLIC_SERVER_URL',
           'AI_ENABLED',
           'DB_PUSH',
-        ])
+        ].filter((key) => values[key] !== undefined))
           await vc(
             [
               'env',
@@ -502,10 +520,10 @@ export function createWorkflow({ execute = run, fetcher = fetch } = {}) {
     })
     const siteURL = state.steps['Deploy your unpublished website'].url
     await step('Set the assigned website address', async () => {
-      for (const environment of ['production', 'preview'])
-        await vc(['env', 'add', 'NEXT_PUBLIC_SERVER_URL', environment, '--yes', '--force'], {
-          input: siteURL,
-        })
+      // Code-testing deployments derive their own address from VERCEL_BRANCH_URL/VERCEL_URL.
+      await vc(['env', 'add', 'NEXT_PUBLIC_SERVER_URL', 'production', '--yes', '--force'], {
+        input: siteURL,
+      })
       await deploy(['--prod'])
     })
     await step('Deploy the code testing environment', () => deploy())
@@ -523,13 +541,7 @@ export function createWorkflow({ execute = run, fetcher = fetch } = {}) {
         delete values.BOOTSTRAP_EMAIL
         delete values.BOOTSTRAP_PASSWORD
         values.NEXT_PUBLIC_SERVER_URL = siteURL
-        writeFileSync(
-          filename,
-          Object.entries(values)
-            .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
-            .join('\n') + '\n',
-          { mode: 0o600 },
-        )
+        writeFileSync(filename, envFileText(values), { mode: 0o600 })
       }
     })
     await step('Record your completed setup', async () => {

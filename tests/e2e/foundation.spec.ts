@@ -18,7 +18,9 @@ test('public navigation and neutral responsive templates', async ({ page }) => {
   await page.getByRole('link', { name: 'Demo project 1', exact: true }).click()
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Demo project 1')
   const schema = await page.locator('script[type="application/ld+json"]').textContent()
-  expect(JSON.parse(schema || '{}')['@graph']).toHaveLength(4)
+  expect(
+    JSON.parse(schema || '{}')['@graph'].map((node: { '@type': string }) => node['@type']),
+  ).toEqual(['Organization', 'WebSite', 'BreadcrumbList', 'WebPage', 'CreativeWork'])
   await page
     .getByRole('navigation', { name: 'Main navigation' })
     .getByRole('link', { name: 'Services' })
@@ -148,9 +150,7 @@ test('page composer previews real sections and saves drafts without publishing',
     await page.screenshot({ path: '.local/composer-desktop.png', fullPage: true })
     const preview = page.frameLocator('iframe').first()
     await preview.getByRole('heading', { name: 'Original section' }).click()
-    await page
-      .getByRole('textbox', { name: 'heading', exact: true })
-      .fill('Private revised section')
+    await page.getByRole('textbox', { name: /^heading$/i }).fill('Private revised section')
     await page.getByRole('button', { name: 'Save draft', exact: true }).click()
     await expect(page.getByTestId('composer-status')).toContainText('Draft saved')
     const live = await request.get(`/${slug}`)

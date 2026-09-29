@@ -18,7 +18,9 @@ Pages, Case Studies and Services hold structured content. Edit the title, URL sl
 
 The individual **Preview / Live Preview** controls show an authenticated working draft at `/workspace-preview`. This is separate from the fixed, shareable site Preview. The page composer previews unsaved section edits; choose **Save draft** before creating a site Preview.
 
-Use **Open page composer** to arrange approved sections. Structured project and service sections reference their records rather than copying their content. Use Team's Active setting to include or exclude people from the next release, and Order to arrange them. Saved URL changes can create workspace redirects, included in the next release.
+Use **Open page composer** to build a page from sections: add them from the left panel, drag to reorder, and edit each one's fields on the right. Preview at mobile, tablet and desktop widths, then **Save draft**. Your site's own sections appear alongside the base set (hero, text, text and image, image, gallery, video, feature list, figures, testimonials, client logos, questions and answers, services, team, case studies, call to action and contact). Sections that show services, case studies, people or clients reference those records, so edit the record once and every page updates. In text fields, a blank line starts a new paragraph; use `## ` for a subheading, `- ` for a list, `**bold**` and `[link text](/page)`. Link figures and testimonials to an Approved Fact. Choose **Page header → Hide** when the first section is a Hero that should act as the page title.
+
+To add a page, create it under **Pages** (title, URL slug, summary), save, open the composer and add sections. Add it to **Navigation** so visitors can find it. Use Team's Active setting to include or exclude people from the next release, and Order to arrange them. Saved URL changes can create workspace redirects, included in the next release.
 
 ## Approvals and locks
 
@@ -44,12 +46,16 @@ Site Settings contains main/inverse logos and the browser icon. The library acce
 
 Files included in a saved release are retained. Upload a new file instead of replacing or deleting a retained file. Release content and font/image metadata remain frozen; later selections apply to a later release. Upload only fonts licensed for this website.
 
+## Enquiries
+
+Contact sections can include an enquiry form. Messages are stored under **Enquiries** (visible to people with editor accounts, not to AI accounts). Mark them replied or archived, and delete ones you no longer need, because they contain personal data. With email configured (see OPERATIONS.md), each new enquiry is also emailed to the Site Settings address or `FORM_NOTIFY_EMAIL`. Spam is filtered with a hidden trap field and a rate limit.
+
 ## Search, history and AI
 
-Search & quality checks identify missing metadata, unsafe composition and factual claims needing review. Verified facts belong in Approved Facts & Evidence. Warnings are advisory; publication blockers must be fixed. Crawler choices are released with the site. Local, code-testing and content Preview pages are not indexed.
+**Overview → Site health** checks the whole site in one go: missing search details, broken internal links, pages nothing links to, duplicate titles, images without descriptions, figures without evidence and missing company details. Each finding links to the record to fix. Search & quality checks on each page identify missing metadata, unsafe composition and factual claims needing review. Verified facts belong in Approved Facts & Evidence. Warnings are advisory; publication blockers must be fixed. **Search Strategy** has three separate crawler choices: search engines (Google, Bing), AI answer engines that read and cite your pages when answering questions (ChatGPT search, Perplexity, Claude and others), and AI model-training crawlers (off by default). The site also publishes `/llms.txt`, a plain summary of your public pages for AI assistants, and structured data built from your visible content. Crawler choices are released with the site. Local, code-testing and content Preview pages are not indexed.
 
 Document Versions restore content into the workspace, without overwriting Live. Scheduled document operations affect workspace state only. Whole-site scheduled publication is not implemented; publish the reviewed site explicitly from Overview.
 
-Version restoration cannot reset approvals or bypass a current lock. If an older version carries different approval records, copy the desired values into unlocked fields and save them instead; approval controls remain the place to change locks.
+Restoring a version brings back content only: your current approvals and locks always stay as they are. A restore that would change a locked field is refused until you unlock it in Approvals & locks.
 
 Expand Build your website with AI on Overview for a copyable handoff. Continue in the connected coding workspace. For a separate company, use NEW_SITE.md; each website gets its own repository, database, uploads and credentials.

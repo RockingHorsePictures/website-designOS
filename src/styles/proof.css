@@ -86,3 +86,85 @@ iframe {
     scroll-behavior: auto !important;
   }
 }
+/* Base section structure. Functional layout only; a site's design replaces this file's look. */
+.section {
+  margin-block: 2rem;
+}
+.section .grid {
+  display: grid;
+  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 14rem), 1fr));
+  padding: 0;
+  list-style: none;
+}
+.section .grid.columns-2 {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+}
+.section-hero.layout-split,
+.section-text-media {
+  display: grid;
+  gap: 1.5rem;
+  align-items: center;
+}
+@media (min-width: 768px) {
+  .section-hero.layout-split,
+  .section-text-media {
+    grid-template-columns: 1fr 1fr;
+  }
+  .section-text-media.media-start > :first-child {
+    order: 2;
+  }
+}
+.section-hero.layout-background {
+  display: grid;
+}
+.section-hero.layout-background > * {
+  grid-area: 1 / 1;
+}
+.section-hero.layout-background .section-body {
+  z-index: 1;
+  padding: 1.5rem;
+  background: var(--color-canvas);
+  align-self: end;
+}
+.section-text.width-narrow {
+  max-width: 42rem;
+}
+.section-media.size-full img {
+  width: 100%;
+}
+.section .actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.section-stats dd {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: var(--weight-heading, 700);
+}
+.section-faq details {
+  border-block-end: 1px solid var(--color-border);
+  padding-block: 0.75rem;
+}
+.section-faq summary {
+  cursor: pointer;
+  font-weight: var(--weight-emphasis, 700);
+}
+.contact-form label {
+  display: block;
+}
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  max-width: 36rem;
+}
+.contact-form .trap {
+  position: absolute;
+  left: -9999px;
+  height: 1px;
+  overflow: hidden;
+}
+.breadcrumb {
+  font-size: 0.9rem;
+}

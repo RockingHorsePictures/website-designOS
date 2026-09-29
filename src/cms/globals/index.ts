@@ -1,5 +1,5 @@
 import type { GlobalConfig, Field } from 'payload'
-import { authenticated } from '../access'
+import { authenticated, humanField } from '../access'
 import { linkFields } from '../fields/shared'
 import { tokenDefaults, validColor } from '../../design-system/tokens'
 import { fontOptions, weightOptions, typographyDefaults } from '../../design-system/typography'
@@ -64,6 +64,44 @@ export const SiteSettings: GlobalConfig = {
     { name: 'description', type: 'textarea' },
     { name: 'email', type: 'email' },
     { name: 'phone', type: 'text' },
+    {
+      name: 'address',
+      type: 'textarea',
+      admin: { description: 'Postal address shown in Contact sections. One line per row.' },
+    },
+    {
+      type: 'row',
+      fields: [
+        {
+          name: 'language',
+          type: 'text',
+          defaultValue: 'en',
+          validate: (v: unknown) =>
+            !v ||
+            (typeof v === 'string' && /^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$/.test(v)) ||
+            'Use a language tag such as en, en-GB or fr.',
+          admin: { width: '50%', description: 'Website language, for example en-GB.' },
+        },
+        {
+          name: 'organizationType',
+          label: 'Organisation type (for search engines)',
+          type: 'select',
+          defaultValue: 'Organization',
+          options: [
+            'Organization',
+            'Corporation',
+            'LocalBusiness',
+            'ProfessionalService',
+            'NGO',
+            'EducationalOrganization',
+            'MedicalOrganization',
+            'SportsOrganization',
+            'PerformingGroup',
+          ],
+          admin: { width: '50%' },
+        },
+      ],
+    },
     { name: 'footerText', type: 'textarea' },
     { name: 'socialLinks', type: 'array', fields: linkFields },
     { name: 'legalLinks', type: 'array', fields: linkFields },
@@ -213,10 +251,35 @@ export const SearchProfile: GlobalConfig = {
       type: 'array',
       fields: [
         { name: 'url', type: 'text', required: true },
-        { name: 'approved', type: 'checkbox', defaultValue: false },
+        {
+          name: 'approved',
+          type: 'checkbox',
+          defaultValue: false,
+          access: { create: humanField, update: humanField },
+        },
       ],
     },
-    { name: 'allowSearchCrawlers', type: 'checkbox', defaultValue: true },
-    { name: 'allowTrainingCrawlers', type: 'checkbox', defaultValue: false },
+    {
+      name: 'allowSearchCrawlers',
+      label: 'Allow search engines (Google, Bing and others)',
+      type: 'checkbox',
+      defaultValue: true,
+    },
+    {
+      name: 'allowAnswerEngines',
+      label: 'Allow AI answer engines to read and cite the site',
+      type: 'checkbox',
+      defaultValue: true,
+      admin: {
+        description:
+          'ChatGPT search, Perplexity, Claude and similar assistants fetching pages to answer questions and link to you.',
+      },
+    },
+    {
+      name: 'allowTrainingCrawlers',
+      label: 'Allow AI model-training crawlers',
+      type: 'checkbox',
+      defaultValue: false,
+    },
   ],
 }

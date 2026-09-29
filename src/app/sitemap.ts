@@ -31,5 +31,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         }))
     }),
   )
-  return groups.flat()
+  const entries = groups.flat()
+  // Index pages are listed when they have published records to show.
+  for (const [index, collection] of [
+    ['/services', 'services'],
+    ['/case-studies', 'case-studies'],
+  ] as const)
+    if (entries.some((e) => e.url.startsWith(absoluteURL(`/${collection}/`))))
+      entries.push({ url: absoluteURL(index) } as (typeof entries)[number])
+  return entries
 }

@@ -4,7 +4,10 @@
   "upstream": "https://github.com/RockingHorsePictures/website-designOS.git",
   "customisationRoots": [
     "src/components/sections",
+    "src/components/site",
     "src/styles/proof.css",
-    "src/editor/registry"
+    "src/editor/registry",
+    "src/app/(frontend)/layout.tsx",
+    ".claude"
   ]
 }

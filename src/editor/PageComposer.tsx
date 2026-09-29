@@ -1,10 +1,9 @@
 'use client'
-import { useRef, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { Puck, type Data } from '@puckeditor/core'
 import '@puckeditor/core/puck.css'
-import { createPuckConfig } from './registry/config'
+import { createPuckConfig, type EditorData } from './registry/config'
 import { previewWidths } from '../design-system/tokens'
-import type { ProjectSummary } from '../components/sections'
 import { compositionSchema, type Composition } from './registry/schema'
 import type { Theme } from '../payload-types'
 
@@ -13,16 +12,17 @@ export function PageComposer({
   title,
   initial,
   updatedAt,
-  projects,
+  data,
   theme,
 }: {
   id: number
   title: string
   initial: Composition
   updatedAt: string
-  projects: ProjectSummary[]
+  data: EditorData
   theme: Theme
 }) {
+  const config = useMemo(() => createPuckConfig(data, theme), [data, theme])
   const [version, setVersion] = useState(updatedAt)
   const currentData = useRef<Data>(initial as Data)
   const [busy, setBusy] = useState(false)
@@ -64,7 +64,7 @@ export function PageComposer({
         </span>
       </div>
       <Puck
-        config={createPuckConfig(projects, theme)}
+        config={config}
         data={initial as Data}
         onChange={(data) => {
           currentData.current = data

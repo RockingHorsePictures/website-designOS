@@ -4,6 +4,7 @@ import * as migration_20260913_102714_brand_assets from './20260913_102714_brand
 import * as migration_20260913_103239_font_weight_range from './20260913_103239_font_weight_range';
 import * as migration_20260913_115655_publishing_locks from './20260913_115655_publishing_locks';
 import * as migration_20260913_184614_ai_reader from './20260913_184614_ai_reader';
+import * as migration_20260929_204851_sections_forms_answer_engines from './20260929_204851_sections_forms_answer_engines';
 
 export const migrations = [
   {
@@ -34,6 +35,11 @@ export const migrations = [
   {
     up: migration_20260913_184614_ai_reader.up,
     down: migration_20260913_184614_ai_reader.down,
-    name: '20260913_184614_ai_reader'
+    name: '20260913_184614_ai_reader',
+  },
+  {
+    up: migration_20260929_204851_sections_forms_answer_engines.up,
+    down: migration_20260929_204851_sections_forms_answer_engines.down,
+    name: '20260929_204851_sections_forms_answer_engines'
   },
 ];

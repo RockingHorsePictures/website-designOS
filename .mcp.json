@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "design-os": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["scripts/mcp.mjs"]
+    }
+  }
+}

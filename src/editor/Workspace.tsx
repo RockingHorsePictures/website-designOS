@@ -1,5 +1,6 @@
 import { PublishingPanel } from './PublishingPanel'
 import { BuildGuide } from './BuildGuide'
+import { SiteHealth } from './SiteHealth'
 
 export function WorkspaceIcon() {
   return (
@@ -118,6 +119,7 @@ export function WorkspaceHome() {
         </p>
       </aside>
       <PublishingPanel />
+      <SiteHealth />
       <BuildGuide />
     </div>
   )

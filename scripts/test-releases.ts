@@ -27,7 +27,6 @@ const ai = await payload.create({
 const aiUser = { ...ai, collection: 'users' as const }
 const releases: number[] = []
 try {
-  const previous = await payload.findGlobalVersions({ slug: 'theme', limit: 1, sort: '-updatedAt' })
   const req = await createLocalReq({ user: admin, context: { policyApproval } }, payload)
   const asset = (await payload.find({ collection: 'media', limit: 1 })).docs[0]
   if (asset) {
@@ -77,16 +76,50 @@ try {
     }),
     /approval controls/,
   )
-  if (previous.docs[0])
+  // A restore that would change a locked value is refused; one that only touches unlocked
+  // fields succeeds and keeps the current locks (old approval records never come back).
+  const lockedCanvas = (await payload.findGlobal({ slug: 'theme', depth: 0 })).canvas
+  const otherCanvas = (
+    await payload.findGlobalVersions({
+      slug: 'theme',
+      where: { 'version.canvas': { not_equals: lockedCanvas } },
+      sort: '-updatedAt',
+      limit: 1,
+    })
+  ).docs[0]
+  if (otherCanvas)
     await assert.rejects(
       payload.restoreGlobalVersion({
         slug: 'theme',
-        id: previous.docs[0].id,
+        id: otherCanvas.id,
         user: aiUser,
         overrideAccess: false,
       }),
-      /approval controls|locked/,
+      /locked/,
     )
+  const sameCanvas = (
+    await payload.findGlobalVersions({
+      slug: 'theme',
+      where: { 'version.canvas': { equals: lockedCanvas } },
+      sort: '-updatedAt',
+      limit: 1,
+    })
+  ).docs[0]
+  await payload.restoreGlobalVersion({
+    slug: 'theme',
+    id: sameCanvas.id,
+    user: aiUser,
+    overrideAccess: false,
+  })
+  assert.equal(
+    (
+      (await payload.findGlobal({ slug: 'theme', depth: 0 })).protection as Record<
+        string,
+        { state: string }
+      >
+    ).canvas.state,
+    'locked',
+  )
   await payload.updateGlobal({
     slug: 'theme',
     data: { accent: '#123456' },

@@ -78,6 +78,7 @@ export interface Config {
     redirects: Redirect;
     users: User;
     'ai-usage': AiUsage;
+    'form-submissions': FormSubmission;
     'site-releases': SiteRelease;
     'payload-kv': PayloadKv;
     'payload-jobs': PayloadJob;
@@ -98,6 +99,7 @@ export interface Config {
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'ai-usage': AiUsageSelect<false> | AiUsageSelect<true>;
+    'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     'site-releases': SiteReleasesSelect<false> | SiteReleasesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
@@ -583,6 +585,9 @@ export interface ApprovedFact {
   category: 'company' | 'capability' | 'client' | 'project' | 'result' | 'award' | 'testimonial' | 'location' | 'other';
   sourceNote: string;
   sourceURL?: string | null;
+  /**
+   * Only a person can verify or reject a fact.
+   */
   verification: 'pending' | 'verified' | 'rejected';
   verifiedAt?: string | null;
   reviewAt?: string | null;
@@ -704,6 +709,25 @@ export interface AiUsage {
   id: number;
   key: string;
   count: number;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Messages sent through Contact sections. Delete records you no longer need; they are personal data.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "form-submissions".
+ */
+export interface FormSubmission {
+  id: number;
+  status: 'new' | 'replied' | 'archived' | 'spam';
+  name: string;
+  email: string;
+  message: string;
+  page?: string | null;
+  channel?: ('live' | 'preview') | null;
+  notes?: string | null;
+  senderKey?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -889,6 +913,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'ai-usage';
         value: number | AiUsage;
+      } | null)
+    | ({
+        relationTo: 'form-submissions';
+        value: number | FormSubmission;
       } | null)
     | ({
         relationTo: 'site-releases';
@@ -1330,6 +1358,22 @@ export interface AiUsageSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "form-submissions_select".
+ */
+export interface FormSubmissionsSelect<T extends boolean = true> {
+  status?: T;
+  name?: T;
+  email?: T;
+  message?: T;
+  page?: T;
+  channel?: T;
+  notes?: T;
+  senderKey?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "site-releases_select".
  */
 export interface SiteReleasesSelect<T extends boolean = true> {
@@ -1472,6 +1516,27 @@ export interface SiteSetting {
   description?: string | null;
   email?: string | null;
   phone?: string | null;
+  /**
+   * Postal address shown in Contact sections. One line per row.
+   */
+  address?: string | null;
+  /**
+   * Website language, for example en-GB.
+   */
+  language?: string | null;
+  organizationType?:
+    | (
+        | 'Organization'
+        | 'Corporation'
+        | 'LocalBusiness'
+        | 'ProfessionalService'
+        | 'NGO'
+        | 'EducationalOrganization'
+        | 'MedicalOrganization'
+        | 'SportsOrganization'
+        | 'PerformingGroup'
+      )
+    | null;
   footerText?: string | null;
   socialLinks?:
     | {
@@ -1572,6 +1637,10 @@ export interface SearchProfile {
       }[]
     | null;
   allowSearchCrawlers?: boolean | null;
+  /**
+   * ChatGPT search, Perplexity, Claude and similar assistants fetching pages to answer questions and link to you.
+   */
+  allowAnswerEngines?: boolean | null;
   allowTrainingCrawlers?: boolean | null;
   protection?:
     | {
@@ -1641,6 +1710,9 @@ export interface SiteSettingsSelect<T extends boolean = true> {
   description?: T;
   email?: T;
   phone?: T;
+  address?: T;
+  language?: T;
+  organizationType?: T;
   footerText?: T;
   socialLinks?:
     | T
@@ -1716,6 +1788,7 @@ export interface SearchProfileSelect<T extends boolean = true> {
         id?: T;
       };
   allowSearchCrawlers?: T;
+  allowAnswerEngines?: T;
   allowTrainingCrawlers?: T;
   protection?: T;
   updatedAt?: T;

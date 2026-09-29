@@ -1,38 +1,41 @@
 # Start here: build a website with Design OS
 
-**For this website, you can continue the existing Codex conversation.** A new conversation is optional; open the same project folder/repository so it has the same code and contract. The admin dashboard's **Build your website with AI** panel provides copyable instructions and a downloadable handoff.
+Design OS gives an AI coding agent a working CMS, publishing system and editing contract, so it can design a **bespoke** website that the owner then runs themselves: editing copy, swapping images, adding pages and rearranging sections without code or AI.
 
-The CMS is the place to edit content, upload brand assets and publish. The connected AI coding workspace is the place to design and build the website. This foundation does not include a chat-based site generator inside the CMS.
+The CMS (`/admin`) is where content is edited, brand assets uploaded and the site published. The AI coding workspace is where the website is designed and built. There is no chat-based site generator inside the CMS.
 
-**Check AI access first:** read AI_CONNECTION.md, then run `npm run ai:check` and `npm run ai:context` in this installed website folder. Setup provides the restricted accounts automatically. Do not ask the owner to paste a CMS password into chat.
+## Where to work
 
-## Where to start a conversation
+| Goal                                       | Where                                                                                                                       | What to provide                                                                         |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Build or change this website               | **Claude Code** opened in this website folder (terminal, desktop app or IDE). Other agents that read `AGENTS.md` also work. | Your brief, approved content, brand assets and design references                        |
+| Explore visual directions first (optional) | **Claude Design**, then hand off to Claude Code                                                                             | The design brief from `/designos-import-design`                                         |
+| Plan or review without code access         | Claude Desktop, Cowork or any chat                                                                                          | The credential-free **website context** download from the admin Overview                |
+| Another computer or cloud session          | A coding agent connected to the GitHub repository                                                                           | Correct branch plus this site's private environment, set up securely (AI_CONNECTION.md) |
+| A separate website or company              | A new project from the installer (NEW_SITE.md)                                                                              | A new brief and separate services and credentials                                       |
 
-| Goal                                | Where to work                            | What to provide                                                   |
-| ----------------------------------- | ---------------------------------------- | ----------------------------------------------------------------- |
-| Continue this website               | This Codex conversation                  | Your brief, approved content and design references                |
-| Fresh conversation for this website | New Codex task in this same project      | Dashboard handoff; start from the branch in `site-workspace.json` |
-| Another computer or cloud session   | Codex connected to the GitHub repository | Correct repository/branch plus a working development environment  |
-| Separate website/company            | New project created using `NEW_SITE.md`  | New brief and separate services and credentials                   |
+A new conversation for the same site needs no duplication: the contract lives in the repository, not in chat history. `AGENTS.md` (imported by `CLAUDE.md`) directs every agent here.
 
-For cloud work, connect the repository in [Codex](https://chatgpt.com/codex), create its environment and select the foundation branch. Install dependencies and configure a disposable development database using README.md. Configure secure runtime access using AI_CONNECTION.md and the provider's current setup guidance; secrets available only during setup do not automatically reach the coding session. GitHub-backed Vercel previews can deploy pushed branches after setup; direct deployment or hosted content editing requires those additional credentials. A CMS login or a repository link pasted into ordinary chat does not by itself provide a runnable coding environment. See [official cloud setup](https://learn.chatgpt.com/docs/cloud).
+## In Claude Code
 
-## What makes it repeatable
+1. Open this website's folder and approve the `design-os` MCP server when prompted (`/mcp` shows it).
+2. Run `/designos-build` to design and build, `/designos-content` to add pages or copy, `/designos-audit` for SEO, AI-search, schema, content and accessibility reviews, and `/designos-launch-check` before going live. See AI_TOOLKIT.md for every tool.
+3. The AI accounts were created by the installer. Never paste a CMS password into chat. If the connection is missing, AI_CONNECTION.md explains the `npm run ai:connect` repair.
 
-The contract lives in the repository, not in the conversation history. `AGENTS.md` directs future agents here. `AI_SITE_CONTRACT.md` defines the architectural rules, `DESIGN_HANDOFF.md` defines the design workflow, and the actual schemas, migrations, renderer and tests enforce the editable structure. Copying only the specification is insufficient: reuse the working foundation as well.
+## Read in order
 
-Read in order: `AI_SITE_CONTRACT.md`, `DESIGN_HANDOFF.md`, `ARCHITECTURE.md`, `EDITOR_GUIDE.md`, `IMPLEMENTATION_STATUS.md`. Consult V5 for original intent; later explicit user instructions can extend its phase boundaries. Do not infer authorisation to begin visual design from these documents alone.
+`AI_SITE_CONTRACT.md` (rules), `DESIGN_HANDOFF.md` (design workflow), `SECTIONS.md` (the editable page structure), `AI_TOOLKIT.md` (skills, subagents, MCP, audits), `ARCHITECTURE.md`, `EDITOR_GUIDE.md` (what owners do) and `IMPLEMENTATION_STATUS.md` (verified state). `COMPANY_WEBSITE_BUILD_SPEC_V5.md` records original intent; later explicit instructions take precedence. These documents alone do not authorise visual design work: the owner must ask for it.
 
-Keep `site-workspace.json` updated when a site's repository or working branch changes. The dashboard uses it to generate the correct handoff. Until the original foundation PR is merged, `foundation/design-os` contains the app and `main` does not.
+Keep `site-workspace.json` updated when the site's repository or working branch changes; the admin handoff uses it. Until the original foundation PR is merged, `foundation/design-os` contains the app and `main` does not.
 
 ## Prepare the website
 
-1. Enter company identity and upload logos in **Site Settings → Brand assets**.
-2. Upload licensed WOFF2/WOFF files in **Font files**, then select custom body/heading fonts and their weights in **Theme tokens**.
-3. Provide the AI with goals, audiences, pages, factual sources, copy, imagery and design references.
-4. Ask it to begin website design using the dashboard handoff. Review the sitemap and representative pages before extending the design.
-5. Review a working Preview; launch is a separate release decision.
+1. Enter company details and upload logos in **Site Settings**. Add the address, language and organisation type used for search engines.
+2. Upload licensed WOFF2/WOFF files in **Font files**, then choose fonts and weights in **Theme tokens**.
+3. Fill in **Search Strategy**: audiences, their questions, tone, terminology and claims to avoid. Add verified facts under **Approved Facts & Evidence**.
+4. Give the AI your goals, audiences, pages, factual sources, copy, imagery and design references. Review the sitemap and representative pages before the design is extended.
+5. Review a working Preview. Launch is a separate release decision.
 
-## AI connection (0.2.1)
+## AI connection
 
-Before CMS work, read AI_CONNECTION.md. In the installed website folder run `npm run ai:check` and `npm run ai:context`; read fresh Production and code-preview approvals from `.designos/ai-context.json`. The installer provisions separate restricted accounts. If missing, use the documented `npm run ai:connect` repair after upgrading/migrating, not a request for the owner to paste passwords into chat. Use `npm run ai:request` for automated CMS operations. Production access is read-only and its approvals are authoritative. Browser-only conversations can use the admin’s credential-free context download for planning, but need a connected coding runtime for writes.
+Before CMS work, read AI_CONNECTION.md. In the installed website folder, use the MCP tools `designos_check` and `designos_context`, or run `npm run ai:check` and `npm run ai:context`, and read fresh approvals from `.designos/ai-context.json`. Production access is read-only and its approvals are authoritative. Code-preview and local access can edit unlocked content as drafts; AI accounts cannot approve, delete or publish.

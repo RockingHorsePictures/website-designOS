@@ -557,3 +557,40 @@ body {
   border: 1px solid var(--dos-border);
   border-radius: 6px;
 }
+.dos-site-health {
+  background: var(--dos-surface);
+  border: 1px solid var(--dos-border);
+  border-radius: 14px;
+  padding: 24px;
+  margin-block: 24px;
+}
+.dos-site-health h2 {
+  margin-top: 0;
+  font-size: 22px;
+}
+.dos-site-health p {
+  color: var(--dos-muted);
+  max-width: 80ch;
+}
+.dos-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.dos-health-score strong {
+  font-size: 28px;
+  color: var(--dos-text, inherit);
+}
+.dos-site-health details {
+  border-top: 1px solid var(--dos-border);
+  padding-block: 12px;
+}
+.dos-site-health summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.dos-site-health li {
+  margin-block: 8px;
+}
