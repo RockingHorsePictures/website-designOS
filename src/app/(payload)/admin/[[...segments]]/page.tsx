@@ -1,4 +1,5 @@
 import config from '@payload-config'
+import { redirect } from 'next/navigation'
 import { RootPage, generatePageMetadata } from '@payloadcms/next/views'
 import { importMap } from '../importMap'
 
@@ -8,6 +9,8 @@ type Args = {
 }
 export const generateMetadata = ({ params, searchParams }: Args) =>
   generatePageMetadata({ config, params, searchParams })
-export default function Page({ params, searchParams }: Args) {
+export default async function Page({ params, searchParams }: Args) {
+  // New sites create their first administrator on the protected /setup page instead.
+  if ((await params).segments?.[0] === 'create-first-user') redirect('/setup')
   return RootPage({ config, params, searchParams, importMap })
 }

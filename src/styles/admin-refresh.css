@@ -1,0 +1,802 @@
+/* Design OS admin refresh: a calm, modern workspace with gentle motion. Loaded after admin.css.
+   Every animation respects prefers-reduced-motion (see the end of this file). */
+:root {
+  --dos-accent: #2563eb;
+  --dos-accent-2: #7c3aed;
+  --dos-on-accent: #ffffff;
+  --dos-text: #0f172a;
+  --dos-muted: #5b6475;
+  --dos-surface: #ffffff;
+  --dos-soft: #eef4ff;
+  --dos-border: #e3e8f0;
+  --dos-shadow: 0 1px 2px rgb(15 23 42 / 4%), 0 8px 24px -12px rgb(15 23 42 / 12%);
+  --dos-shadow-hover: 0 2px 4px rgb(15 23 42 / 5%), 0 18px 40px -16px rgb(37 99 235 / 28%);
+  --dos-radius: 16px;
+  --dos-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --dos-green: #12b76a;
+  --dos-amber: #f79009;
+  /* Text-safe variants (4.5:1 or better on light surfaces). */
+  --dos-green-text: #067647;
+  --dos-amber-text: #b54708;
+  --style-radius-m: 10px;
+  --style-radius-l: 16px;
+}
+html:not([data-theme='dark']) {
+  --theme-bg: #f6f8fc;
+  --theme-text: #0f172a;
+}
+html[data-theme='dark'] {
+  --dos-accent: #6d9bff;
+  --dos-accent-2: #a78bfa;
+  --dos-on-accent: #07101f;
+  --dos-text: #e8edf6;
+  --dos-muted: #9aa6ba;
+  --dos-surface: #121824;
+  --dos-soft: #172238;
+  --dos-border: #263146;
+  --dos-shadow: 0 1px 0 rgb(255 255 255 / 3%) inset, 0 12px 30px -18px rgb(0 0 0 / 60%);
+  --dos-shadow-hover: 0 1px 0 rgb(255 255 255 / 4%) inset, 0 20px 44px -18px rgb(109 155 255 / 35%);
+  --theme-bg: #0a0e15;
+  --dos-green-text: #47cd89;
+  --dos-amber-text: #fdb022;
+  --theme-input-bg: #121824;
+  --theme-text: #e8edf6;
+  --theme-border-color: #263146;
+}
+body {
+  -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.005em;
+}
+
+@keyframes dos-rise {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+@keyframes dos-fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes dos-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+@keyframes dos-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, currentColor 45%, transparent);
+  }
+  60% {
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+@keyframes dos-pop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+}
+
+/* Every admin view eases in when it opens. */
+.template-default__wrap > *,
+.collection-list,
+.collection-edit,
+.global-edit,
+.dashboard {
+  animation: dos-fade 0.35s var(--dos-ease) both;
+}
+
+/* Navigation */
+.nav {
+  background: var(--dos-surface);
+  border-right: 1px solid var(--dos-border);
+}
+.nav__link {
+  border-radius: 10px;
+  margin-inline: 6px;
+  padding-inline: 10px;
+  transition:
+    background 0.2s,
+    color 0.2s,
+    transform 0.2s var(--dos-ease);
+}
+.nav__link:hover {
+  background: var(--dos-soft);
+  transform: translateX(2px);
+}
+.nav__link.active,
+.nav__link[aria-current='page'] {
+  background: var(--dos-soft);
+  color: var(--dos-accent);
+  font-weight: 600;
+}
+
+/* Buttons, inputs, tables */
+.btn {
+  border-radius: 10px;
+  transition:
+    transform 0.15s var(--dos-ease),
+    box-shadow 0.2s,
+    background 0.2s;
+}
+.btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+.btn--style-primary {
+  background: linear-gradient(135deg, var(--dos-accent), var(--dos-accent-2));
+  border: 0;
+  box-shadow: 0 8px 20px -10px var(--dos-accent);
+}
+.field-type input,
+.field-type textarea,
+.react-select .rs__control {
+  border-radius: 10px;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.field-type input:focus,
+.field-type textarea:focus {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--dos-accent) 18%, transparent);
+}
+.table tbody tr {
+  transition: background 0.15s;
+}
+.table tbody tr:hover {
+  background: var(--dos-soft);
+}
+
+/* Dashboard */
+.dos-dashboard {
+  display: grid;
+  gap: 20px;
+  padding-top: 8px;
+}
+.dos-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  padding: 32px;
+  border-radius: 22px;
+  border: 1px solid var(--dos-border);
+  background:
+    radial-gradient(
+      40rem 16rem at 0% 0%,
+      color-mix(in srgb, var(--dos-accent) 16%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      30rem 16rem at 100% 100%,
+      color-mix(in srgb, var(--dos-accent-2) 14%, transparent),
+      transparent 70%
+    ),
+    var(--dos-surface);
+  box-shadow: var(--dos-shadow);
+  animation: dos-rise 0.6s var(--dos-ease) both;
+}
+.dos-hero h1 {
+  margin: 4px 0 10px;
+  font-size: clamp(26px, 3vw, 36px);
+  letter-spacing: -0.035em;
+  font-weight: 650;
+}
+.dos-eyebrow {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 650;
+  color: var(--dos-muted);
+}
+.dos-hero-actions,
+.dos-button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.dos-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--dos-soft);
+}
+.dos-status em {
+  font-style: normal;
+  font-weight: 450;
+  color: var(--dos-muted);
+}
+.dos-status > span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: dos-pulse 2.4s infinite;
+}
+.dos-status--live {
+  color: var(--dos-green-text);
+}
+.dos-status--pending {
+  color: var(--dos-amber-text);
+}
+.dos-status--draft {
+  color: var(--dos-muted);
+}
+.dos-button {
+  border-radius: 12px;
+  min-height: 42px;
+  gap: 8px;
+  padding: 10px 16px;
+  box-shadow: var(--dos-shadow);
+  transition:
+    transform 0.15s var(--dos-ease),
+    box-shadow 0.2s,
+    border-color 0.2s;
+}
+.dos-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--dos-shadow-hover);
+  border-color: color-mix(in srgb, var(--dos-accent) 40%, var(--dos-border));
+}
+.dos-button:active {
+  transform: translateY(0);
+}
+.dos-button--primary {
+  background: linear-gradient(135deg, var(--dos-accent), var(--dos-accent-2));
+  border: 0;
+  color: var(--dos-on-accent);
+}
+.dos-button:disabled {
+  opacity: 0.6;
+  cursor: progress;
+  transform: none;
+}
+.dos-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+.dos-stat {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  padding: 20px 22px;
+  border-radius: var(--dos-radius);
+  border: 1px solid var(--dos-border);
+  background: var(--dos-surface);
+  box-shadow: var(--dos-shadow);
+  text-decoration: none;
+  color: inherit;
+  animation: dos-rise 0.55s var(--dos-ease) both;
+  animation-delay: calc(var(--i, 0) * 70ms + 120ms);
+  transition:
+    transform 0.2s var(--dos-ease),
+    box-shadow 0.2s;
+}
+.dos-stat:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--dos-shadow-hover);
+}
+.dos-stat-value {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.dos-stat-label {
+  color: var(--dos-muted);
+  font-size: 13px;
+}
+.dos-badge {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--dos-on-accent);
+  background: var(--dos-accent);
+}
+.dos-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+  gap: 20px;
+}
+.dos-card,
+.dos-publishing,
+.dos-site-health,
+.dos-build-guide {
+  border-radius: var(--dos-radius);
+  border: 1px solid var(--dos-border);
+  background: var(--dos-surface);
+  box-shadow: var(--dos-shadow);
+}
+.dos-card {
+  padding: 22px 24px;
+  animation: dos-rise 0.6s var(--dos-ease) both;
+  animation-delay: calc(var(--i, 0) * 90ms + 200ms);
+}
+.dos-reveal {
+  animation: dos-rise 0.6s var(--dos-ease) both;
+  animation-delay: calc(var(--i, 0) * 90ms + 200ms);
+}
+.dos-card h2,
+.dos-publishing h2,
+.dos-site-health h2 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+}
+.dos-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.dos-checklist ul,
+.dos-recent ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.dos-checklist li {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 9px 0;
+}
+.dos-checklist a,
+.dos-recent a {
+  color: inherit;
+  text-decoration: none;
+}
+.dos-checklist a:hover {
+  color: var(--dos-accent);
+}
+.dos-check {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px solid var(--dos-border);
+  font-size: 12px;
+  font-weight: 800;
+  transition:
+    background 0.3s,
+    border-color 0.3s;
+}
+.dos-checklist .is-done .dos-check {
+  background: var(--dos-green);
+  border-color: var(--dos-green);
+  color: #fff;
+  animation: dos-pop 0.4s var(--dos-ease) both;
+}
+.dos-checklist .is-done a {
+  color: var(--dos-muted);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in srgb, var(--dos-muted) 50%, transparent);
+}
+.dos-ring {
+  width: 54px;
+  height: 54px;
+  transform: rotate(-90deg);
+}
+.dos-ring circle {
+  fill: none;
+  stroke: var(--dos-border);
+  stroke-width: 3.5;
+}
+.dos-ring .dos-ring-value {
+  stroke: var(--dos-accent);
+  stroke-linecap: round;
+  stroke-dasharray: 97.4;
+  transition: stroke-dashoffset 1.2s var(--dos-ease) 0.3s;
+}
+@starting-style {
+  .dos-ring .dos-ring-value {
+    stroke-dashoffset: 97.4;
+  }
+}
+.dos-ring text {
+  transform: rotate(90deg);
+  transform-origin: 18px 18px;
+  font-size: 9px;
+  font-weight: 700;
+  text-anchor: middle;
+  fill: currentColor;
+}
+.dos-recent a {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  margin-inline: -12px;
+  border-radius: 12px;
+  transition: background 0.15s;
+}
+.dos-recent a:hover {
+  background: var(--dos-soft);
+}
+.dos-recent strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 550;
+}
+.dos-kind {
+  font-size: 11px;
+  font-weight: 650;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: var(--dos-accent);
+  background: var(--dos-soft);
+  white-space: nowrap;
+}
+.dos-recent time,
+.dos-empty {
+  color: var(--dos-muted);
+  font-size: 12px;
+}
+.dos-action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.dos-action {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  column-gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border-radius: 14px;
+  border: 1px solid var(--dos-border);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    transform 0.2s var(--dos-ease),
+    border-color 0.2s,
+    background 0.2s;
+}
+.dos-action:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--dos-accent) 45%, var(--dos-border));
+  background: var(--dos-soft);
+}
+.dos-action-icon {
+  grid-row: span 2;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  font-size: 17px;
+  color: var(--dos-accent);
+  background: var(--dos-soft);
+  transition: transform 0.3s var(--dos-ease);
+}
+.dos-action:hover .dos-action-icon {
+  transform: rotate(-6deg) scale(1.08);
+}
+.dos-action strong {
+  font-weight: 600;
+}
+.dos-action > span:last-child {
+  color: var(--dos-muted);
+  font-size: 12px;
+}
+.dos-update {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--dos-accent) 35%, var(--dos-border));
+  background: var(--dos-soft);
+  animation: dos-rise 0.5s var(--dos-ease) both;
+}
+.dos-update p {
+  margin: 0;
+  flex: 1;
+}
+.dos-update-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  color: var(--dos-accent);
+  background: currentColor;
+  animation: dos-pulse 2s infinite;
+}
+.dos-skeleton {
+  border-radius: var(--dos-radius);
+  background: linear-gradient(
+    90deg,
+    var(--dos-soft) 25%,
+    var(--dos-surface) 37%,
+    var(--dos-soft) 63%
+  );
+  background-size: 200% 100%;
+  animation: dos-shimmer 1.4s linear infinite;
+}
+.dos-skeleton--hero {
+  height: 150px;
+}
+.dos-skeleton--stat {
+  height: 96px;
+}
+.dos-publishing,
+.dos-site-health {
+  padding: 24px;
+}
+
+/* Dialogs */
+.dos-dialog {
+  width: min(560px, calc(100vw - 32px));
+  border: 1px solid var(--dos-border);
+  border-radius: 20px;
+  padding: 0;
+  background: var(--dos-surface);
+  color: inherit;
+  box-shadow: 0 40px 80px -30px rgb(15 23 42 / 45%);
+  animation: dos-pop 0.3s var(--dos-ease) both;
+}
+.dos-dialog::backdrop {
+  background: rgb(15 23 42 / 45%);
+  backdrop-filter: blur(4px);
+  animation: dos-fade 0.25s both;
+}
+.dos-dialog-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px 0;
+}
+.dos-dialog-head h2 {
+  margin: 0;
+  font-size: 20px;
+}
+.dos-icon-button {
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--dos-soft);
+  color: inherit;
+  font-size: 20px;
+  cursor: pointer;
+}
+.dos-form {
+  display: grid;
+  gap: 14px;
+  padding: 20px 24px 24px;
+}
+.dos-form label {
+  display: grid;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 13px;
+}
+.dos-form input,
+.dos-form select {
+  font: inherit;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--dos-border);
+  background: var(--theme-input-bg, transparent);
+  color: inherit;
+}
+.dos-prefix {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--dos-border);
+  border-radius: 10px;
+  padding-left: 12px;
+}
+.dos-prefix span {
+  color: var(--dos-muted);
+}
+.dos-prefix input {
+  border: 0;
+  flex: 1;
+  padding-left: 2px;
+}
+.dos-choices {
+  display: grid;
+  gap: 8px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.dos-choices legend {
+  font-weight: 600;
+  font-size: 13px;
+  margin-bottom: 6px;
+}
+.dos-choices label {
+  grid-template-columns: auto 1fr;
+  column-gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid var(--dos-border);
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 400;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+.dos-choices label.is-selected {
+  border-color: var(--dos-accent);
+  background: var(--dos-soft);
+}
+.dos-choices input {
+  grid-row: span 2;
+}
+.dos-choices span {
+  color: var(--dos-muted);
+  font-size: 12px;
+}
+.dos-error {
+  color: #d92d20;
+  margin: 0;
+}
+.dos-success {
+  margin: 0;
+  padding: 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--dos-green) 12%, transparent);
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* Sign-in */
+body:has(.template-minimal),
+.template-minimal {
+  background:
+    radial-gradient(
+      50rem 30rem at 0% 0%,
+      color-mix(in srgb, var(--dos-accent) 16%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      40rem 30rem at 100% 100%,
+      color-mix(in srgb, var(--dos-accent-2) 14%, transparent),
+      transparent 70%
+    ),
+    var(--theme-bg);
+}
+.template-minimal__wrap {
+  padding: 36px;
+  border-radius: 22px;
+  border: 1px solid var(--dos-border);
+  background: var(--dos-surface);
+  box-shadow: 0 30px 70px -30px rgb(15 23 42 / 30%);
+  animation: dos-pop 0.5s var(--dos-ease) both;
+}
+.dos-signin {
+  display: grid;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.dos-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--dos-border);
+  background: var(--dos-surface);
+  color: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  box-shadow: var(--dos-shadow);
+  transition:
+    transform 0.15s var(--dos-ease),
+    box-shadow 0.2s;
+}
+.dos-google:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--dos-shadow-hover);
+}
+.dos-signin-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  color: var(--dos-muted);
+  font-size: 12px;
+}
+.dos-signin-divider::before,
+.dos-signin-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--dos-border);
+}
+.dos-signin-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  color: #b42318;
+  background: color-mix(in srgb, #f04438 10%, transparent);
+}
+
+@media (max-width: 900px) {
+  .dos-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dos-grid {
+    grid-template-columns: 1fr;
+  }
+  .dos-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 24px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after,
+  *::backdrop {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Small screens: the language selector and environment badge share a narrow header. */
+@media (max-width: 600px) {
+  .app-header__localizer-spacing {
+    margin-inline: 4px !important;
+  }
+  .localizer-button__current {
+    max-width: 3.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .dos-environment {
+    max-width: 5.5rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .app-header__actions-wrapper,
+  .app-header__content {
+    min-width: 0;
+    gap: 6px;
+  }
+}
+.dos-card h2,
+.dos-publishing h2,
+.dos-site-health h2,
+.dos-dialog h2 {
+  text-transform: none;
+  letter-spacing: -0.015em;
+}

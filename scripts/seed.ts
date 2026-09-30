@@ -343,6 +343,199 @@ if (!library.totalDocs) {
     },
   })
 }
+// Demo blog, form, reusable block and a page using the layout sections.
+const demoText = 'Demo text. Replace with approved copy.'
+const category =
+  (await payload.find({ collection: 'categories', where: { slug: { equals: 'demo-news' } } }))
+    .docs[0] ||
+  (await payload.create({
+    collection: 'categories',
+    data: { title: 'Demo news', slug: 'demo-news', description: 'Demo category.' },
+  }))
+if (
+  !(await payload.find({ collection: 'posts', where: { slug: { equals: 'demo-post' } } })).totalDocs
+)
+  await payload.create({
+    collection: 'posts',
+    data: {
+      title: 'Demo post',
+      slug: 'demo-post',
+      demo: true,
+      summary:
+        'Demo blog post for testing the blog, feeds and structured data. Not a real article.',
+      categories: [category.id],
+      _status: 'published',
+    },
+  })
+const form =
+  (await payload.find({ collection: 'forms', where: { title: { equals: 'Demo enquiry form' } } }))
+    .docs[0] ||
+  (await payload.create({
+    collection: 'forms',
+    data: {
+      title: 'Demo enquiry form',
+      fields: [
+        { label: 'Name', name: 'name', type: 'text', required: true, width: 'half' },
+        { label: 'Email', name: 'email', type: 'email', required: true, width: 'half' },
+        {
+          label: 'Budget',
+          name: 'budget',
+          type: 'select',
+          options: [
+            { label: 'Under £5k', value: 'small' },
+            { label: '£5k or more', value: 'large' },
+          ],
+        },
+        { label: 'Project details', name: 'message', type: 'textarea', required: true },
+        { label: 'I agree to be contacted', name: 'consent', type: 'checkbox', required: true },
+      ],
+      submitLabel: 'Send enquiry',
+      successMessage: 'Thank you. This is a demo form.',
+    },
+  }))
+const block =
+  (
+    await payload.find({
+      collection: 'blocks',
+      where: { title: { equals: 'Demo call to action' } },
+    })
+  ).docs[0] ||
+  (await payload.create({
+    collection: 'blocks',
+    data: {
+      title: 'Demo call to action',
+      composition: {
+        root: { props: {} },
+        content: [
+          {
+            type: 'CallToAction',
+            props: {
+              id: 'block-cta',
+              heading: 'Reusable call to action',
+              body: 'This block is edited once and shown on many pages.',
+              label: 'Browse demo services',
+              href: '/services',
+            },
+          },
+        ],
+      },
+    },
+  }))
+if (
+  !(await payload.find({ collection: 'pages', where: { slug: { equals: 'layout-library' } } }))
+    .totalDocs
+)
+  await payload.create({
+    collection: 'pages',
+    data: {
+      title: 'Layout library',
+      slug: 'layout-library',
+      demo: true,
+      summary: 'Demo page showing layout, pricing, blog, form, embed and reusable sections.',
+      _status: 'published',
+      composition: {
+        root: { props: { pageHeader: 'default' } },
+        content: [
+          {
+            type: 'Columns',
+            props: {
+              id: 'lay-columns',
+              layout: '1-1',
+              align: 'start',
+              motion: 'rise',
+              first: [
+                {
+                  type: 'Text',
+                  props: {
+                    id: 'lay-col-a',
+                    heading: 'First column',
+                    body: demoText,
+                    width: 'wide',
+                  },
+                },
+              ],
+              second: [
+                {
+                  type: 'Text',
+                  props: {
+                    id: 'lay-col-b',
+                    heading: 'Second column',
+                    body: demoText,
+                    width: 'wide',
+                  },
+                },
+              ],
+              third: [],
+            },
+          },
+          {
+            type: 'Steps',
+            props: {
+              id: 'lay-steps',
+              heading: 'Steps',
+              intro: '',
+              items: [1, 2, 3].map((n) => ({ title: `Step ${n}`, body: demoText })),
+            },
+          },
+          {
+            type: 'Pricing',
+            props: {
+              id: 'lay-pricing',
+              heading: 'Pricing',
+              intro: '',
+              note: 'Demo prices.',
+              plans: [
+                {
+                  name: 'Starter',
+                  price: '£0',
+                  period: 'per month',
+                  description: demoText,
+                  features: 'One\nTwo',
+                  link: { label: 'Choose Starter', href: '/#contact' },
+                  highlighted: false,
+                },
+                {
+                  name: 'Pro',
+                  price: '£49',
+                  period: 'per month',
+                  description: demoText,
+                  features: 'One\nTwo\nThree',
+                  link: { label: 'Choose Pro', href: '/#contact' },
+                  highlighted: true,
+                },
+              ],
+            },
+          },
+          {
+            type: 'Posts',
+            props: {
+              id: 'lay-posts',
+              heading: 'From the blog',
+              mode: 'latest',
+              categoryId: null,
+              postIds: [],
+              limit: 3,
+            },
+          },
+          { type: 'GlobalBlock', props: { id: 'lay-block', blockId: block.id } },
+          {
+            type: 'Embed',
+            props: {
+              id: 'lay-embed',
+              title: 'Demo map',
+              url: 'https://www.openstreetmap.org/export/embed.html?bbox=-0.13%2C51.50%2C-0.12%2C51.51',
+              aspect: '16:9',
+              caption: '',
+            },
+          },
+          {
+            type: 'Form',
+            props: { id: 'lay-form', heading: 'Enquiry form', body: '', formId: form.id },
+          },
+        ],
+      },
+    },
+  })
 if (process.env.SITE_ENV === 'local') {
   const state = await payload.findGlobal({ slug: 'publication', depth: 0 })
   if (!state.previewRelease) {

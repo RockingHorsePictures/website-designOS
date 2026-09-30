@@ -88,9 +88,17 @@ export async function POST(request: Request) {
     }
     return Response.json({ ok: true })
   } catch (error) {
+    const status =
+      typeof error === 'object' && error && 'status' in error ? Number(error.status) : 500
+    if (status >= 500) console.error(error)
     return Response.json(
-      { error: error instanceof Error ? error.message : 'Approval failed' },
-      { status: 409 },
+      {
+        error:
+          status < 500 && error instanceof Error
+            ? error.message
+            : 'The approval could not be saved. Reload and try again.',
+      },
+      { status: status < 500 ? status : 409 },
     )
   }
 }

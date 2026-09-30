@@ -188,8 +188,83 @@ try {
     user: admin,
     overrideAccess: false,
   })
+  // Releases leave out page templates and form delivery settings, keep only referenced uploads,
+  // and anonymous visitors can read only released files.
+  const stamp = Date.now()
+  const template = await payload.create({
+    collection: 'pages',
+    data: {
+      title: 'Template test',
+      slug: `template-${stamp}`,
+      summary: 'A template that must never be released.',
+      isTemplate: true,
+      _status: 'published',
+    },
+  })
+  const deliveryForm = await payload.create({
+    collection: 'forms',
+    data: {
+      title: 'Release form test',
+      fields: [{ label: 'Email', name: 'email', type: 'email', required: true }],
+      webhookURL: 'https://hooks.example.com/x',
+      notify: 'owner@example.test',
+    },
+    user: admin,
+  })
+  const unused = await payload.create({
+    collection: 'media',
+    data: { alt: 'Unreleased upload test' },
+    file: {
+      data: Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+        'base64',
+      ),
+      name: `unreleased-${stamp}.png`,
+      size: 68,
+      mimetype: 'image/png',
+    },
+  })
+  try {
+    current = await payload.findGlobal({ slug: 'publication', depth: 0 })
+    await changePublication(payload, admin, 'preview', releaseID(current.previewRelease))
+    current = await payload.findGlobal({ slug: 'publication', depth: 0 })
+    releases.push(releaseID(current.previewRelease)!)
+    const snapshot = (
+      await payload.findByID({
+        collection: 'site-releases',
+        id: releaseID(current.previewRelease)!,
+      })
+    ).snapshot as Snapshot
+    assert(
+      !snapshot.collections.pages.some((p) => p.id === template.id),
+      'templates are not released',
+    )
+    const releasedForm = snapshot.collections.forms.find((f) => f.id === deliveryForm.id)
+    assert(releasedForm, 'forms are released')
+    for (const key of ['webhookURL', 'webhookSecret', 'notify'])
+      assert(!(key in releasedForm), `${key} must not be released`)
+    assert(
+      !snapshot.collections.media.some((m) => m.id === unused.id),
+      'unreferenced uploads are not released',
+    )
+    const anonymous = await payload.find({
+      collection: 'media',
+      overrideAccess: false,
+      limit: 1000,
+      depth: 0,
+    })
+    assert(!anonymous.docs.some((m) => m.id === unused.id), 'unreleased uploads are private')
+    assert(
+      anonymous.docs.every((m) => !('context' in m) || m.context === undefined),
+      'internal media notes are staff-only',
+    )
+  } finally {
+    await payload.delete({ collection: 'pages', id: template.id })
+    await payload.delete({ collection: 'forms', id: deliveryForm.id })
+    await payload.delete({ collection: 'media', id: unused.id }).catch(() => {})
+  }
   console.log(
-    'PASS: immutable releases, Preview/Live isolation, stale publication rejection, asset retention, AI permissions and enforced locks.',
+    'PASS: immutable releases, Preview/Live isolation, stale publication rejection, asset retention, AI permissions, enforced locks, private delivery settings and released-only uploads.',
   )
 } finally {
   const req = await createLocalReq({ user: admin, context: { policyApproval } }, payload)

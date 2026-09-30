@@ -235,6 +235,55 @@ try {
   for (const r of hops) await payload.delete({ collection: 'redirects', id: r.id })
   await payload.delete({ collection: 'pages', id: moving.id })
 
+  // Where visitor data goes is human-only: AI can build forms but not route their submissions.
+  const aiForm = await payload.create({
+    collection: 'forms',
+    data: {
+      title: 'AI form test',
+      fields: [{ label: 'Email', name: 'email', type: 'email', required: true }],
+      webhookURL: 'https://attacker.example/hook',
+      notify: 'attacker@example.test',
+      redirect: '/elsewhere',
+      webhookSecret: 'chosen-by-ai',
+    },
+    user: writeUser,
+    overrideAccess: false,
+  })
+  assert.equal(aiForm.webhookURL ?? null, null)
+  assert.equal(aiForm.notify ?? null, null)
+  assert.equal(aiForm.redirect ?? null, null)
+  const storedForm = await payload.findByID({ collection: 'forms', id: aiForm.id })
+  assert.notEqual(storedForm.webhookSecret, 'chosen-by-ai')
+  assert.ok(String(storedForm.webhookSecret).length >= 24)
+  await payload.delete({ collection: 'forms', id: aiForm.id })
+  const settingsBefore = await payload.findGlobal({ slug: 'site-settings' })
+  await payload.updateGlobal({
+    slug: 'site-settings',
+    data: {
+      analytics: { provider: 'ga4', siteId: 'G-ATTACKER' },
+      verification: { google: 'attacker-code' },
+    },
+    user: writeUser,
+    overrideAccess: false,
+  })
+  const settingsAfter = await payload.findGlobal({ slug: 'site-settings' })
+  assert.equal(settingsAfter.analytics?.siteId ?? null, settingsBefore.analytics?.siteId ?? null)
+  assert.equal(
+    settingsAfter.verification?.google ?? null,
+    settingsBefore.verification?.google ?? null,
+  )
+  // AI accounts cannot change their own login details.
+  await assert.rejects(
+    payload.update({
+      collection: 'users',
+      id: writer.id,
+      data: { email: `changed-${Date.now()}@example.test` },
+      user: writeUser,
+      overrideAccess: false,
+    }),
+    /not allowed/i,
+  )
+
   const snapshot = await aiContext(payload, readUser)
   const theme = snapshot.globals.find((item) => item.slug === 'theme')!
   assert.equal((theme.document as typeof original).canvas, '#123456')

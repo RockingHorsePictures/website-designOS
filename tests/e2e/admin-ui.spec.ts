@@ -4,6 +4,9 @@ import AxeBuilder from '@axe-core/playwright'
 test('admin workspace remains accessible on mobile, in dark mode and with keyboard navigation', async ({
   page,
 }) => {
+  // Audit the settled interface: reduced motion turns off entrance animations, which would
+  // otherwise be sampled mid-fade.
+  await page.emulateMedia({ reducedMotion: 'reduce' })
   await page.goto('/admin/login')
   await expect(page.getByText('Your website workspace', { exact: true })).toBeVisible()
   await page
@@ -11,7 +14,9 @@ test('admin workspace remains accessible on mobile, in dark mode and with keyboa
     .fill(process.env.SEED_EMAIL || 'editor@example.test')
   await page.getByLabel('Password', { exact: true }).fill(process.env.SEED_PASSWORD!)
   await page.getByRole('button', { name: 'Login', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'A home for your website.' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { level: 1, name: /Good (morning|afternoon|evening)/ }),
+  ).toBeVisible()
   const guide = page.getByRole('region', { name: 'Build your website with AI' })
   await expect(guide.getByLabel('What are you starting?')).toBeHidden()
   await guide.locator('summary').focus()
@@ -45,7 +50,7 @@ test('admin workspace remains accessible on mobile, in dark mode and with keyboa
       ).violations,
     ).toEqual([])
   }
-  await page.getByRole('link', { name: 'Make it yours' }).click()
+  await page.goto('/admin/globals/site-settings')
   await expect(page.locator('#field-logo').getByText('Main logo', { exact: true })).toBeVisible()
   await page.setViewportSize({ width: 390, height: 900 })
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(

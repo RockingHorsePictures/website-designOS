@@ -5,6 +5,8 @@ import * as migration_20260913_103239_font_weight_range from './20260913_103239_
 import * as migration_20260913_115655_publishing_locks from './20260913_115655_publishing_locks';
 import * as migration_20260913_184614_ai_reader from './20260913_184614_ai_reader';
 import * as migration_20260929_204851_sections_forms_answer_engines from './20260929_204851_sections_forms_answer_engines';
+import * as migration_20260930_000010_blog_forms_blocks_access from './20260930_000010_blog_forms_blocks_access';
+import * as migration_20260930_000113_localization from './20260930_000113_localization';
 
 export const migrations = [
   {
@@ -40,6 +42,16 @@ export const migrations = [
   {
     up: migration_20260929_204851_sections_forms_answer_engines.up,
     down: migration_20260929_204851_sections_forms_answer_engines.down,
-    name: '20260929_204851_sections_forms_answer_engines'
+    name: '20260929_204851_sections_forms_answer_engines',
+  },
+  {
+    up: migration_20260930_000010_blog_forms_blocks_access.up,
+    down: migration_20260930_000010_blog_forms_blocks_access.down,
+    name: '20260930_000010_blog_forms_blocks_access',
+  },
+  {
+    up: migration_20260930_000113_localization.up,
+    down: migration_20260930_000113_localization.down,
+    name: '20260930_000113_localization'
   },
 ];

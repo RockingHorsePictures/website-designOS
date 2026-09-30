@@ -26,12 +26,19 @@ export async function POST(request: Request) {
     await changePublication(await cms(), user, action, expected)
     return Response.json({ ok: true })
   } catch (error) {
+    // Expected publishing problems carry a status and a readable message; anything else (for
+    // example a database error) is logged, not shown.
+    const status =
+      typeof error === 'object' && error && 'status' in error ? Number(error.status) : 500
+    if (status >= 500) console.error(error)
     return Response.json(
-      { error: error instanceof Error ? error.message : 'Publication failed.' },
       {
-        status:
-          typeof error === 'object' && error && 'status' in error ? Number(error.status) : 409,
+        error:
+          status < 500 && error instanceof Error
+            ? error.message
+            : 'Publication failed. Nothing was changed; try again.',
       },
+      { status: status < 500 ? status : 500 },
     )
   }
 }

@@ -1,6 +1,7 @@
 import config from '@payload-config'
 import '@payloadcms/next/css'
 import '@/styles/admin.css'
+import '@/styles/admin-refresh.css'
 import { RootLayout, handleServerFunctions } from '@payloadcms/next/layouts'
 import type { ServerFunctionClient } from 'payload'
 import { importMap } from './admin/importMap'

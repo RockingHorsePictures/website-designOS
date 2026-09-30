@@ -5,7 +5,7 @@ description: Create or change an editable page section in a Design OS site — a
 
 # Add an editable section
 
-Design first, then expose the smallest useful editable API. Read `SECTIONS.md` for the full contract. A section is registered in **four places that must agree** (a unit test enforces this):
+Design first, then expose the smallest useful editable API. Read `docs/SECTIONS.md` for the full contract. A section is registered in **four places that must agree** (a unit test enforces this):
 
 | Where                            | What                                                                                                                     |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |

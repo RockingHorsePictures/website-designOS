@@ -3,7 +3,7 @@
 // and audit crawler as tools for Claude Code, Claude Desktop/Cowork and other MCP clients.
 // Every CMS operation runs through scripts/ai.mjs, so the restricted AI accounts, lock hooks and
 // read-only Production rules apply unchanged. Credentials never enter tool results.
-// Register: see AI_TOOLKIT.md (`.mcp.json` is included for Claude Code).
+// Register: see docs/AI_TOOLKIT.md (`.mcp.json` is included for Claude Code).
 import { spawn } from 'node:child_process'
 import { mkdirSync, readFileSync, writeFileSync, rmSync, existsSync } from 'node:fs'
 import { randomBytes } from 'node:crypto'
@@ -144,6 +144,10 @@ const tools = [
       properties: {
         environment: env(false),
         ...target,
+        locale: {
+          type: 'string',
+          description: 'Language code for translated content, e.g. fr. Omit for the main language.',
+        },
         id: { type: ['number', 'string'] },
         where: {
           type: 'object',
@@ -166,6 +170,10 @@ const tools = [
         environment: env(true),
         action: { type: 'string', enum: ['create', 'update'] },
         ...target,
+        locale: {
+          type: 'string',
+          description: 'Language code to write a translation, e.g. fr. Omit for the main language.',
+        },
         id: { type: ['number', 'string'], description: 'Required for collection updates.' },
         data: { type: 'object' },
       },

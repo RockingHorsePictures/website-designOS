@@ -29,7 +29,7 @@ export const CaseStudies: CollectionConfig = {
           fields: [
             { name: 'client', type: 'relationship', relationTo: 'clients' },
             { name: 'year', type: 'number', min: 1900, max: 2200 },
-            { name: 'narrative', type: 'richText' },
+            { name: 'narrative', type: 'richText', localized: true },
             { name: 'featured', type: 'checkbox' },
             imageFields(),
             imageFields('thumbnail'),
@@ -38,6 +38,7 @@ export const CaseStudies: CollectionConfig = {
             {
               name: 'results',
               type: 'textarea',
+              localized: true,
               admin: { description: 'Include only outcomes supported by evidence.' },
             },
           ],
@@ -74,15 +75,15 @@ export const Services: CollectionConfig = {
         {
           label: 'Service',
           fields: [
-            { name: 'description', type: 'richText' },
+            { name: 'description', type: 'richText', localized: true },
             imageFields(),
             videoFields,
             {
               name: 'capabilities',
               type: 'array',
               fields: [
-                { name: 'title', type: 'text', required: true },
-                { name: 'description', type: 'textarea' },
+                { name: 'title', type: 'text', required: true, localized: true },
+                { name: 'description', type: 'textarea', localized: true },
               ],
             },
             { name: 'showInNavigation', type: 'checkbox' },
@@ -122,11 +123,11 @@ export const TeamMembers: CollectionConfig = {
   },
   fields: [
     { name: 'name', type: 'text', required: true },
-    { name: 'role', type: 'text', required: true },
+    { name: 'role', type: 'text', required: true, localized: true },
     imageFields('portrait'),
     imageFields('alternatePortrait'),
-    { name: 'bio', type: 'textarea' },
-    { name: 'longBio', type: 'richText' },
+    { name: 'bio', type: 'textarea', localized: true },
+    { name: 'longBio', type: 'richText', localized: true },
     { name: 'links', type: 'array', fields: linkFields },
     { name: 'order', type: 'number', defaultValue: 0 },
     { name: 'active', type: 'checkbox', defaultValue: true },

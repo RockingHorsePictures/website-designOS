@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { siteCMS, siteView } from '@/lib/site'
+import { siteCMS, siteView, requireLocale } from '@/lib/site'
 import { previewUser } from '@/lib/cms'
 import { SiteLink as Link } from '@/components/site/SiteLink'
 import { absoluteURL, contentPath } from '@/lib/urls'
@@ -47,6 +47,7 @@ export async function ContentIndex({
   collection: IndexCollection
   title: string
 }) {
+  await requireLocale()
   const docs = await records(collection)
   const settings = await (await siteCMS()).findGlobal({ slug: 'site-settings' })
   const { path } = collectionIndex[collection]!

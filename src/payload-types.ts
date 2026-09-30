@@ -68,6 +68,9 @@ export interface Config {
   blocks: {};
   collections: {
     pages: Page;
+    posts: Post;
+    categories: Category;
+    blocks: Block;
     'case-studies': CaseStudy;
     services: Service;
     'team-members': TeamMember;
@@ -78,6 +81,7 @@ export interface Config {
     redirects: Redirect;
     users: User;
     'ai-usage': AiUsage;
+    forms: Form;
     'form-submissions': FormSubmission;
     'site-releases': SiteRelease;
     'payload-kv': PayloadKv;
@@ -89,6 +93,9 @@ export interface Config {
   collectionsJoins: {};
   collectionsSelect: {
     pages: PagesSelect<false> | PagesSelect<true>;
+    posts: PostsSelect<false> | PostsSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    blocks: BlocksSelect<false> | BlocksSelect<true>;
     'case-studies': CaseStudiesSelect<false> | CaseStudiesSelect<true>;
     services: ServicesSelect<false> | ServicesSelect<true>;
     'team-members': TeamMembersSelect<false> | TeamMembersSelect<true>;
@@ -99,6 +106,7 @@ export interface Config {
     redirects: RedirectsSelect<false> | RedirectsSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     'ai-usage': AiUsageSelect<false> | AiUsageSelect<true>;
+    forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     'site-releases': SiteReleasesSelect<false> | SiteReleasesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -110,7 +118,66 @@ export interface Config {
   db: {
     defaultIDType: number;
   };
-  fallbackLocale: null;
+  fallbackLocale:
+    | ('false' | 'none' | 'null')
+    | false
+    | null
+    | (
+        | 'en'
+        | 'fr'
+        | 'de'
+        | 'es'
+        | 'it'
+        | 'pt'
+        | 'nl'
+        | 'sv'
+        | 'da'
+        | 'nb'
+        | 'fi'
+        | 'pl'
+        | 'cs'
+        | 'el'
+        | 'tr'
+        | 'ru'
+        | 'uk'
+        | 'ar'
+        | 'he'
+        | 'hi'
+        | 'ja'
+        | 'ko'
+        | 'zh'
+        | 'id'
+        | 'ga'
+        | 'cy'
+      )
+    | (
+        | 'en'
+        | 'fr'
+        | 'de'
+        | 'es'
+        | 'it'
+        | 'pt'
+        | 'nl'
+        | 'sv'
+        | 'da'
+        | 'nb'
+        | 'fi'
+        | 'pl'
+        | 'cs'
+        | 'el'
+        | 'tr'
+        | 'ru'
+        | 'uk'
+        | 'ar'
+        | 'he'
+        | 'hi'
+        | 'ja'
+        | 'ko'
+        | 'zh'
+        | 'id'
+        | 'ga'
+        | 'cy'
+      )[];
   globals: {
     navigation: Navigation;
     'site-settings': SiteSetting;
@@ -125,7 +192,33 @@ export interface Config {
     'search-profile': SearchProfileSelect<false> | SearchProfileSelect<true>;
     publication: PublicationSelect<false> | PublicationSelect<true>;
   };
-  locale: null;
+  locale:
+    | 'en'
+    | 'fr'
+    | 'de'
+    | 'es'
+    | 'it'
+    | 'pt'
+    | 'nl'
+    | 'sv'
+    | 'da'
+    | 'nb'
+    | 'fi'
+    | 'pl'
+    | 'cs'
+    | 'el'
+    | 'tr'
+    | 'ru'
+    | 'uk'
+    | 'ar'
+    | 'he'
+    | 'hi'
+    | 'ja'
+    | 'ko'
+    | 'zh'
+    | 'id'
+    | 'ga'
+    | 'cy';
   widgets: {
     collections: CollectionsWidget;
   };
@@ -180,6 +273,15 @@ export interface Page {
    */
   demo?: boolean | null;
   publishedAt?: string | null;
+  /**
+   * Templates are never published. Use them to start new pages from Overview → New page.
+   */
+  isTemplate?: boolean | null;
+  visibility?: ('public' | 'password') | null;
+  /**
+   * Type a new password to set or change it. It is stored securely.
+   */
+  pagePassword?: string | null;
   heroMedia?: {
     image?: (number | null) | Media;
     altOverride?: string | null;
@@ -608,6 +710,143 @@ export interface ApprovedFact {
   createdAt: string;
 }
 /**
+ * Save edits here. Use Overview → Save to Preview → Publish to Live to release the whole site.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts".
+ */
+export interface Post {
+  id: number;
+  /**
+   * Turn off to exclude this page from the next whole-site Preview. Existing Live releases stay unchanged.
+   */
+  includeInSite?: boolean | null;
+  title: string;
+  slug: string;
+  summary: string;
+  order?: number | null;
+  /**
+   * Demo records are excluded from production search indexing.
+   */
+  demo?: boolean | null;
+  publishedAt?: string | null;
+  /**
+   * Defaults to when the post was first published.
+   */
+  date?: string | null;
+  heroMedia?: {
+    image?: (number | null) | Media;
+    altOverride?: string | null;
+    decorative?: boolean | null;
+  };
+  body?: {
+    root: {
+      type: string;
+      children: {
+        type: any;
+        version: number;
+        [k: string]: unknown;
+      }[];
+      direction: ('ltr' | 'rtl') | null;
+      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+      indent: number;
+      version: number;
+    };
+    [k: string]: unknown;
+  } | null;
+  featured?: boolean | null;
+  authors?: (number | TeamMember)[] | null;
+  categories?: (number | Category)[] | null;
+  related?: (number | Post)[] | null;
+  evidence?: (number | ApprovedFact)[] | null;
+  aiAssisted?: boolean | null;
+  claimsReviewed?: boolean | null;
+  seo?: {
+    /**
+     * Defaults to the page title and company name.
+     */
+    title?: string | null;
+    description?: string | null;
+    canonical?: string | null;
+    noindex?: boolean | null;
+    socialTitle?: string | null;
+    socialDescription?: string | null;
+    socialImage?: (number | null) | Media;
+    topic?: string | null;
+    intent?: string | null;
+    questions?:
+      | {
+          question: string;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  protection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  title: string;
+  slug: string;
+  description?: string | null;
+  order?: number | null;
+  protection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * Edit once; every page using the block updates in the next site release.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blocks".
+ */
+export interface Block {
+  id: number;
+  title: string;
+  composition?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  protection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Upload licensed WOFF2 or WOFF webfonts (up to 2 MB each). Add each regular, bold or italic file separately, then select them together in Theme tokens.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -682,6 +921,7 @@ export interface User {
   aiReadOnly?: boolean | null;
   name: string;
   role: 'admin' | 'editor' | 'ai';
+  googleSub?: string | null;
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -713,6 +953,68 @@ export interface AiUsage {
   createdAt: string;
 }
 /**
+ * Build forms here, then add them to a page with the Form section.
+ *
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "forms".
+ */
+export interface Form {
+  id: number;
+  /**
+   * For editors only.
+   */
+  title: string;
+  fields?:
+    | {
+        label: string;
+        /**
+         * Stored key, e.g. company_size
+         */
+        name: string;
+        type: 'text' | 'email' | 'tel' | 'textarea' | 'select' | 'checkbox' | 'number' | 'date' | 'url';
+        required?: boolean | null;
+        width?: ('full' | 'half') | null;
+        placeholder?: string | null;
+        help?: string | null;
+        options?:
+          | {
+              label: string;
+              value: string;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
+  submitLabel?: string | null;
+  successMessage?: string | null;
+  redirect?: string | null;
+  storeSubmissions?: boolean | null;
+  /**
+   * Comma-separated addresses. Needs email (SMTP) configured.
+   */
+  notify?: string | null;
+  /**
+   * Each submission is POSTed as JSON, signed with the secret below (header X-DesignOS-Signature: sha256=<hmac>).
+   */
+  webhookURL?: string | null;
+  /**
+   * Use this to verify webhook signatures.
+   */
+  webhookSecret?: string | null;
+  protection?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
  * Messages sent through Contact sections. Delete records you no longer need; they are personal data.
  *
  * This interface was referenced by `Config`'s JSON-Schema
@@ -721,9 +1023,20 @@ export interface AiUsage {
 export interface FormSubmission {
   id: number;
   status: 'new' | 'replied' | 'archived' | 'spam';
-  name: string;
-  email: string;
-  message: string;
+  form?: (number | null) | Form;
+  name?: string | null;
+  email?: string | null;
+  message?: string | null;
+  data?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
+  delivery?: string | null;
   page?: string | null;
   channel?: ('live' | 'preview') | null;
   notes?: string | null;
@@ -875,6 +1188,18 @@ export interface PayloadLockedDocument {
         value: number | Page;
       } | null)
     | ({
+        relationTo: 'posts';
+        value: number | Post;
+      } | null)
+    | ({
+        relationTo: 'categories';
+        value: number | Category;
+      } | null)
+    | ({
+        relationTo: 'blocks';
+        value: number | Block;
+      } | null)
+    | ({
         relationTo: 'case-studies';
         value: number | CaseStudy;
       } | null)
@@ -913,6 +1238,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'ai-usage';
         value: number | AiUsage;
+      } | null)
+    | ({
+        relationTo: 'forms';
+        value: number | Form;
       } | null)
     | ({
         relationTo: 'form-submissions';
@@ -976,6 +1305,9 @@ export interface PagesSelect<T extends boolean = true> {
   order?: T;
   demo?: T;
   publishedAt?: T;
+  isTemplate?: T;
+  visibility?: T;
+  pagePassword?: T;
   heroMedia?:
     | T
     | {
@@ -1012,6 +1344,82 @@ export interface PagesSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "posts_select".
+ */
+export interface PostsSelect<T extends boolean = true> {
+  includeInSite?: T;
+  title?: T;
+  slug?: T;
+  summary?: T;
+  order?: T;
+  demo?: T;
+  publishedAt?: T;
+  date?: T;
+  heroMedia?:
+    | T
+    | {
+        image?: T;
+        altOverride?: T;
+        decorative?: T;
+      };
+  body?: T;
+  featured?: T;
+  authors?: T;
+  categories?: T;
+  related?: T;
+  evidence?: T;
+  aiAssisted?: T;
+  claimsReviewed?: T;
+  seo?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        canonical?: T;
+        noindex?: T;
+        socialTitle?: T;
+        socialDescription?: T;
+        socialImage?: T;
+        topic?: T;
+        intent?: T;
+        questions?:
+          | T
+          | {
+              question?: T;
+              id?: T;
+            };
+      };
+  protection?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  title?: T;
+  slug?: T;
+  description?: T;
+  order?: T;
+  protection?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "blocks_select".
+ */
+export interface BlocksSelect<T extends boolean = true> {
+  title?: T;
+  composition?: T;
+  protection?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1329,6 +1737,7 @@ export interface UsersSelect<T extends boolean = true> {
   aiReadOnly?: T;
   name?: T;
   role?: T;
+  googleSub?: T;
   updatedAt?: T;
   createdAt?: T;
   email?: T;
@@ -1358,13 +1767,52 @@ export interface AiUsageSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "forms_select".
+ */
+export interface FormsSelect<T extends boolean = true> {
+  title?: T;
+  fields?:
+    | T
+    | {
+        label?: T;
+        name?: T;
+        type?: T;
+        required?: T;
+        width?: T;
+        placeholder?: T;
+        help?: T;
+        options?:
+          | T
+          | {
+              label?: T;
+              value?: T;
+              id?: T;
+            };
+        id?: T;
+      };
+  submitLabel?: T;
+  successMessage?: T;
+  redirect?: T;
+  storeSubmissions?: T;
+  notify?: T;
+  webhookURL?: T;
+  webhookSecret?: T;
+  protection?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "form-submissions_select".
  */
 export interface FormSubmissionsSelect<T extends boolean = true> {
   status?: T;
+  form?: T;
   name?: T;
   email?: T;
   message?: T;
+  data?: T;
+  delivery?: T;
   page?: T;
   channel?: T;
   notes?: T;
@@ -1553,6 +2001,65 @@ export interface SiteSetting {
       }[]
     | null;
   defaultShareImage?: (number | null) | Media;
+  /**
+   * The main language is English. Add languages to translate pages; untranslated fields show the main language. Translated pages live at /<code>/… (for example /fr/about).
+   */
+  languages?:
+    | (
+        | 'fr'
+        | 'de'
+        | 'es'
+        | 'it'
+        | 'pt'
+        | 'nl'
+        | 'sv'
+        | 'da'
+        | 'nb'
+        | 'fi'
+        | 'pl'
+        | 'cs'
+        | 'el'
+        | 'tr'
+        | 'ru'
+        | 'uk'
+        | 'ar'
+        | 'he'
+        | 'hi'
+        | 'ja'
+        | 'ko'
+        | 'zh'
+        | 'id'
+        | 'ga'
+        | 'cy'
+      )[]
+    | null;
+  announcement?: {
+    enabled?: boolean | null;
+    text?: string | null;
+    linkLabel?: string | null;
+    linkURL?: string | null;
+    dismissible?: boolean | null;
+  };
+  analytics?: {
+    provider?: ('none' | 'vercel' | 'plausible' | 'fathom' | 'umami' | 'ga4') | null;
+    /**
+     * Plausible: your domain · Fathom: site ID · Umami: website ID · GA4: G-XXXXXXX
+     */
+    siteId?: string | null;
+    scriptURL?: string | null;
+  };
+  consent?: {
+    message?: string | null;
+    policyURL?: string | null;
+  };
+  verification?: {
+    google?: string | null;
+    bing?: string | null;
+  };
+  notFound?: {
+    heading?: string | null;
+    message?: string | null;
+  };
   protection?:
     | {
         [k: string]: unknown;
@@ -1729,6 +2236,41 @@ export interface SiteSettingsSelect<T extends boolean = true> {
         id?: T;
       };
   defaultShareImage?: T;
+  languages?: T;
+  announcement?:
+    | T
+    | {
+        enabled?: T;
+        text?: T;
+        linkLabel?: T;
+        linkURL?: T;
+        dismissible?: T;
+      };
+  analytics?:
+    | T
+    | {
+        provider?: T;
+        siteId?: T;
+        scriptURL?: T;
+      };
+  consent?:
+    | T
+    | {
+        message?: T;
+        policyURL?: T;
+      };
+  verification?:
+    | T
+    | {
+        google?: T;
+        bing?: T;
+      };
+  notFound?:
+    | T
+    | {
+        heading?: T;
+        message?: T;
+      };
   protection?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1830,6 +2372,10 @@ export interface TaskSchedulePublish {
       | ({
           relationTo: 'pages';
           value: number | Page;
+        } | null)
+      | ({
+          relationTo: 'posts';
+          value: number | Post;
         } | null)
       | ({
           relationTo: 'case-studies';

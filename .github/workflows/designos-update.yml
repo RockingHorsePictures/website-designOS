@@ -1,0 +1,30 @@
+# Checks weekly for a new Design OS release and opens a pull request with the update. Vercel
+# builds a Preview of the pull request (against a separate database branch); merging it updates
+# the live site. Your customised files are never overwritten: conflicts are listed for review.
+name: Design OS updates
+on:
+  schedule:
+    - cron: '17 6 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+jobs:
+  update:
+    # Only in websites made from Design OS, not in the Design OS product repository itself.
+    if: github.repository != 'RockingHorsePictures/website-designOS'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Prepare the update
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          node scripts/upgrade.mjs latest --pr

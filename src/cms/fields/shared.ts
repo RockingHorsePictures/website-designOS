@@ -5,7 +5,7 @@ import { previewWidths } from '../../design-system/tokens'
 import { beforePublish, afterContentChange, afterContentDelete } from '../hooks/publishing'
 
 export const linkFields: Field[] = [
-  { name: 'label', type: 'text', required: true },
+  { name: 'label', type: 'text', required: true, localized: true },
   {
     name: 'url',
     type: 'text',
@@ -24,9 +24,16 @@ export const searchFields: Field = {
       name: 'title',
       label: 'Search title',
       type: 'text',
+      localized: true,
       admin: { description: 'Defaults to the page title and company name.' },
     },
-    { name: 'description', label: 'Search description', type: 'textarea', maxLength: 320 },
+    {
+      name: 'description',
+      label: 'Search description',
+      type: 'textarea',
+      maxLength: 320,
+      localized: true,
+    },
     {
       name: 'canonical',
       label: 'Canonical URL override',
@@ -37,14 +44,20 @@ export const searchFields: Field = {
         'Use an absolute http(s) URL.',
     },
     { name: 'noindex', label: 'Hide from search engines', type: 'checkbox', defaultValue: false },
-    { name: 'socialTitle', type: 'text' },
-    { name: 'socialDescription', type: 'textarea' },
+    { name: 'socialTitle', type: 'text', localized: true },
+    { name: 'socialDescription', type: 'textarea', localized: true },
     { name: 'socialImage', type: 'upload', relationTo: 'media' },
-    { name: 'topic', label: 'Primary topic', type: 'text' },
-    { name: 'intent', label: 'What should this page help the visitor do?', type: 'text' },
+    { name: 'topic', label: 'Primary topic', type: 'text', localized: true },
+    {
+      name: 'intent',
+      label: 'What should this page help the visitor do?',
+      type: 'text',
+      localized: true,
+    },
     {
       name: 'questions',
       type: 'array',
+      localized: true,
       fields: [{ name: 'question', type: 'text', required: true }],
     },
   ],
@@ -55,7 +68,12 @@ export const imageFields = (name = 'heroMedia'): Field => ({
   label: name === 'heroMedia' ? 'Hero image' : name,
   fields: [
     { name: 'image', type: 'upload', relationTo: 'media' },
-    { name: 'altOverride', label: 'Description for this use (optional)', type: 'text' },
+    {
+      name: 'altOverride',
+      label: 'Description for this use (optional)',
+      type: 'text',
+      localized: true,
+    },
     {
       name: 'decorative',
       type: 'checkbox',
@@ -75,11 +93,16 @@ export const videoFields: Field = {
       validate: (v: unknown) =>
         !v || (typeof v === 'string' && /^\d+$/.test(v)) || 'Enter the numeric Vimeo ID.',
     },
-    { name: 'title', type: 'text' },
-    { name: 'description', type: 'textarea' },
+    { name: 'title', type: 'text', localized: true },
+    { name: 'description', type: 'textarea', localized: true },
     { name: 'poster', type: 'upload', relationTo: 'media' },
     { name: 'uploadDate', type: 'date' },
-    { name: 'transcript', type: 'textarea', label: 'Transcript / accessible alternative' },
+    {
+      name: 'transcript',
+      type: 'textarea',
+      label: 'Transcript / accessible alternative',
+      localized: true,
+    },
   ],
 }
 export const baseFields: Field[] = [
@@ -94,7 +117,7 @@ export const baseFields: Field[] = [
         'Turn off to exclude this page from the next whole-site Preview. Existing Live releases stay unchanged.',
     },
   },
-  { name: 'title', type: 'text', required: true },
+  { name: 'title', type: 'text', required: true, localized: true },
   {
     name: 'slug',
     type: 'text',
@@ -103,7 +126,7 @@ export const baseFields: Field[] = [
     index: true,
     validate: (v: unknown) => validSlug(v) || 'Use lowercase letters, numbers and single hyphens.',
   },
-  { name: 'summary', type: 'textarea', required: true },
+  { name: 'summary', type: 'textarea', required: true, localized: true },
   { name: 'order', type: 'number', defaultValue: 0 },
   {
     name: 'demo',

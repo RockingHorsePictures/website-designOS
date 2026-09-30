@@ -1,14 +1,31 @@
 import type { Metadata } from 'next'
-import type { Page, CaseStudy, Service, SiteSetting, Media } from '@/payload-types'
+import type { Page, CaseStudy, Service, Post, SiteSetting, Media } from '@/payload-types'
+import { defaultLocale, localePath } from '../locales'
 import { absoluteURL, contentPath, type ContentCollection } from '../urls'
 import { plainText } from '../markdown'
-import type { Composition } from '../../editor/registry/schema'
+import { allSections, type Composition } from '../../editor/registry/schema'
 
-export type SearchDoc = Page | CaseStudy | Service
+export type SearchDoc = Page | CaseStudy | Service | Post
+// Language context for a page: the current language and every language the site publishes.
+export type LocaleContext = { current: string; enabled: string[] }
+// Canonical and hreflang alternates for a path in every published language.
+export function languageAlternates(path: string, locales?: LocaleContext) {
+  const current = locales?.current || defaultLocale
+  const canonical = absoluteURL(localePath(path, current))
+  if (!locales || locales.enabled.length < 2) return { canonical }
+  return {
+    canonical,
+    languages: {
+      ...Object.fromEntries(locales.enabled.map((l) => [l, absoluteURL(localePath(path, l))])),
+      'x-default': absoluteURL(path),
+    },
+  }
+}
 export const collectionIndex: Record<ContentCollection, { path: string; name: string } | null> = {
   pages: null,
   services: { path: '/services', name: 'Services' },
   'case-studies': { path: '/case-studies', name: 'Case studies' },
+  posts: { path: '/blog', name: 'Blog' },
 }
 const mediaURL = (value: unknown) =>
   value && typeof value === 'object' && 'url' in value && typeof value.url === 'string'
@@ -18,6 +35,7 @@ export const indexable = (
   doc: {
     _status?: string | null
     demo?: boolean | null
+    visibility?: string | null
     seo?: { noindex?: boolean | null; canonical?: string | null } | null
   },
   path: string,
@@ -26,6 +44,7 @@ export const indexable = (
   production &&
   doc._status === 'published' &&
   !doc.demo &&
+  doc.visibility !== 'password' &&
   !doc.seo?.noindex &&
   (!doc.seo?.canonical || doc.seo.canonical === absoluteURL(path))
 export function metadataFor(
@@ -33,23 +52,31 @@ export function metadataFor(
   collection: ContentCollection,
   settings: SiteSetting,
   preview = false,
+  locales?: LocaleContext,
 ): Metadata {
-  const url = absoluteURL(contentPath(collection, doc.slug))
+  const path = contentPath(collection, doc.slug)
+  const url = absoluteURL(localePath(path, locales?.current))
+  const locked = 'visibility' in doc && doc.visibility === 'password'
   const title =
     doc.seo?.title ||
     (collection === 'pages' && doc.slug === 'home'
       ? settings.companyName
       : `${doc.title} | ${settings.companyName}`)
-  const description = doc.seo?.description || doc.summary || settings.description || ''
+  const description = locked
+    ? 'This page is password protected.'
+    : doc.seo?.description || doc.summary || settings.description || ''
   const socialImage =
     mediaURL(doc.seo?.socialImage) ||
     mediaURL(doc.heroMedia?.image) ||
-    mediaURL(settings.defaultShareImage)
-  const article = collection === 'case-studies'
+    mediaURL(settings.defaultShareImage) ||
+    // Generated from the page title when nothing else is set.
+    absoluteURL(`/og?path=${encodeURIComponent(localePath(path, locales?.current))}`)
+  const article = collection === 'case-studies' || collection === 'posts'
+  const alternates = languageAlternates(path, locales)
   return {
     title,
     description,
-    alternates: { canonical: doc.seo?.canonical || url },
+    alternates: doc.seo?.canonical ? { canonical: doc.seo.canonical } : alternates,
     robots: {
       index: !preview && indexable(doc, contentPath(collection, doc.slug)),
       follow: !preview,
@@ -57,7 +84,10 @@ export function metadataFor(
     openGraph: {
       type: article ? 'article' : 'website',
       siteName: settings.companyName,
-      locale: (settings.language || 'en').replace('-', '_'),
+      locale: (locales && locales.current !== defaultLocale
+        ? locales.current
+        : settings.language || 'en'
+      ).replace('-', '_'),
       title: doc.seo?.socialTitle || title,
       description: doc.seo?.socialDescription || description,
       url,
@@ -133,7 +163,7 @@ export function breadcrumbSchema(items: { name: string; path: string }[]) {
 // Structured data mirrors visible content only: FAQ and video entries come from rendered sections.
 export function sectionSchemas(composition: Composition | null | undefined, pageURL: string) {
   const graph: Record<string, unknown>[] = []
-  const content = composition?.content || []
+  const content = allSections(composition?.content || [])
   const faqs = content.flatMap((s) =>
     s.type === 'FAQ' && s.props.structuredData
       ? s.props.items.filter((i) => i.question.trim() && i.answer.trim())
@@ -178,12 +208,13 @@ export function schemaFor(
   collection: ContentCollection,
   settings: SiteSetting,
   composition?: Composition | null,
+  locale?: string,
 ) {
   const origin = absoluteURL('/')
   const path = contentPath(collection, doc.slug)
-  const url = absoluteURL(path)
+  const url = absoluteURL(localePath(path, locale))
   const index = collectionIndex[collection]
-  const language = settings.language || 'en'
+  const language = locale && locale !== defaultLocale ? locale : settings.language || 'en'
   const home = collection === 'pages' && doc.slug === 'home'
   const graph: Record<string, unknown>[] = [
     organizationSchema(settings),
@@ -236,6 +267,36 @@ export function schemaFor(
         : {}),
       mainEntityOfPage: { '@id': `${url}#page` },
     })
+  if (collection === 'posts') {
+    const post = doc as Post
+    graph.push({
+      '@type': 'BlogPosting',
+      '@id': `${url}#article`,
+      headline: doc.seo?.title || doc.title,
+      description: doc.seo?.description || doc.summary,
+      url,
+      inLanguage: language,
+      datePublished: post.date || post.publishedAt || post.createdAt,
+      dateModified: post.updatedAt,
+      mainEntityOfPage: { '@id': `${url}#page` },
+      publisher: { '@id': `${origin}#organization` },
+      ...(mediaURL(doc.heroMedia?.image) ? { image: mediaURL(doc.heroMedia?.image) } : {}),
+      ...(post.authors?.some((a) => typeof a === 'object')
+        ? {
+            author: post.authors.flatMap((a) =>
+              typeof a === 'object' ? [{ '@type': 'Person', name: a.name, jobTitle: a.role }] : [],
+            ),
+          }
+        : { author: { '@id': `${origin}#organization` } }),
+      ...(post.categories?.some((c) => typeof c === 'object')
+        ? {
+            articleSection: post.categories.flatMap((c) =>
+              typeof c === 'object' ? [c.title] : [],
+            ),
+          }
+        : {}),
+    })
+  }
   const image = doc.heroMedia?.image
   if (image && typeof image === 'object') {
     const schema = imageSchema(image)

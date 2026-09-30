@@ -74,7 +74,7 @@ try {
       'The AI account scope changed. Ask the site administrator to review it. No permissions were changed automatically.',
     )
   const user = { ...login.user, collection: 'users' } as TypedUser
-  const options = { user, overrideAccess: false, depth: 0 } as const
+  const options: Record<string, unknown> = { user, overrideAccess: false, depth: 0 }
   if (command === 'context') {
     const { aiContext } = await import('../src/lib/ai-context')
     emit(await aiContext(payload, user))
@@ -83,7 +83,7 @@ try {
     emit(await loadSiteAudit(payload, user))
   } else if (command === 'request') {
     if (!requestFile)
-      throw new Error('Provide a JSON request file. See AI_CONNECTION.md for examples.')
+      throw new Error('Provide a JSON request file. See docs/AI_CONNECTION.md for examples.')
     const input = JSON.parse(readFileSync(requestFile, 'utf8'))
     if (!['read', 'create', 'update', 'upload'].includes(input.action))
       throw new Error('Supported actions: read, create, update, upload.')
@@ -96,6 +96,14 @@ try {
       : payload.config.globals.find((item) => item.slug === input.global)
     if (!target?.fields.some((field) => 'name' in field && field.name === 'protection'))
       throw new Error('This target is not available to the AI connection.')
+    // Optional language for translated content (for example "fr"); defaults to the main language.
+    const { isLocale, defaultLocale } = await import('../src/lib/locales')
+    if (input.locale !== undefined && !isLocale(input.locale))
+      throw new Error('Supported actions accept locale as a two-letter language code.')
+    Object.assign(
+      options,
+      input.locale ? { locale: input.locale, fallbackLocale: defaultLocale } : {},
+    )
     let result
     if (input.action === 'upload') {
       // Upload an image from inside this website folder into the media library.

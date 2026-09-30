@@ -9,11 +9,17 @@ import { sql, type PostgresAdapter } from '@payloadcms/db-postgres'
 import { advisoryLock } from './transaction'
 import { auditContent } from './quality'
 import { indexable } from './search/metadata'
+import { collectAssets } from './release-assets'
 import { notifyIndexNow } from './search/indexnow'
 import { contentCollections, contentPath } from './urls'
+import { defaultLocale, enabledLocales } from './locales'
 
 export const releaseCollections = [
   'pages',
+  'posts',
+  'categories',
+  'blocks',
+  'forms',
   'case-studies',
   'services',
   'team-members',
@@ -23,12 +29,19 @@ export const releaseCollections = [
   'redirects',
 ] as const
 export const releaseGlobals = ['theme', 'site-settings', 'navigation', 'search-profile'] as const
+const draftCollections = ['pages', 'posts', 'case-studies', 'services']
 export type ReleaseCollection = (typeof releaseCollections)[number]
 export type ReleaseGlobal = (typeof releaseGlobals)[number]
-export type Snapshot = {
-  version: 1
+export type SnapshotBody = {
   collections: Record<ReleaseCollection, Record<string, unknown>[]>
   globals: Record<ReleaseGlobal, Record<string, unknown>>
+}
+// Format 1 stays readable by older app versions: the main language is the top-level body, and
+// each additional language is a complete body under `translations` (fallbacks already applied).
+export type Snapshot = SnapshotBody & {
+  version: 1
+  locale?: string
+  translations?: Partial<Record<string, SnapshotBody>>
 }
 const idOf = (value: unknown) =>
   typeof value === 'object' && value ? (value as { id: number }).id : value
@@ -39,37 +52,51 @@ export const releaseID = (value: unknown): number | null =>
 export async function releaseLock(req: PayloadRequest) {
   await advisoryLock(req, 742193801)
 }
+// Internal evidence, approval records and delivery settings never enter a public release.
+const privateKeys = new Set([
+  'evidence',
+  'protection',
+  'aiAssisted',
+  'claimsReviewed',
+  'context',
+  'altSource',
+  'notify',
+  'webhookURL',
+  'webhookSecret',
+  'storeSubmissions',
+])
 function clean(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(clean)
   if (!value || typeof value !== 'object') return value
   return Object.fromEntries(
     Object.entries(value)
-      .filter(([key]) => !['evidence', 'protection', 'aiAssisted', 'claimsReviewed'].includes(key))
+      .filter(([key]) => !privateKeys.has(key))
       .map(([key, item]) => [key, clean(item)]),
   )
 }
-export async function captureSite(payload: Payload, req: PayloadRequest): Promise<Snapshot> {
-  const snapshot: Snapshot = {
-    version: 1,
-    collections: {} as Snapshot['collections'],
-    globals: {} as Snapshot['globals'],
-  }
+async function captureBody(
+  payload: Payload,
+  req: PayloadRequest,
+  locale: string,
+  audit: boolean,
+): Promise<SnapshotBody> {
+  const body = { collections: {}, globals: {} } as SnapshotBody
   for (const collection of releaseCollections) {
     const result = await payload.find({
       collection,
       pagination: false,
       depth: 0,
-      draft: ['pages', 'case-studies', 'services'].includes(collection),
+      draft: draftCollections.includes(collection),
+      locale: locale as never,
+      fallbackLocale: defaultLocale as never,
       req,
     })
     if (result.docs.length > 10000)
       throw new APIError('This site needs a larger release workflow before publishing.', 400)
-    const docs = result.docs.filter(
-      (doc) =>
-        (!('active' in doc) || doc.active !== false) &&
-        (!('includeInSite' in doc) || doc.includeInSite !== false),
+    const docs = (result.docs as unknown as Record<string, unknown>[]).filter(
+      (doc) => doc.active !== false && doc.includeInSite !== false && doc.isTemplate !== true,
     )
-    if (['pages', 'case-studies', 'services'].includes(collection))
+    if (audit && draftCollections.includes(collection))
       for (const doc of docs) {
         const errors = auditContent(doc as Parameters<typeof auditContent>[0]).filter(
           (f) => f.level === 'blocker',
@@ -77,7 +104,7 @@ export async function captureSite(payload: Payload, req: PayloadRequest): Promis
         if (errors.length)
           throw new APIError(`${collection}: ${errors.map((e) => e.message).join(' ')}`, 400)
       }
-    snapshot.collections[collection] = docs.map(
+    body.collections[collection] = docs.map(
       (doc) =>
         clean({ ...doc, ...('_status' in doc ? { _status: 'published' } : {}) }) as Record<
           string,
@@ -85,11 +112,15 @@ export async function captureSite(payload: Payload, req: PayloadRequest): Promis
         >,
     )
   }
-  if (!snapshot.collections.pages.some((doc) => doc.slug === 'home'))
-    throw new APIError('Create a home page before saving a site Preview.', 400)
   for (const slug of releaseGlobals) {
-    const value = await payload.findGlobal({ slug, depth: 0, req })
-    snapshot.globals[slug] =
+    const value = await payload.findGlobal({
+      slug,
+      depth: 0,
+      locale: locale as never,
+      fallbackLocale: defaultLocale as never,
+      req,
+    })
+    body.globals[slug] =
       slug === 'search-profile' && 'allowSearchCrawlers' in value
         ? {
             allowSearchCrawlers: value.allowSearchCrawlers,
@@ -98,6 +129,41 @@ export async function captureSite(payload: Payload, req: PayloadRequest): Promis
           }
         : (clean(value) as Record<string, unknown>)
   }
+  return body
+}
+export async function captureSite(payload: Payload, req: PayloadRequest): Promise<Snapshot> {
+  // Page passwords are kept as hashes inside releases so protected pages can be checked.
+  req.context.designosCapture = true
+  const main = await captureBody(payload, req, defaultLocale, true)
+  const snapshot: Snapshot = { version: 1, locale: defaultLocale, ...main }
+  const languages = enabledLocales(main.globals['site-settings']).filter((l) => l !== defaultLocale)
+  if (languages.length) {
+    snapshot.translations = {}
+    for (const locale of languages)
+      snapshot.translations[locale] = await captureBody(payload, req, locale, false)
+  }
+  if (!main.collections.pages.some((doc) => doc.slug === 'home'))
+    throw new APIError('Create a home page before saving a site Preview.', 400)
+  // Keep only the uploads that released content uses (and that visitors may therefore fetch).
+  const bodies = [main, ...Object.values(snapshot.translations || {})] as SnapshotBody[]
+  const found = { media: new Set<number>(), fonts: new Set<number>() }
+  for (const body of bodies) {
+    for (const collection of releaseCollections)
+      if (collection !== 'media' && collection !== 'fonts')
+        for (const doc of body.collections[collection])
+          collectAssets(doc, payload.collections[collection].config.fields, found)
+    for (const slug of releaseGlobals)
+      collectAssets(
+        body.globals[slug],
+        payload.config.globals.find((g) => g.slug === slug)!.fields,
+        found,
+      )
+  }
+  for (const body of bodies)
+    for (const collection of ['media', 'fonts'] as const)
+      body.collections[collection] = body.collections[collection].filter((doc) =>
+        found[collection].has(Number(doc.id)),
+      )
   if (Buffer.byteLength(JSON.stringify(snapshot)) > 8 * 1024 * 1024)
     throw new APIError(
       'The release exceeds the 8 MB content limit. Split or reduce content before publishing.',
@@ -128,6 +194,14 @@ async function releaseSnapshot(payload: Payload, req: PayloadRequest, value: unk
   const id = releaseID(value)
   if (!id) return null
   const release = await payload.findByID({ collection: 'site-releases', id, depth: 0, req })
+  return release.snapshot as Snapshot
+}
+// The Live or Preview release outside a page request (for example in API routes).
+export async function currentSnapshot(payload: Payload, channel: 'live' | 'preview') {
+  const state = await payload.findGlobal({ slug: 'publication', depth: 0 })
+  const id = releaseID(channel === 'preview' ? state.previewRelease : state.liveRelease)
+  if (!id) return null
+  const release = await payload.findByID({ collection: 'site-releases', id, depth: 0 })
   return release.snapshot as Snapshot
 }
 export async function changePublication(

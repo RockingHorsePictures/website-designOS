@@ -62,6 +62,7 @@ export function auditSite(input: SiteAuditInput): SiteAudit {
     pages: 'Page',
     services: 'Service',
     'case-studies': 'Case study',
+    posts: 'Post',
   }
   for (const [collection, docs] of Object.entries(input.documents) as [
     ContentCollection,
@@ -107,7 +108,8 @@ export function auditSite(input: SiteAuditInput): SiteAudit {
   const exists = (path: string) =>
     paths.has(path) ||
     redirects.has(path) ||
-    ['/services', '/case-studies', '/team'].includes(path) ||
+    ['/services', '/case-studies', '/team', '/blog', '/search'].includes(path) ||
+    /^\/blog\/category\/[a-z0-9-]+$/.test(path) ||
     /^\/(api|admin)\//.test(path)
   const nav = [
     ...(input.navigation.primary || []),
@@ -140,7 +142,7 @@ export function auditSite(input: SiteAuditInput): SiteAudit {
   }
   // Records reached from their index pages count as linked when the index itself is linked.
   for (const [path, target] of paths) {
-    const index = path.match(/^\/(services|case-studies)\//)?.[1]
+    const index = path.match(/^\/(services|case-studies|blog)\//)?.[1]
     if (linked.has(path) || (index && linked.has(`/${index}`))) continue
     add(
       'recommendation',

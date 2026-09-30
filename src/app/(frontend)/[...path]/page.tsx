@@ -1,14 +1,21 @@
-import { siteCMS, siteView } from '@/lib/site'
+import { siteCMS, siteView, siteLocale, localeContext, requireLocale } from '@/lib/site'
 import { notFound, permanentRedirect } from 'next/navigation'
 import { findContent, previewUser } from '@/lib/cms'
 import { ContentView } from '@/components/site/ContentView'
 import { metadataFor } from '@/lib/search/metadata'
+import { localePath } from '@/lib/locales'
 import type { ContentCollection } from '@/lib/urls'
+
+const nested: Record<string, ContentCollection> = {
+  services: 'services',
+  'case-studies': 'case-studies',
+  blog: 'posts',
+}
 const resolve = (path: string[]): [ContentCollection, string] | null =>
   path.length === 1
     ? ['pages', path[0]]
-    : path.length === 2 && ['services', 'case-studies'].includes(path[0])
-      ? [path[0] as ContentCollection, path[1]]
+    : path.length === 2 && nested[path[0]]
+      ? [nested[path[0]], path[1]]
       : null
 export async function generateMetadata({ params }: { params: Promise<{ path: string[] }> }) {
   const route = resolve((await params).path)
@@ -19,10 +26,12 @@ export async function generateMetadata({ params }: { params: Promise<{ path: str
         route![0],
         await (await siteCMS()).findGlobal({ slug: 'site-settings' }),
         Boolean(await previewUser()),
+        await localeContext(),
       )
     : { title: 'Page not found', robots: { index: false } }
 }
 export default async function Page({ params }: { params: Promise<{ path: string[] }> }) {
+  await requireLocale()
   const { path } = await params
   const route = resolve(path)
   const doc = route && (await findContent(...route))
@@ -37,7 +46,7 @@ export default async function Page({ params }: { params: Promise<{ path: string[
       const view = await siteView()
       const prefix =
         view === 'preview' ? '/preview' : view === 'workspace' ? '/workspace-preview' : ''
-      permanentRedirect(`${prefix}${docs[0].to}`)
+      permanentRedirect(`${prefix}${localePath(docs[0].to, await siteLocale())}`)
     }
     notFound()
   }

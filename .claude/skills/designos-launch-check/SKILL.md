@@ -15,10 +15,10 @@ Report each item as ✅ verified (say how), ⚠️ needs the owner, or ❌ block
 
 **Configuration** (read environment names only; never print secret values)
 
-- `SITE_ENV`/`DATABASE_ENV` = production, and separate Production database and Blob store (OPERATIONS.md).
+- `SITE_ENV`/`DATABASE_ENV` = production, and separate Production database and Blob store (docs/OPERATIONS.md).
 - `NEXT_PUBLIC_SERVER_URL` is the final domain; the custom domain is attached in Vercel and redirects www/apex consistently.
 - SMTP configured (`SMTP_HOST`…) so password reset and enquiry notifications work; send a test enquiry through a Contact section and confirm it arrives and appears under Enquiries.
-- Backups/point-in-time recovery enabled with the database provider; media backup plan (OPERATIONS.md).
+- Backups/point-in-time recovery enabled with the database provider; media backup plan (docs/OPERATIONS.md).
 - Optional: `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION`, `INDEXNOW_KEY`.
 
 **Discovery**

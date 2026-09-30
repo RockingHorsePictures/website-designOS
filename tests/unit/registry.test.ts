@@ -24,6 +24,10 @@ const editorData = {
   media: [],
   facts: [],
   contact: {},
+  posts: [],
+  categories: [],
+  forms: [],
+  blocks: [],
 }
 const withDefaults = (type: (typeof sectionTypes)[number], id = `${type}-1`) => ({
   type,
@@ -36,7 +40,9 @@ describe('section registry', () => {
     for (const type of sectionTypes) {
       expect(sectionRenderers[type], `${type} renderer`).toBeTypeOf('function')
       expect(fields[type], `${type} fields`).toBeTruthy()
-      const props = Object.keys(sectionSchemas[type].shape.props.shape).filter((k) => k !== 'id')
+      const props = Object.keys(sectionSchemas[type].shape.props.shape).filter(
+        (k) => k !== 'id' && k !== 'motion',
+      )
       expect(Object.keys(fields[type]).sort(), `${type} fields cover every prop`).toEqual(
         props.sort(),
       )
@@ -184,6 +190,7 @@ describe('site health', () => {
         pages: [page(1, 'home', 'Home'), page(2, 'about', 'Same'), page(3, 'hidden', 'Same')],
         services: [],
         'case-studies': [],
+        posts: [],
       },
       navigation: {
         primary: [

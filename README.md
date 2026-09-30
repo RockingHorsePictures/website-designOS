@@ -1,117 +1,54 @@
-# Company Design OS
+# Design OS
 
-## Install your own website
+**Bespoke websites built with AI, that you can run yourself.**
 
-Install Node.js 22+ and Git, then run:
+Design OS gives an AI (Claude Code, or any coding agent) a complete, production-grade CMS to build on: an owner-friendly editor, a visual page composer, a blog, forms, multiple languages, SEO and AI-search foundations, and safe Preview → Live publishing. The AI designs something unique to your company; you edit copy, swap images, add pages and publish without code, and without needing AI again.
 
-```sh
-npx --yes --allow-remote=all --package="https://github.com/RockingHorsePictures/website-designOS/releases/download/v0.2.1/design-os-installer-0.2.1.tgz" design-os
-```
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FRockingHorsePictures%2Fwebsite-designOS%2Ftree%2Fstable&project-name=my-website&repository-name=my-website&env=DESIGNOS_SETUP_CODE&envDescription=Choose+a+private+setup+code+%288%2B+characters%29.+You+will+enter+it+once+to+create+your+administrator+account.&envLink=https%3A%2F%2Fgithub.com%2FRockingHorsePictures%2Fwebsite-designOS%2Fblob%2Fstable%2Fdocs%2FDEPLOY.md&stores=%5B%7B%22type%22%3A%22integration%22%2C%22integrationSlug%22%3A%22neon%22%2C%22productSlug%22%3A%22neon%22%2C%22protocol%22%3A%22storage%22%7D%2C%7B%22type%22%3A%22blob%22%2C%22access%22%3A%22public%22%7D%5D)
 
-The command permits downloading the installer URL for this invocation only; it does not change your global npm settings. npm 12 blocks URL packages by default and otherwise reports `EALLOWREMOTE`. Copy the plain command from the code block, without Markdown link formatting.
+The button creates your own private repository, hosting, database and image storage. Then open `/setup` on your new site. Full steps, Google sign-in, email, domains and updates are in **[docs/DEPLOY.md](docs/DEPLOY.md)**. Updates arrive as pull requests you review and merge.
 
-The guided browser setup connects your GitHub and Vercel accounts, creates a separate private website repository, provisions isolated hosting resources, creates your administrator and deploys a Coming soon website. Each site is independent of this product repository. See NEW_SITE.md for permissions, setup steps, recovery and upgrades. The original product demo remains a separate Preview environment.
+## What you get
 
-Version 0.2 adds **Save to Preview → Publish to Live**, site unpublishing, field approvals/locks and AI contributor permissions. Live reads a frozen release, so further content edits do not overwrite it. Read EDITOR_GUIDE.md for the new publishing model; the original V5 specification is historical context where later user-approved changes differ.
+- **Workspace** at `/admin`: dashboard, pages, blog, forms and enquiries, media, brand (colours, fonts, logos), navigation, team, languages, Sign in with Google, approvals and locks.
+- **Page composer**: drag, reorder and edit sections with live mobile/tablet/desktop preview. Includes columns, reusable blocks, page templates and entrance animations. Your site's own bespoke sections appear alongside the base set ([docs/SECTIONS.md](docs/SECTIONS.md)).
+- **Publishing**: Save to Preview captures the whole site; Publish to Live releases exactly what you reviewed; unpublish any time.
+- **Search and AI visibility**: metadata, structured data, sitemap, RSS, `hreflang`, `/llms.txt`, generated share images, and separate controls for search engines, AI answer engines and AI training crawlers. **Site health** checks everything from the dashboard.
+- **AI toolkit** for Claude Code, Claude Desktop and Cowork: an MCP server, skills for building, content and audits (SEO, AEO/GEO, schema, accessibility, content, structure), specialist reviewers, and an optional Claude Design stage ([docs/AI_TOOLKIT.md](docs/AI_TOOLKIT.md)).
 
-The next version (in review) adds a full editable **section library** for building pages without code, **contact forms** with an Enquiries inbox, answer-engine-aware crawler controls, `/llms.txt`, richer structured data, an admin **Site health** check, and a Claude-first **AI toolkit**: MCP server, skills and specialist subagents for building bespoke sites and auditing SEO, AEO/GEO, schema, content and accessibility. See AI_TOOLKIT.md.
+## Build your website with AI
 
-**Want AI to build a website with this? Start with [START_HERE.md](START_HERE.md).** The admin dashboard has a **Build your website with AI** panel with instructions for this site or a fresh project. See [NEW_SITE.md](NEW_SITE.md) for the clean starter export.
+Open your site's repository in Claude Code and run `/designos-build`. Start with **[START_HERE.md](START_HERE.md)**; the rules every agent follows are in [AI_SITE_CONTRACT.md](AI_SITE_CONTRACT.md). Owners: see [EDITOR_GUIDE.md](EDITOR_GUIDE.md).
 
-Next.js + Payload + PostgreSQL foundation from `COMPANY_WEBSITE_BUILD_SPEC_V5.md`. The original scope covers Phases 1, 2, 2B and 3; version 0.2 adds user-requested whole-site publishing, locks, an installer and reviewed upgrades. All public views are deliberately neutral proof scaffolding. Final website design requires separate authorization.
+## Develop locally
 
-Verified hosted Preview: https://designos-preview-rockinghorse.vercel.app; editor at `/admin`. Vercel sign-in protects the Preview; the CMS has its own editor login. On the original setup computer, credentials are in the ignored `.local/preview-access.txt`. Review the foundation in https://github.com/RockingHorsePictures/website-designOS/pull/1.
-
-## Local setup
-
-Requirements: Node 22+ (Node 24 tested), npm, PostgreSQL 17/18 or the included native local server.
+Requirements: Node 22+ (24 tested) and npm. PostgreSQL is included.
 
 ```sh
 npm ci
-cp .env.example .env
+cp .env.example .env        # set PAYLOAD_SECRET (32+ random characters) and SEED_PASSWORD
+npm run db:local            # terminal 1: local PostgreSQL on 127.0.0.1:54329
+npm run migrate && npm run seed && npm run dev   # terminal 2
 ```
 
-Set a random `PAYLOAD_SECRET` of at least 32 characters and a strong `SEED_PASSWORD`. Do not commit `.env`. Default database credentials are exclusively for the loopback-only local fixture. The local runner uses native PostgreSQL binaries stored in dependencies and persists its data under `.local/postgres`.
+Open http://localhost:3000 and http://localhost:3000/admin. The seed creates neutral demo content only and refuses production.
 
-```sh
-# Terminal 1 (omit if DATABASE_URL points to your own PostgreSQL database)
-npm run db:local
-# Terminal 2
-npm run migrate
-npm run seed
-npm run dev
-```
+Checks: `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:integration`, `npm run test:releases`, `npm run test:ai`, `npm run test:installer`, `npm run build`, then `npm start` and `npm run test:e2e`. CI runs the same on a disposable database.
 
-Open `http://localhost:3000` and `http://localhost:3000/admin`. The seed is idempotent for its named demo records and refuses production. It creates one administrator only when no user exists, plus 3 services, 3 projects, 6 people, a media fixture, globals and a composed homepage. No real company facts are seeded.
+Schema changes: edit the collections, run `npm run generate:types`, then `npm run payload -- migrate:create name`, and review the migration (keep it additive where possible). Migrations run automatically on deploy (`scripts/vercel-build.mjs`).
 
-On this Windows setup, sandboxed execution may prevent Node from resolving the current OS account. The local server and Payload tooling then need a normal host terminal. No global database service is installed. Keep the local database process running while using the app.
+## Documentation
 
-## Checks
+| For                                | Read                                                                                       |
+| ---------------------------------- | ------------------------------------------------------------------------------------------ |
+| Owners and editors                 | [EDITOR_GUIDE.md](EDITOR_GUIDE.md)                                                         |
+| Installing, updating, settings     | [docs/DEPLOY.md](docs/DEPLOY.md)                                                           |
+| AI agents (start here)             | [START_HERE.md](START_HERE.md), [AI_SITE_CONTRACT.md](AI_SITE_CONTRACT.md)                 |
+| AI tools, audits, Claude Design    | [docs/AI_TOOLKIT.md](docs/AI_TOOLKIT.md), [docs/DESIGN_HANDOFF.md](docs/DESIGN_HANDOFF.md) |
+| Sections and page structure        | [docs/SECTIONS.md](docs/SECTIONS.md)                                                       |
+| CMS connection for AI              | [docs/AI_CONNECTION.md](docs/AI_CONNECTION.md)                                             |
+| Architecture and operations        | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/OPERATIONS.md](docs/OPERATIONS.md)     |
+| Local installer and starter export | [docs/NEW_SITE.md](docs/NEW_SITE.md)                                                       |
+| What is verified                   | [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md)                                       |
 
-```sh
-npm run generate:types
-npm run generate:importmap
-npm run typecheck
-npm run lint
-npm test
-npm run test:integration
-npm run test:releases
-npm run test:installer
-npm run test:ai
-npm run build
-npm start
-# separate terminal; uses installed Edge on Windows, Chromium on Linux
-npm run test:e2e
-```
-
-Integration/browser tests use the local demo database only. CI provisions disposable PostgreSQL, applies migrations, seeds demo content and runs the checks. HTML browser reports are generated under `playwright-report/`.
-
-## Migrations
-
-Schema push is **off by default** everywhere. After changing schemas, generate types and `npm run payload -- migrate:create descriptive_name`; inspect and commit the generated migration/snapshot. Test it against a disposable database, then apply with `npm run migrate` before deploying compatible code. `DB_PUSH=true` is an explicit local-only development shortcut and must never be used with hosted data.
-
-## Deployment
-
-Default topology is GitHub → Vercel with separate managed PostgreSQL and Blob stores for Preview and Production. Vercel integration must use `main` for Production and feature branches for Preview. Never merge a preview branch just to inspect it.
-
-1. Create a private GitHub repository and push this foundation on `foundation/design-os` for review.
-2. Import that repository into Vercel as Next.js.
-3. Provision separate managed PostgreSQL databases and Blob stores for Preview and Production. Neon is the recommended default. No production connection is reused in preview.
-4. Configure `.env.example` keys per environment. Set `SITE_ENV` and `DATABASE_ENV` to `preview` or `production` accordingly. Use distinct Payload/cron secrets and Blob tokens. Set `NEXT_PUBLIC_SERVER_URL` to the correct deployment origin.
-5. Run committed migrations from a controlled terminal/CI against the intended database before serving the app. The Vercel build does not automatically migrate a shared database.
-6. On a fresh hosted database, temporarily configure `BOOTSTRAP_EMAIL` and `BOOTSTRAP_PASSWORD` (16+ characters) to provision the first administrator. Remove those variables after first initialization. Empty hosted databases fail closed without these credentials.
-7. Deploy the feature branch to Preview. Authenticate, upload an image, save/preview/publish a test record, then redeploy and confirm the upload persists. Preview must send noindex headers and keep production untouched.
-8. Configure an authenticated scheduler calling `/api/payload-jobs/run?allQueues=true` with `Authorization: Bearer <CRON_SECRET>`. The current Hobby preview has no automatic worker. On a suitable production Vercel plan, add `"crons": [{ "path": "/api/payload-jobs/run?allQueues=true", "schedule": "* * * * *" }]` to vercel.json. Vercel Cron runs only in Production; Hobby allows only daily schedules. Test the actual scheduler before relying on timed publication.
-9. Promote/merge only after review and separate production approval. This foundation run does not start the final visual-design phase.
-
-A temporary static deployment cannot validate Payload persistence and is not a substitute for Phase 3. See IMPLEMENTATION_STATUS for actual hosted verification status.
-
-Vercel requires a first Production-labelled deployment for a new project. This project's approved static bootstrap has no public alias or app credentials; the actual application is on Preview. Keep `.vercelignore`: the CLI does not use all Git exclusions when uploading local source. The protected Preview, hosted editing and media persistence after redeploy have been verified.
-
-## AI tools
-
-Open the folder in Claude Code and approve the `design-os` MCP server; skills `/designos-build`, `/designos-content`, `/designos-audit`, `/designos-new-section`, `/designos-import-design` and `/designos-launch-check` are included. Any agent or person can use the CLI:
-
-```sh
-npm run ai:check && npm run ai:context   # CMS connection and approvals
-npm run ai:health -- local               # whole-site CMS checks
-npm run sections -- catalog              # section library as JSON schema
-npm run audit -- http://localhost:3000   # SEO/AEO/GEO/schema/accessibility crawl
-npm run mcp                              # start the MCP server (stdio)
-```
-
-See AI_TOOLKIT.md.
-
-## Documents
-
-- `ARCHITECTURE.md`: data flow, editor, preview, search, AI and hosting boundaries.
-- `EDITOR_GUIDE.md`: editing, preview, publish, media, schedules and versions.
-- `AI_SITE_CONTRACT.md`: rules for future site components and agents.
-- `AI_TOOLKIT.md`: Claude Code skills, subagents, MCP server, audits, Claude Design.
-- `SECTIONS.md`: the editable section library and how to add bespoke sections.
-- `OPERATIONS.md`: backup, recovery, credentials and URL/content onboarding.
-- `IMPLEMENTATION_STATUS.md`: completed work, evidence, limitations and next actions.
-
-## Package decisions
-
-Core versions are pinned in package.json and package-lock.json. Payload packages all use 3.89.0; Next.js 16.3.5 and Puck 0.23.0 were checked against official compatibility documentation and package peer requirements. React 19.3.0 and sharp 0.35.4 include current fixes. ESLint 9 is retained because the current Next.js lint plugins do not yet accept ESLint 10; revisit when their peers support it. Embedded Postgres is local development tooling only. Remaining transitive audit findings are documented in OPERATIONS.
+Core versions are pinned: Next.js 16.3.5, Payload 3.89.0, React 19.3.0, Puck 0.23.0. MIT licensed.

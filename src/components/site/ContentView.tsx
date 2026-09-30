@@ -2,8 +2,12 @@ import { SiteLink as Link } from '@/components/site/SiteLink'
 import Image from 'next/image'
 import { RichText } from '@payloadcms/richtext-lexical/react'
 import { compositionSchema, type Composition } from '@/editor/registry/schema'
-import type { Media, Page, CaseStudy, Service, SiteSetting } from '@/payload-types'
-import { schemaFor, serializeSchema } from '@/lib/search/metadata'
+import { cookies } from 'next/headers'
+import type { Media, Page, CaseStudy, Service, Post, SiteSetting } from '@/payload-types'
+import { accessCookie, hasPageAccess } from '@/lib/page-access'
+import { siteLocale } from '@/lib/site'
+import { dateFormatter } from './Sections'
+import { collectionIndex, schemaFor, serializeSchema } from '@/lib/search/metadata'
 import { contentPath, imageSrc, type ContentCollection } from '@/lib/urls'
 import { Sections } from './Sections'
 
@@ -37,15 +41,44 @@ export async function ContentView({
   collection,
   settings,
 }: {
-  doc: Page | CaseStudy | Service
+  doc: Page | CaseStudy | Service | Post
   collection: ContentCollection
   settings: SiteSetting
 }) {
+  const path = contentPath(collection, doc.slug)
+  // Password-protected pages show only a sign-in form until the visitor enters the password.
+  if ('visibility' in doc && doc.visibility === 'password') {
+    const jar = await cookies()
+    if (!hasPageAccess(doc as never, jar.get(accessCookie(doc.id))?.value))
+      return (
+        <article className="page-locked">
+          <h1>{doc.title}</h1>
+          <p>This page is protected. Enter the password to continue.</p>
+          <form method="post" action="/api/page-access" className="site-form">
+            <input type="hidden" name="id" value={doc.id} />
+            <input type="hidden" name="back" value={path} />
+            <p>
+              <label htmlFor="page-password">Password</label>
+              <input
+                id="page-password"
+                name="password"
+                type="password"
+                required
+                autoComplete="current-password"
+              />
+            </p>
+            <button type="submit">Continue</button>
+          </form>
+        </article>
+      )
+  }
   const parsed = 'composition' in doc ? compositionSchema.safeParse(doc.composition) : null
   const composition = parsed?.success ? (parsed.data as Composition) : null
   const hideHeader = composition?.root.props?.pageHeader === 'hidden'
-  const index =
-    collection === 'services' ? 'Services' : collection === 'case-studies' ? 'Case studies' : null
+  const index = collectionIndex[collection]
+  const formatDate = dateFormatter(await siteLocale())
+  const post = collection === 'posts' ? (doc as Post) : null
+  const postDate = post ? post.date || post.publishedAt || post.createdAt : null
   return (
     <article>
       {doc.slug !== 'home' && (
@@ -54,7 +87,7 @@ export async function ContentView({
           {index && (
             <>
               {' / '}
-              <Link href={`/${collection}`}>{index}</Link>
+              <Link href={index.path}>{index.name}</Link>
             </>
           )}
           {' / '}
@@ -68,8 +101,49 @@ export async function ContentView({
         <header className="page-header">
           <h1>{doc.title}</h1>
           <p>{doc.summary}</p>
+          {post && (
+            <p className="meta">
+              {postDate && <time dateTime={postDate}>{formatDate(postDate)}</time>}
+              {post.authors?.some((a) => typeof a === 'object') && (
+                <>
+                  {' · '}
+                  {post.authors.flatMap((a) => (typeof a === 'object' ? [a.name] : [])).join(', ')}
+                </>
+              )}
+            </p>
+          )}
           <ContentImage asset={doc.heroMedia} />
         </header>
+      )}
+      {post?.body && <RichText data={post.body} />}
+      {post?.categories?.some((c) => typeof c === 'object') && (
+        <p className="tags">
+          {post.categories.flatMap((c) =>
+            typeof c === 'object'
+              ? [
+                  <Link key={c.id} href={`/blog/category/${c.slug}`}>
+                    {c.title}
+                  </Link>,
+                ]
+              : [],
+          )}
+        </p>
+      )}
+      {post?.related?.some((r) => typeof r === 'object') && (
+        <section>
+          <h2>Related posts</h2>
+          <ul>
+            {post.related.flatMap((r) =>
+              typeof r === 'object'
+                ? [
+                    <li key={r.id}>
+                      <Link href={`/blog/${r.slug}`}>{r.title}</Link>
+                    </li>,
+                  ]
+                : [],
+            )}
+          </ul>
+        </section>
       )}
       {'client' in doc && typeof doc.client === 'object' && doc.client && (
         <p>Client: {doc.client.name}</p>
@@ -110,13 +184,7 @@ export async function ContentView({
           <p>{doc.video.transcript}</p>
         </section>
       )}
-      {composition && (
-        <Sections
-          composition={composition}
-          settings={settings}
-          pagePath={contentPath(collection, doc.slug)}
-        />
-      )}
+      {composition && <Sections composition={composition} settings={settings} pagePath={path} />}
       {'services' in doc && doc.services?.length ? (
         <section>
           <h2>Related services</h2>
@@ -150,7 +218,9 @@ export async function ContentView({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
-          __html: serializeSchema(schemaFor(doc, collection, settings, composition)),
+          __html: serializeSchema(
+            schemaFor(doc, collection, settings, composition, await siteLocale()),
+          ),
         }}
       />
     </article>

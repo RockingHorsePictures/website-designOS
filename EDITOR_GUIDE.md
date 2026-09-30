@@ -1,30 +1,69 @@
-# Your Design OS workspace
+# Your website workspace
 
-Open **your-site.com/admin** and sign in. This is the single place for editing and publishing. The admin has light and dark appearances with blue accents, separate from website branding.
+Open **your-site.com/admin** and sign in, with Google if your administrator has set it up, or with your password. Everything happens here: editing, publishing, enquiries and your team. The workspace has light and dark appearances, separate from your website's branding.
+
+## Overview
+
+The dashboard shows whether your site is live and up to date, your pages, posts and new enquiries, a **Getting started** checklist, recent edits and quick actions. **New page** creates a page (blank, from a simple starter, or from one of your templates) and opens it in the composer. Administrators can **Invite a teammate** here.
 
 ## Save, preview and publish
 
-1. Edit pages, settings, colours, fonts, logos or navigation. **Save**, **Save to workspace** and **Save Draft** store edits in the workspace. They do not change Live.
-2. In **Overview**, choose **Save to Preview**. This captures the whole saved workspace, including saved page drafts, as a fixed version. Unsaved form changes are excluded.
-3. Open **View Preview**. Its `/preview` address can be shared and is excluded from search indexing. Later edits do not change it until you save another Preview.
-4. Choose **Publish to Live**, then confirm. The exact reviewed Preview version becomes Live. Later workspace edits stay separate.
-5. **Unpublish site** replaces Live with **Coming soon**, preserving content, assets and Preview. Publish again whenever ready.
+Nothing you edit reaches visitors until you publish the whole site:
 
-New installations show Coming soon until first publication. Code deployments do not reset the saved releases or overwrite content with another environment's data. Code releases can change rendering and admin features, so developers must test and review those separately.
+1. Edit pages, posts, settings, colours, fonts, logos or navigation. **Save**, **Save to workspace** and **Save draft** store edits in your workspace only.
+2. On **Overview**, choose **Save to Preview**. This captures the whole saved workspace, including saved drafts, as a fixed version. Unsaved form changes are left out.
+3. Open **View Preview**. The `/preview` address can be shared for review and is hidden from search engines. Later edits don't change it until you save another Preview.
+4. Choose **Publish to Live** and confirm. Exactly the version you reviewed goes live.
+5. **Unpublish site** shows **Coming soon** instead, keeping all content. Publish again whenever you're ready.
 
-## Edit content
+New sites show Coming soon until first published. Code updates don't overwrite your content.
 
-Pages, Case Studies and Services hold structured content. Edit the title, URL slug, summary, images and relationships, then save. **Include in site releases** controls whether a page belongs in the next Preview. Turn it off to remove a page from the next release without deleting its workspace record. Moving a document to draft does not exclude it from a whole-site release.
+The **Preview / Live Preview** buttons on an individual page show your working draft at `/workspace-preview` (only when signed in). This is separate from the shareable site Preview.
 
-The individual **Preview / Live Preview** controls show an authenticated working draft at `/workspace-preview`. This is separate from the fixed, shareable site Preview. The page composer previews unsaved section edits; choose **Save draft** before creating a site Preview.
+## Pages and the composer
 
-Use **Open page composer** to build a page from sections: add them from the left panel, drag to reorder, and edit each one's fields on the right. Preview at mobile, tablet and desktop widths, then **Save draft**. Your site's own sections appear alongside the base set (hero, text, text and image, image, gallery, video, feature list, figures, testimonials, client logos, questions and answers, services, team, case studies, call to action and contact). Sections that show services, case studies, people or clients reference those records, so edit the record once and every page updates. In text fields, a blank line starts a new paragraph; use `## ` for a subheading, `- ` for a list, `**bold**` and `[link text](/page)`. Link figures and testimonials to an Approved Fact. Choose **Page header → Hide** when the first section is a Hero that should act as the page title.
+**Open page composer** (or **New page** on Overview) opens the visual editor:
 
-To add a page, create it under **Pages** (title, URL slug, summary), save, open the composer and add sections. Add it to **Navigation** so visitors can find it. Use Team's Active setting to include or exclude people from the next release, and Order to arrange them. Saved URL changes can create workspace redirects, included in the next release.
+- Add sections from the left panel, drag to reorder, and edit each section's fields on the right. Preview at mobile, tablet and desktop sizes. Press **Save draft** (or Ctrl/⌘ + S).
+- Your website's own sections appear alongside the base set: hero, text, text and image, image, gallery, video, embed (maps, booking calendars, forms and more), feature list, steps, pricing, figures, testimonials, client logos, questions and answers, services, team, case studies, blog posts, form, call to action and contact.
+- **Columns** hold other sections side by side. **Reusable block** shows a group of sections you manage once under **Reusable blocks**, such as a call to action used on many pages.
+- Each section can have an **Entrance animation**. Visitors who prefer reduced motion never see it.
+- In text fields a blank line starts a new paragraph; use `## ` for a subheading, `- ` for a list, `**bold**` and `[link text](/page)`.
+- Sections showing services, case studies, people, clients or posts use those records, so edit the record once and every page updates. Link figures and testimonials to an **Approved Fact**.
+- **Page header → Hide** lets the first section (a Hero) act as the page title.
+
+Every page has a title, a web address (slug) and a summary. Add new pages to **Navigation** so visitors can find them. Changing a published page's address creates a redirect automatically. **Include in site releases** leaves a page out of the next Preview without deleting it.
+
+- **Page template**: tick this on a page to make it a starting point for new pages. Templates are never published.
+- **Password protected**: visitors must enter the page password (set it on the page) to see it. Useful for client previews or private information. Protected pages are hidden from search engines, search results and feeds.
+
+## Blog
+
+**Blog posts** have a title, address, summary, image, body text, authors (from Team), categories and related posts. They appear at `/blog`, with a page per category, an RSS feed at `/blog/feed.xml`, and a **Blog posts** section you can add to any page. **Publication date shown** overrides the date displayed.
+
+## Forms and enquiries
+
+Build forms under **Enquiries → Forms**: add fields (text, email, phone, message, choice, checkbox, number, date, web address), mark required ones, and set the button label and thank-you message. Place a form on a page with the **Form** section. Contact sections include a simple built-in form.
+
+Submissions arrive under **Enquiries** (visible to editors and administrators, never to AI accounts). Mark them replied or archived, and delete ones you no longer need, because they contain personal data. Administrators can set, per form, **email notifications** (needs email configured), a **webhook** to send each submission to Zapier, Make, Slack or a CRM (signed so the receiver can verify it came from your site), and a page to redirect to after sending. Spam is filtered with a hidden trap field and rate limits; Cloudflare Turnstile can be switched on (see docs/DEPLOY.md).
+
+## Languages
+
+Add languages in **Site Settings → Additional languages**. A language selector then appears at the top of the admin: switch to it, and translate titles, text, sections and search fields. Anything not yet translated shows your main language. In the composer, use the language buttons in the top bar. Translated pages live at `/<code>/…` (for example `/fr/about`), and search engines are told which pages are translations of each other.
+
+## Your brand
+
+- **Theme tokens**: colours (use the swatch or a six-digit hex value) and fonts and weights; the sample updates as you edit.
+- **Font files**: upload licensed WOFF2 or WOFF fonts (up to 2 MB each), then choose **Custom uploaded font** in Theme. Add regular, bold and italic faces separately, or enter the weight range for a variable font. Font sizes and layout stay in the website's design code.
+- **Site Settings**: logos (main, and one for dark backgrounds), browser icon, company details, address, language and organisation type (used by search engines), announcement bar, analytics and cookie notice, search engine verification codes, and the page-not-found message.
+
+The media library accepts PNG, WebP, JPEG and AVIF (not SVG). Transparent PNG or WebP suits logos; use a square PNG for the icon. Give every meaningful image a description (alt text), or mark it decorative.
+
+Files included in a saved release are kept: upload a new file rather than replacing or deleting one. Only files used by your published site are publicly accessible.
 
 ## Approvals and locks
 
-Open **Approvals & locks** at the bottom of a saved record or settings form. Save the form first.
+Open **Approvals & locks** at the bottom of a saved record or settings form (save the form first).
 
 | State            | Meaning                                            |
 | ---------------- | -------------------------------------------------- |
@@ -32,30 +71,27 @@ Open **Approvals & locks** at the bottom of a saved record or settings form. Sav
 | Approved         | A person approved the choice; it remains editable. |
 | Locked           | Changes are rejected until a person unlocks it.    |
 
-For example, lock **Background** to preserve white while leaving Accent editable. Human edits are recorded as approved; matching a default does not imply approval or a lock. Changes record who approved them and when. Reload the form after changing approvals.
+For example, lock **Background** to keep it white while leaving Accent editable. Your edits are recorded as approved; a value matching a default is not treated as approved. Reload the form after changing approvals.
 
-An **AI contributor** account can read approvals and edit unlocked content. It cannot unlock or publish. If AI needs a locked value changed, it should identify the conflict and ask you to unlock it. Review and save the change, then lock it again. Repository/database administrators retain infrastructure-level control; coding workspaces must obey AI_SITE_CONTRACT.md as well as these CMS checks.
+**AI contributor** accounts can read approvals and edit unlocked content. They can't unlock, approve, verify facts, delete, publish, read enquiries, or change where visitors' data goes (form delivery, analytics, verification codes). If AI needs a locked value changed, it will ask you to unlock it; lock it again after review. Repository and database administrators retain infrastructure-level control; AI coding tools must also follow AI_SITE_CONTRACT.md.
 
-## Colours, fonts and logos
+## Search and visibility
 
-In Theme tokens, use the colour swatch or enter a six-digit hex value. Under Fonts & weights, select heading/body fonts and weights; the sample updates while editing. Save, then create a Preview to review the website together.
+- **Overview → Site health** checks the whole site: missing search details, broken internal links, pages nothing links to, duplicate titles, images without descriptions, figures without evidence and missing company details. Each finding links to the fix.
+- Each page's **Search & quality** tab has **Check this page** and shows its structured data.
+- **Search Strategy** holds your audiences, questions and tone, and three crawler choices: search engines (Google, Bing), AI answer engines that read and cite your pages (ChatGPT search, Perplexity, Claude and others), and AI model-training crawlers (off by default).
+- The site publishes a sitemap, `/llms.txt` (a plain summary for AI assistants), structured data from your visible content, and a generated sharing image for pages without their own. Site search is at `/search`. Previews are never indexed.
 
-Upload licensed WOFF2 or WOFF fonts, up to 2 MB each, in Font files. Add regular/bold/italic faces separately, or enter minimum and maximum weights for a variable font. Choose Custom uploaded font in Theme and select the matching family files. Font sizes and layout stay in website design code.
+Verified facts belong in **Approved Facts & Evidence**. Warnings are advisory; publication blockers must be fixed.
 
-Site Settings contains main/inverse logos and the browser icon. The library accepts PNG, WebP, JPEG and AVIF; SVG uploads are not enabled. Transparent PNG/WebP suits logos; use a square PNG for the icon.
+## History
 
-Files included in a saved release are retained. Upload a new file instead of replacing or deleting a retained file. Release content and font/image metadata remain frozen; later selections apply to a later release. Upload only fonts licensed for this website.
+**Versions** on each record restore earlier content into your workspace without changing Live. Your current approvals and locks always stay: a restore that would change a locked field is refused until you unlock it. Scheduled document changes affect the workspace only; publish the site from Overview.
 
-## Enquiries
+## Team and sign-in
 
-Contact sections can include an enquiry form. Messages are stored under **Enquiries** (visible to people with editor accounts, not to AI accounts). Mark them replied or archived, and delete ones you no longer need, because they contain personal data. With email configured (see OPERATIONS.md), each new enquiry is also emailed to the Site Settings address or `FORM_NOTIFY_EMAIL`. Spam is filtered with a hidden trap field and a rate limit.
+Administrators invite people from **Overview → Invite a teammate** (or **Users**). Editors edit and publish; administrators also manage people and settings. With **Sign in with Google** set up, invited people just use their Google account. See docs/DEPLOY.md.
 
-## Search, history and AI
+## Building with AI
 
-**Overview → Site health** checks the whole site in one go: missing search details, broken internal links, pages nothing links to, duplicate titles, images without descriptions, figures without evidence and missing company details. Each finding links to the record to fix. Search & quality checks on each page identify missing metadata, unsafe composition and factual claims needing review. Verified facts belong in Approved Facts & Evidence. Warnings are advisory; publication blockers must be fixed. **Search Strategy** has three separate crawler choices: search engines (Google, Bing), AI answer engines that read and cite your pages when answering questions (ChatGPT search, Perplexity, Claude and others), and AI model-training crawlers (off by default). The site also publishes `/llms.txt`, a plain summary of your public pages for AI assistants, and structured data built from your visible content. Crawler choices are released with the site. Local, code-testing and content Preview pages are not indexed.
-
-Document Versions restore content into the workspace, without overwriting Live. Scheduled document operations affect workspace state only. Whole-site scheduled publication is not implemented; publish the reviewed site explicitly from Overview.
-
-Restoring a version brings back content only: your current approvals and locks always stay as they are. A restore that would change a locked field is refused until you unlock it in Approvals & locks.
-
-Expand Build your website with AI on Overview for a copyable handoff. Continue in the connected coding workspace. For a separate company, use NEW_SITE.md; each website gets its own repository, database, uploads and credentials.
+Expand **Build your website with AI** on Overview for instructions to paste into Claude Code or another AI tool. For a separate company, see docs/DEPLOY.md: each website gets its own repository, database, uploads and credentials.

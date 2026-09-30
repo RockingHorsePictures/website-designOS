@@ -3,7 +3,12 @@ import { absoluteURL, contentCollections, contentPath } from '@/lib/urls'
 import { indexable } from '@/lib/search/metadata'
 
 export const dynamic = 'force-dynamic'
-const headings = { pages: 'Pages', services: 'Services', 'case-studies': 'Case studies' } as const
+const headings = {
+  pages: 'Pages',
+  services: 'Services',
+  'case-studies': 'Case studies',
+  posts: 'Blog',
+} as const
 
 // llms.txt (https://llmstxt.org): a plain-language map of the public site for AI answer engines.
 // Built from the same release as the website, so it only lists what visitors can see.

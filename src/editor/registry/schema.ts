@@ -1,12 +1,12 @@
 import { z } from 'zod'
-import { safeLink } from '../../lib/urls'
+import { embedAllowed, safeLink } from '../../lib/urls'
 
 // Section contracts: the stored shape of every editor-facing section. Pure TypeScript so the CMS
 // config, CLI tools and tests can import it. Renderers live in src/components/sections and Puck
 // fields in ./config.tsx; tests/unit/registry.test.ts keeps all three in step.
 //
 // This base library is a structural safety net so owners can build and extend pages after launch.
-// It is not a design template. Bespoke site designs add their own sections (see SECTIONS.md) and
+// It is not a design template. Bespoke site designs add their own sections (see docs/SECTIONS.md) and
 // may restyle or replace these renderers, keeping each section's stored props compatible.
 
 const text = z.string().max(10000)
@@ -21,15 +21,20 @@ export const linkRef = z.object({ label: short, href: optionalHref }).strict()
 const factRef = id.nullable()
 const mode = z.enum(['all', 'manual'])
 
+// Entrance animation presets, defined in code (src/styles/proof.css). Optional on every section;
+// reduced-motion preferences always turn them off.
+export const motionPresets = ['none', 'fade', 'rise', 'zoom', 'slide'] as const
 const section = <T extends string, P extends z.ZodRawShape>(type: T, props: P) =>
   z
     .object({
       type: z.literal(type),
-      props: z.object({ id: z.string().min(1), ...props }).strict(),
+      props: z
+        .object({ id: z.string().min(1), motion: z.enum(motionPresets).optional(), ...props })
+        .strict(),
     })
     .strict()
 
-export const sectionSchemas = {
+const leafSchemas = {
   // Original proof sections: IDs and props are stored in existing pages; keep them compatible.
   Intro: section('Intro', { heading: text, body: text, style: z.enum(['plain', 'surface']) }),
   CallToAction: section('CallToAction', { heading: text, body: text, label: text, href }),
@@ -123,6 +128,65 @@ export const sectionSchemas = {
     submitLabel: short,
     successMessage: short,
   }),
+  Steps: section('Steps', {
+    heading: text,
+    intro: text,
+    items: z.array(z.object({ title: short, body: text }).strict()).max(12),
+  }),
+  Pricing: section('Pricing', {
+    heading: text,
+    intro: text,
+    plans: z
+      .array(
+        z
+          .object({
+            name: short,
+            price: short,
+            period: short,
+            description: text,
+            features: text,
+            link: linkRef,
+            highlighted: z.boolean(),
+          })
+          .strict(),
+      )
+      .max(6),
+    note: text,
+  }),
+  Posts: section('Posts', {
+    heading: text,
+    mode: z.enum(['latest', 'featured', 'category', 'manual']),
+    categoryId: id.nullable(),
+    postIds: z.array(id).max(24),
+    limit: z.number().int().min(1).max(24),
+  }),
+  Form: section('Form', { heading: text, body: text, formId: id.nullable() }),
+  Embed: section('Embed', {
+    title: short,
+    url: z.string().refine((v) => v === '' || embedAllowed(v), 'Use a supported embed link.'),
+    aspect: z.enum(['16:9', '4:3', '1:1', 'tall']),
+    caption: short,
+  }),
+  GlobalBlock: section('GlobalBlock', { blockId: id.nullable() }),
+}
+// Columns hold other sections (not further columns) in up to three slots.
+const leafSection = z.discriminatedUnion(
+  'type',
+  Object.values(leafSchemas) as unknown as [
+    (typeof leafSchemas)[keyof typeof leafSchemas],
+    ...(typeof leafSchemas)[keyof typeof leafSchemas][],
+  ],
+)
+const slot = z.array(leafSection).max(12)
+export const sectionSchemas = {
+  ...leafSchemas,
+  Columns: section('Columns', {
+    layout: z.enum(['1-1', '2-1', '1-2', '1-1-1']),
+    align: z.enum(['start', 'center']),
+    first: slot,
+    second: slot,
+    third: slot,
+  }),
 }
 export type SectionType = keyof typeof sectionSchemas
 export type SectionOf<T extends SectionType> = z.infer<(typeof sectionSchemas)[T]>
@@ -135,7 +199,7 @@ const emptyLink = { label: '', href: '' }
 export const sectionMeta: {
   [T in SectionType]: {
     label: string
-    category: 'Text' | 'Media' | 'Records' | 'Proof' | 'Actions'
+    category: 'Layout' | 'Text' | 'Media' | 'Records' | 'Proof' | 'Actions'
     description: string
     defaults: SectionProps<T>
   }
@@ -266,6 +330,48 @@ export const sectionMeta: {
       successMessage: 'Thank you. We will reply soon.',
     },
   },
+  Steps: {
+    label: 'Steps',
+    category: 'Text',
+    description: 'A numbered process or sequence.',
+    defaults: { heading: '', intro: '', items: [] },
+  },
+  Pricing: {
+    label: 'Pricing',
+    category: 'Actions',
+    description: 'Plans or packages with features and an action each.',
+    defaults: { heading: '', intro: '', plans: [], note: '' },
+  },
+  Posts: {
+    label: 'Blog posts',
+    category: 'Records',
+    description: 'Latest, featured, by category or chosen blog posts.',
+    defaults: { heading: '', mode: 'latest', categoryId: null, postIds: [], limit: 3 },
+  },
+  Form: {
+    label: 'Form',
+    category: 'Actions',
+    description: 'A form built under Enquiries → Forms.',
+    defaults: { heading: '', body: '', formId: null },
+  },
+  Embed: {
+    label: 'Embed',
+    category: 'Media',
+    description: 'A map, booking calendar, form, audio or design from a supported service.',
+    defaults: { title: '', url: '', aspect: '16:9', caption: '' },
+  },
+  GlobalBlock: {
+    label: 'Reusable block',
+    category: 'Layout',
+    description: 'Sections from a reusable block, edited once for every page.',
+    defaults: { blockId: null },
+  },
+  Columns: {
+    label: 'Columns',
+    category: 'Layout',
+    description: 'Two or three columns, each holding its own sections.',
+    defaults: { layout: '1-1', align: 'start', first: [], second: [], third: [] },
+  },
 }
 export const sectionTypes = Object.keys(sectionSchemas) as SectionType[]
 
@@ -292,12 +398,26 @@ export const compositionSchema = z
   })
   .strict()
   .superRefine((data, ctx) => {
-    const ids = data.content.map((s) => s.props.id)
+    const ids = allSections(data.content as AnySection[]).map((s) => s.props.id)
     if (new Set(ids).size !== ids.length)
       ctx.addIssue({ code: 'custom', message: 'Section IDs must be unique.' })
   })
 export type Composition = { root: { props?: z.infer<typeof rootProps> }; content: AnySection[] }
 export const emptyComposition: Composition = { root: { props: {} }, content: [] }
+// Reusable blocks cannot contain other reusable blocks (no loops).
+export const blockCompositionSchema = compositionSchema.superRefine((data, ctx) => {
+  if (allSections(data.content as AnySection[]).some((s) => s.type === 'GlobalBlock'))
+    ctx.addIssue({ code: 'custom', message: 'A reusable block cannot contain another one.' })
+})
+export const columnSlots = ['first', 'second', 'third'] as const
+// Every section including those nested in Columns, in reading order.
+export function allSections(content: AnySection[]): AnySection[] {
+  return content.flatMap((s) =>
+    s.type === 'Columns'
+      ? [s, ...columnSlots.flatMap((slot) => (s.props[slot] || []) as AnySection[])]
+      : [s],
+  )
+}
 
 // Media IDs referenced anywhere in a composition (heroes, galleries, posters, feature images).
 export function compositionMedia(composition: Composition): number[] {

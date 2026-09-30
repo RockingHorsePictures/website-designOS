@@ -25,22 +25,25 @@ const files = git('ls-tree', '-r', '--name-only', '-z', 'HEAD')
   .toString()
   .split('\0')
   .filter(Boolean)
-const roots = new Set(['src', 'scripts', 'tests', 'public', '.github', 'installer'])
+const roots = new Set([
+  'src',
+  'scripts',
+  'tests',
+  'public',
+  '.github',
+  'installer',
+  'docs',
+  '.claude',
+])
 const allowedRoot = new Set([
   'AGENTS.md',
   'LICENSE',
   'designos-release.json',
   'CLAUDE.md',
   'START_HERE.md',
-  'NEW_SITE.md',
   'README.md',
   'AI_SITE_CONTRACT.md',
-  'AI_CONNECTION.md',
-  'DESIGN_HANDOFF.md',
-  'ARCHITECTURE.md',
   'EDITOR_GUIDE.md',
-  'OPERATIONS.md',
-  'COMPANY_WEBSITE_BUILD_SPEC_V5.md',
   'package.json',
   'package-lock.json',
   'payload.config.ts',
@@ -51,6 +54,7 @@ const allowedRoot = new Set([
   'playwright.config.ts',
   'vitest.config.ts',
   'vercel.json',
+  '.mcp.json',
   '.gitignore',
   '.vercelignore',
   '.env.example',
@@ -84,9 +88,14 @@ writeFileSync(
 )
 writeFileSync(
   path.join(destination, 'IMPLEMENTATION_STATUS.md'),
-  `# Fresh Design OS starter\n\nExported from foundation revision ${revision}. This site has no configured repository, deployment, database, media store or credentials. Read START_HERE.md and NEW_SITE.md. Verify this site's setup independently; source project verification is not proof of a new environment. Visual design has not begun.\n`,
+  `# Fresh Design OS starter\n\nExported from foundation revision ${revision}. This site has no configured repository, deployment, database, media store or credentials. Read START_HERE.md and docs/DEPLOY.md. Verify this site's setup independently; source project verification is not proof of a new environment. Visual design has not begun.\n`,
 )
-for (const name of ['README.md', 'DESIGN_HANDOFF.md', 'AI_SITE_CONTRACT.md', 'START_HERE.md']) {
+for (const name of [
+  'README.md',
+  'docs/DESIGN_HANDOFF.md',
+  'AI_SITE_CONTRACT.md',
+  'START_HERE.md',
+]) {
   const target = path.join(destination, name)
   const text = readFileSync(target, 'utf8')
     .replace(

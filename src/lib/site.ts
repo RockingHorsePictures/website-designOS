@@ -1,9 +1,17 @@
 import 'server-only'
 import { cache } from 'react'
 import { headers } from 'next/headers'
+import { notFound } from 'next/navigation'
 import type { Field, CollectionSlug, GlobalSlug } from 'payload'
 import { cms, currentUser } from './cms'
-import { releaseID, type Snapshot, type ReleaseCollection, type ReleaseGlobal } from './releases'
+import {
+  releaseID,
+  type Snapshot,
+  type SnapshotBody,
+  type ReleaseCollection,
+  type ReleaseGlobal,
+} from './releases'
+import { defaultLocale, enabledLocales, isLocale, type LocaleCode } from './locales'
 import { tokenDefaults } from '../design-system/tokens'
 import { typographyDefaults } from '../design-system/typography'
 export const siteView = cache(async () => {
@@ -22,6 +30,42 @@ export const siteSnapshot = cache(async () => {
   if (release.formatVersion !== 1)
     throw new Error('This application cannot render the published release format.')
   return release.snapshot as Snapshot
+})
+// The language of this request, from the /<code>/ prefix the proxy removed.
+export const siteLocale = cache(async (): Promise<LocaleCode> => {
+  const value = (await headers()).get('x-designos-locale')
+  return isLocale(value) ? value : defaultLocale
+})
+// Languages this site publishes (release settings, or the workspace when previewing drafts).
+export const siteLocales = cache(async (): Promise<LocaleCode[]> => {
+  const snapshot = await siteSnapshot()
+  if (snapshot) return enabledLocales(snapshot.globals['site-settings'])
+  const payload = await cms()
+  return enabledLocales(
+    (await payload.findGlobal({ slug: 'site-settings', depth: 0 })) as { languages?: unknown },
+  )
+})
+// Pages in a language the site does not publish are not found (rather than empty).
+export async function requireLocale() {
+  if ((await siteView()) === 'workspace') {
+    if (!(await siteLocales()).includes(await siteLocale())) notFound()
+    return
+  }
+  if ((await siteSnapshot()) && !(await siteBody())) notFound()
+}
+// Language context for metadata (canonical/hreflang) and links.
+export const localeContext = cache(async () => ({
+  current: await siteLocale(),
+  enabled: await siteLocales(),
+}))
+// The release content for the request language; null when that language is not published.
+export const siteBody = cache(async (): Promise<SnapshotBody | null> => {
+  const snapshot = await siteSnapshot()
+  if (!snapshot) return null
+  const locale = await siteLocale()
+  if (locale === (snapshot.locale || defaultLocale)) return snapshot
+  if (!(await siteLocales()).includes(locale)) return null
+  return snapshot.translations?.[locale] || null
 })
 function matches(doc: Record<string, unknown>, where: Record<string, unknown> = {}): boolean {
   return Object.entries(where).every(([key, test]) => {
@@ -46,7 +90,7 @@ function matches(doc: Record<string, unknown>, where: Record<string, unknown> = 
 function populate(
   doc: Record<string, unknown>,
   fields: Field[],
-  snapshot: Snapshot,
+  snapshot: SnapshotBody,
   payload: Awaited<ReturnType<typeof cms>>,
   depth: number,
 ): Record<string, unknown> {
@@ -96,8 +140,19 @@ function populate(
 // All public rendering, metadata, redirects and discovery read the selected immutable snapshot.
 export const siteCMS = cache(async () => {
   const payload = await cms()
-  if ((await siteView()) === 'workspace') return payload
-  const snapshot = await siteSnapshot()
+  const locale = await siteLocale()
+  if ((await siteView()) === 'workspace') {
+    // Authenticated draft preview: the live workspace in the request language.
+    const localized = { locale, fallbackLocale: defaultLocale } as const
+    return {
+      ...payload,
+      find: ((options: Parameters<typeof payload.find>[0]) =>
+        payload.find({ ...localized, ...options } as never)) as typeof payload.find,
+      findGlobal: ((options: Parameters<typeof payload.findGlobal>[0]) =>
+        payload.findGlobal({ ...localized, ...options } as never)) as typeof payload.findGlobal,
+    }
+  }
+  const snapshot = await siteBody()
   const find = (async (options: {
     collection: ReleaseCollection
     where?: Record<string, unknown>

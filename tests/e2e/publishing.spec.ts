@@ -10,7 +10,9 @@ test('whole-site release controls isolate edits, retain Preview and require unlo
     .fill(process.env.SEED_EMAIL || 'editor@example.test')
   await page.getByLabel('Password', { exact: true }).fill(process.env.SEED_PASSWORD!)
   await page.getByRole('button', { name: 'Login', exact: true }).click()
-  await expect(page.getByRole('heading', { name: 'A home for your website.' })).toBeVisible()
+  await expect(
+    page.getByRole('heading', { level: 1, name: /Good (morning|afternoon|evening)/ }),
+  ).toBeVisible()
   const originalTheme = await (await page.request.get('/api/globals/theme?depth=0')).json()
   const headers = { Origin: new URL(page.url()).origin }
   try {

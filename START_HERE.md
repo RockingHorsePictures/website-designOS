@@ -6,25 +6,25 @@ The CMS (`/admin`) is where content is edited, brand assets uploaded and the sit
 
 ## Where to work
 
-| Goal                                       | Where                                                                                                                       | What to provide                                                                         |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Build or change this website               | **Claude Code** opened in this website folder (terminal, desktop app or IDE). Other agents that read `AGENTS.md` also work. | Your brief, approved content, brand assets and design references                        |
-| Explore visual directions first (optional) | **Claude Design**, then hand off to Claude Code                                                                             | The design brief from `/designos-import-design`                                         |
-| Plan or review without code access         | Claude Desktop, Cowork or any chat                                                                                          | The credential-free **website context** download from the admin Overview                |
-| Another computer or cloud session          | A coding agent connected to the GitHub repository                                                                           | Correct branch plus this site's private environment, set up securely (AI_CONNECTION.md) |
-| A separate website or company              | A new project from the installer (NEW_SITE.md)                                                                              | A new brief and separate services and credentials                                       |
+| Goal                                       | Where                                                                                                                       | What to provide                                                                                              |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Build or change this website               | **Claude Code** opened in this website folder (terminal, desktop app or IDE). Other agents that read `AGENTS.md` also work. | Your brief, approved content, brand assets and design references                                             |
+| Explore visual directions first (optional) | **Claude Design**, then hand off to Claude Code                                                                             | The design brief from `/designos-import-design`                                                              |
+| Plan or review without code access         | Claude Desktop, Cowork or any chat                                                                                          | The credential-free **website context** download from the admin Overview                                     |
+| Another computer or cloud session          | A coding agent connected to the GitHub repository                                                                           | Correct branch plus this site's private environment, set up securely (docs/AI_CONNECTION.md, docs/DEPLOY.md) |
+| A separate website or company              | A new site from the Deploy Button (docs/DEPLOY.md)                                                                          | A new brief and separate services and credentials                                                            |
 
 A new conversation for the same site needs no duplication: the contract lives in the repository, not in chat history. `AGENTS.md` (imported by `CLAUDE.md`) directs every agent here.
 
 ## In Claude Code
 
 1. Open this website's folder and approve the `design-os` MCP server when prompted (`/mcp` shows it).
-2. Run `/designos-build` to design and build, `/designos-content` to add pages or copy, `/designos-audit` for SEO, AI-search, schema, content and accessibility reviews, and `/designos-launch-check` before going live. See AI_TOOLKIT.md for every tool.
-3. The AI accounts were created by the installer. Never paste a CMS password into chat. If the connection is missing, AI_CONNECTION.md explains the `npm run ai:connect` repair.
+2. Run `/designos-build` to design and build, `/designos-content` to add pages or copy, `/designos-audit` for SEO, AI-search, schema, content and accessibility reviews, and `/designos-launch-check` before going live. See docs/AI_TOOLKIT.md for every tool.
+3. The AI accounts were created by the installer. Never paste a CMS password into chat. If the connection is missing, docs/AI_CONNECTION.md explains the `npm run ai:connect` repair.
 
 ## Read in order
 
-`AI_SITE_CONTRACT.md` (rules), `DESIGN_HANDOFF.md` (design workflow), `SECTIONS.md` (the editable page structure), `AI_TOOLKIT.md` (skills, subagents, MCP, audits), `ARCHITECTURE.md`, `EDITOR_GUIDE.md` (what owners do) and `IMPLEMENTATION_STATUS.md` (verified state). `COMPANY_WEBSITE_BUILD_SPEC_V5.md` records original intent; later explicit instructions take precedence. These documents alone do not authorise visual design work: the owner must ask for it.
+`AI_SITE_CONTRACT.md` (rules), `docs/DESIGN_HANDOFF.md` (design workflow), `docs/SECTIONS.md` (the editable page structure), `docs/AI_TOOLKIT.md` (skills, subagents, MCP, audits), `docs/ARCHITECTURE.md`, `EDITOR_GUIDE.md` (what owners do), `docs/DEPLOY.md` (hosting and updates) and `IMPLEMENTATION_STATUS.md` (verified state). `docs/history/COMPANY_WEBSITE_BUILD_SPEC_V5.md` records original intent; later explicit instructions take precedence. These documents alone do not authorise visual design work: the owner must ask for it.
 
 Keep `site-workspace.json` updated when the site's repository or working branch changes; the admin handoff uses it. Until the original foundation PR is merged, `foundation/design-os` contains the app and `main` does not.
 
@@ -38,4 +38,4 @@ Keep `site-workspace.json` updated when the site's repository or working branch 
 
 ## AI connection
 
-Before CMS work, read AI_CONNECTION.md. In the installed website folder, use the MCP tools `designos_check` and `designos_context`, or run `npm run ai:check` and `npm run ai:context`, and read fresh approvals from `.designos/ai-context.json`. Production access is read-only and its approvals are authoritative. Code-preview and local access can edit unlocked content as drafts; AI accounts cannot approve, delete or publish.
+Before CMS work, read docs/AI_CONNECTION.md. In the installed website folder, use the MCP tools `designos_check` and `designos_context`, or run `npm run ai:check` and `npm run ai:context`, and read fresh approvals from `.designos/ai-context.json`. Production access is read-only and its approvals are authoritative. Code-preview and local access can edit unlocked content as drafts; AI accounts cannot approve, delete or publish.

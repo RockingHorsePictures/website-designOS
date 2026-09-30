@@ -1,4 +1,4 @@
-import { compositionSchema, type Composition } from '../editor/registry/schema'
+import { allSections, compositionSchema, type Composition } from '../editor/registry/schema'
 import { parseBlocks } from './markdown'
 import { safeLink, validSlug } from './urls'
 
@@ -50,7 +50,7 @@ function sectionFindings(composition: Composition, options: AuditOptions, add: A
       'composition',
       'The page header is hidden, so the first section must be a Hero with a heading to give the page its main (h1) heading.',
     )
-  composition.content.forEach((section, index) => {
+  allSections(composition.content).forEach((section, index) => {
     const where = `Section ${index + 1} (${section.type})`
     const p = section.props as Record<string, unknown>
     const links: { label: string; href: string }[] = []
@@ -124,6 +124,19 @@ function sectionFindings(composition: Composition, options: AuditOptions, add: A
     }
     if (section.type === 'Contact' && section.props.form && !section.props.successMessage.trim())
       add('recommendation', 'composition', `${where}: add a confirmation message for the form.`)
+    if (section.type === 'Form' && !section.props.formId)
+      add('warning', 'composition', `${where}: choose a form, or remove the section.`)
+    if (section.type === 'GlobalBlock' && !section.props.blockId)
+      add('warning', 'composition', `${where}: choose a reusable block, or remove the section.`)
+    if (section.type === 'Embed' && section.props.url && !section.props.title.trim())
+      add('warning', 'composition', `${where}: give the embed a title for screen readers.`)
+    if (section.type === 'Pricing' && section.props.plans.some((plan) => !plan.price.trim()))
+      add(
+        'recommendation',
+        'composition',
+        `${where}: every plan should show a price or "Contact us".`,
+      )
+    if (section.type === 'Columns') return
     const hasContent =
       Object.entries(p).some(
         ([k, v]) =>
@@ -139,11 +152,22 @@ function sectionFindings(composition: Composition, options: AuditOptions, add: A
             'columns',
             'provider',
             'mediaPosition',
+            'motion',
+            'aspect',
           ].includes(k),
       ) ||
       images.some((i) => i.image) ||
       Object.values(p).some((v) => Array.isArray(v) && v.length) ||
-      ['Services', 'Team', 'Logos', 'SelectedProjects', 'Contact'].includes(section.type)
+      [
+        'Services',
+        'Team',
+        'Logos',
+        'SelectedProjects',
+        'Contact',
+        'Posts',
+        'Form',
+        'GlobalBlock',
+      ].includes(section.type)
     if (!hasContent) add('recommendation', 'composition', `${where} is empty.`)
   })
 }

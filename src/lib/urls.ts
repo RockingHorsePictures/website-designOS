@@ -1,7 +1,25 @@
-export type ContentCollection = 'pages' | 'case-studies' | 'services'
-export const contentCollections: ContentCollection[] = ['pages', 'case-studies', 'services']
+import { localeCodes } from './locales'
+
+export type ContentCollection = 'pages' | 'case-studies' | 'services' | 'posts'
+export const contentCollections: ContentCollection[] = [
+  'pages',
+  'case-studies',
+  'services',
+  'posts',
+]
+// URL prefix for each structured collection; pages sit at the root.
+export const collectionBase: Record<ContentCollection, string> = {
+  pages: '',
+  'case-studies': '/case-studies',
+  services: '/services',
+  posts: '/blog',
+}
 export function contentPath(collection: ContentCollection, slug: string) {
-  return collection === 'pages' ? (slug === 'home' ? '/' : `/${slug}`) : `/${collection}/${slug}`
+  return collection === 'pages'
+    ? slug === 'home'
+      ? '/'
+      : `/${slug}`
+    : `${collectionBase[collection]}/${slug}`
 }
 // Top-level paths owned by the application or its proxy; pages cannot use them as slugs.
 export const reservedSlugs = [
@@ -17,6 +35,12 @@ export const reservedSlugs = [
   'workspace-preview',
   'llms',
   'feed',
+  'blog',
+  'search',
+  'setup',
+  'og',
+  // Language prefixes (/fr/…) are routes too.
+  ...localeCodes,
 ]
 export function safeLink(value: string): boolean {
   if (/^[\s]|[\\\u0000-\u001f]/.test(value)) return false
@@ -41,6 +65,35 @@ export function absoluteURL(path: string, origin = siteOrigin()) {
 export function imageSrc(url: string) {
   const match = url.match(/^https?:\/\/[^/]+(\/api\/(?:media|fonts)\/file\/.*)$/)
   return match ? match[1] : url
+}
+// Services whose embed pages may be framed by an Embed section: host and allowed path.
+const embedHosts: [string, RegExp][] = [
+  ['www.google.com', /^\/maps\/embed/],
+  ['www.openstreetmap.org', /^\/export\/embed\.html/],
+  ['calendly.com', /^\/[\w-]+/],
+  ['cal.com', /^\/[\w-]+/],
+  ['open.spotify.com', /^\/embed\//],
+  ['w.soundcloud.com', /^\/player\//],
+  ['form.typeform.com', /^\/to\//],
+  ['docs.google.com', /^\/forms\/.+\/viewform/],
+  ['airtable.com', /^\/embed\//],
+  ['www.loom.com', /^\/embed\//],
+  ['www.figma.com', /^\/embed/],
+  ['codepen.io', /\/embed\//],
+  ['player.vimeo.com', /^\/video\/\d+/],
+  ['www.youtube-nocookie.com', /^\/embed\//],
+]
+export function embedAllowed(value: string) {
+  try {
+    const url = new URL(value)
+    return (
+      url.protocol === 'https:' &&
+      !url.username &&
+      embedHosts.some(([host, path]) => url.hostname === host && path.test(url.pathname))
+    )
+  } catch {
+    return false
+  }
 }
 export function validSlug(value: unknown) {
   return typeof value === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)

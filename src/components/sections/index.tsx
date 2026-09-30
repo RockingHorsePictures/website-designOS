@@ -2,13 +2,14 @@ import Image from 'next/image'
 import type { ReactNode } from 'react'
 import { SiteLink as Link } from '@/components/site/SiteLink'
 import { imageSrc, safeLink } from '@/lib/urls'
-import type { AnySection, SectionProps } from '@/editor/registry/schema'
+import { columnSlots, type AnySection, type SectionProps } from '@/editor/registry/schema'
+import { contactForm, type PublicForm } from '@/lib/form-definitions'
 import { Markdown } from './Markdown'
-import { ContactForm } from './ContactForm'
+import { SiteForm } from './SiteForm'
 
 // Base section renderers. Deliberately neutral: they carry structure, semantics and accessibility,
 // not a visual design. A site's bespoke design restyles these (via class names and tokens) or
-// registers its own sections; see SECTIONS.md. Components are plain React so the Puck composer
+// registers its own sections; see docs/SECTIONS.md. Components are plain React so the Puck composer
 // (client) and the public site (server) render identical output.
 
 export type MediaSummary = {
@@ -46,6 +47,16 @@ export type ContactDetails = {
   phone?: string | null
   address?: string | null
 }
+export type PostSummary = {
+  id: number
+  title: string
+  slug: string
+  summary?: string | null
+  date?: string | null
+  featured?: boolean | null
+  categories?: number[]
+  image?: number | null
+}
 // Everything a section may reference, resolved from the site release (public) or the workspace
 // (composer). Sections select from these lists; they never store copied entity content.
 export type SectionData = {
@@ -55,6 +66,11 @@ export type SectionData = {
   team: PersonSummary[]
   clients: ClientSummary[]
   contact: ContactDetails
+  posts: PostSummary[]
+  forms: Record<number, PublicForm>
+  blocks: Record<number, AnySection[]>
+  locale?: string
+  turnstileSiteKey?: string | null
 }
 export const emptySectionData: SectionData = {
   media: {},
@@ -63,6 +79,9 @@ export const emptySectionData: SectionData = {
   team: [],
   clients: [],
   contact: {},
+  posts: [],
+  forms: {},
+  blocks: {},
 }
 export type SectionContext = {
   data: SectionData
@@ -70,6 +89,10 @@ export type SectionContext = {
   headingLevel: 1 | 2
   editing?: boolean
   pagePath?: string
+  // Renders a Columns slot: nested sections publicly, a drop zone in the composer.
+  slot?: (name: (typeof columnSlots)[number]) => ReactNode
+  // Formats dates in the page language.
+  formatDate?: (iso: string) => string
 }
 
 export function pick<T extends { id: number }>(
@@ -414,15 +437,161 @@ export const sectionRenderers: {
         </address>
       )}
       {props.form && (
-        <ContactForm
-          submitLabel={props.submitLabel || 'Send'}
-          successMessage={props.successMessage}
+        <SiteForm
+          form={{
+            ...contactForm,
+            submitLabel: props.submitLabel || 'Send',
+            successMessage: props.successMessage || contactForm.successMessage,
+          }}
           disabled={ctx.editing}
           pagePath={ctx.pagePath}
+          locale={ctx.data.locale}
+          turnstileSiteKey={ctx.data.turnstileSiteKey}
         />
       )}
     </section>
   ),
+  Steps: ({ props }) => (
+    <section className="section section-steps">
+      <Heading level={2}>{props.heading}</Heading>
+      {props.intro && <Markdown source={props.intro} />}
+      <ol className="steps">
+        {props.items.map((item, i) => (
+          <li key={i}>
+            <Heading level={3}>{item.title}</Heading>
+            <Markdown source={item.body} level={3} />
+          </li>
+        ))}
+      </ol>
+    </section>
+  ),
+  Pricing: ({ props }) => (
+    <section className="section section-pricing">
+      <Heading level={2}>{props.heading}</Heading>
+      {props.intro && <Markdown source={props.intro} />}
+      <ul className="grid plans">
+        {props.plans.map((plan, i) => (
+          <li key={i} className={plan.highlighted ? 'plan highlighted' : 'plan'}>
+            <Heading level={3}>{plan.name}</Heading>
+            <p className="price">
+              <strong>{plan.price}</strong> {plan.period && <span>{plan.period}</span>}
+            </p>
+            {plan.description && <Markdown source={plan.description} level={3} />}
+            {plan.features.trim() && (
+              <ul className="features">
+                {plan.features
+                  .split(/\r?\n/)
+                  .filter((f) => f.trim())
+                  .map((f, j) => (
+                    <li key={j}>{f.replace(/^[-*]\s*/, '')}</li>
+                  ))}
+              </ul>
+            )}
+            <Action link={plan.link} primary={plan.highlighted} />
+          </li>
+        ))}
+      </ul>
+      {props.note && <Markdown source={props.note} />}
+    </section>
+  ),
+  Posts: ({ props, ctx }) => {
+    const posts = pick(
+      ctx.data.posts,
+      props.mode,
+      props.postIds,
+      props.limit,
+      props.mode === 'featured'
+        ? (p) => Boolean(p.featured)
+        : props.mode === 'category'
+          ? (p) => Boolean(props.categoryId && p.categories?.includes(props.categoryId))
+          : undefined,
+    )
+    return (
+      <section className="section section-posts">
+        <Heading level={2}>{props.heading}</Heading>
+        <ul className="grid">
+          {posts.map((post) => (
+            <li key={post.id}>
+              <MediaImage
+                value={post.image}
+                data={ctx.data}
+                sizes="(max-width: 768px) 100vw, 33vw"
+              />
+              <h3>
+                <Link href={`/blog/${post.slug}`}>{post.title}</Link>
+              </h3>
+              {post.date && (
+                <p className="meta">
+                  <time dateTime={post.date}>
+                    {ctx.formatDate ? ctx.formatDate(post.date) : post.date.slice(0, 10)}
+                  </time>
+                </p>
+              )}
+              {post.summary && <p>{post.summary}</p>}
+            </li>
+          ))}
+        </ul>
+        {!posts.length && <p>No posts yet.</p>}
+      </section>
+    )
+  },
+  Form: ({ props, ctx }) => {
+    const form = props.formId ? ctx.data.forms[props.formId] : null
+    return (
+      <section className="section section-form" id="contact">
+        <Heading level={2}>{props.heading}</Heading>
+        {props.body && <Markdown source={props.body} />}
+        {form ? (
+          <SiteForm
+            form={form}
+            disabled={ctx.editing}
+            pagePath={ctx.pagePath}
+            locale={ctx.data.locale}
+            turnstileSiteKey={ctx.data.turnstileSiteKey}
+          />
+        ) : (
+          ctx.editing && <p>Choose a form, or create one under Enquiries → Forms.</p>
+        )}
+      </section>
+    )
+  },
+  Embed: ({ props }) =>
+    props.url ? (
+      <figure className={`section section-embed aspect-${props.aspect.replace(':', '-')}`}>
+        <iframe
+          src={props.url}
+          title={props.title || 'Embedded content'}
+          loading="lazy"
+          referrerPolicy="strict-origin-when-cross-origin"
+          sandbox="allow-scripts allow-same-origin allow-popups allow-forms allow-presentation"
+          allow="fullscreen; clipboard-write; encrypted-media"
+        />
+        {props.caption && <figcaption>{props.caption}</figcaption>}
+      </figure>
+    ) : null,
+  GlobalBlock: ({ props, ctx }) => {
+    const sections = props.blockId ? ctx.data.blocks[props.blockId] : null
+    if (!sections) return ctx.editing ? <p>Choose a reusable block.</p> : null
+    return (
+      <>
+        {sections.map((child) => (
+          <SectionView key={child.props.id} section={child} ctx={{ ...ctx, headingLevel: 2 }} />
+        ))}
+      </>
+    )
+  },
+  Columns: ({ props, ctx }) => {
+    const count = props.layout === '1-1-1' ? 3 : 2
+    return (
+      <div className={`section section-columns layout-${props.layout} align-${props.align}`}>
+        {columnSlots.slice(0, count).map((name) => (
+          <div className="column" key={name}>
+            {ctx.slot?.(name)}
+          </div>
+        ))}
+      </div>
+    )
+  },
 }
 
 export function SectionView({ section, ctx }: { section: AnySection; ctx: SectionContext }) {
@@ -431,6 +600,29 @@ export function SectionView({ section, ctx }: { section: AnySection; ctx: Sectio
     ctx: SectionContext
   }) => ReactNode
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { id, ...props } = section.props
-  return <>{render({ props, ctx })}</>
+  const { id, motion, ...props } = section.props
+  const slots = section.type === 'Columns' ? (section.props as Record<string, unknown>) : null
+  const inner = render({
+    props,
+    ctx: slots
+      ? {
+          ...ctx,
+          headingLevel: 2,
+          slot: (name) =>
+            ((slots[name] || []) as AnySection[]).map((child) => (
+              <SectionView key={child.props.id} section={child} ctx={{ ...ctx, headingLevel: 2 }} />
+            )),
+        }
+      : ctx,
+  })
+  return <MotionWrap motion={motion}>{inner}</MotionWrap>
+}
+// Entrance animations are code-defined presets; see src/styles/proof.css and Motion.tsx.
+export function MotionWrap({ motion, children }: { motion?: string; children: ReactNode }) {
+  if (!motion || motion === 'none') return <>{children}</>
+  return (
+    <div className="motion" data-motion={motion}>
+      {children}
+    </div>
+  )
 }

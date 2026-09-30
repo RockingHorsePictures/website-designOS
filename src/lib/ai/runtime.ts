@@ -1,7 +1,7 @@
 import type { AIProvider, AltTextInput, AltTextResult, Recommendation } from './providers'
 import { DisabledAIProvider } from './providers'
 
-// Provider endpoint contract is documented in ARCHITECTURE.md; no vendor-specific SDK is required.
+// Provider endpoint contract is documented in docs/ARCHITECTURE.md; no vendor-specific SDK is required.
 class HTTPAIProvider implements AIProvider {
   private async call(operation: string, input: unknown) {
     const base = process.env.AI_BASE_URL

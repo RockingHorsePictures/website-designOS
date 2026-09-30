@@ -1,6 +1,8 @@
 import type { GlobalConfig, Field } from 'payload'
 import { authenticated, humanField } from '../access'
 import { linkFields } from '../fields/shared'
+import { safeLink } from '../../lib/urls'
+import { defaultLocale, localeLabel, supportedLocales } from '../../lib/locales'
 import { tokenDefaults, validColor } from '../../design-system/tokens'
 import { fontOptions, weightOptions, typographyDefaults } from '../../design-system/typography'
 
@@ -61,7 +63,7 @@ export const SiteSettings: GlobalConfig = {
         },
       ],
     },
-    { name: 'description', type: 'textarea' },
+    { name: 'description', type: 'textarea', localized: true },
     { name: 'email', type: 'email' },
     { name: 'phone', type: 'text' },
     {
@@ -102,10 +104,151 @@ export const SiteSettings: GlobalConfig = {
         },
       ],
     },
-    { name: 'footerText', type: 'textarea' },
+    { name: 'footerText', type: 'textarea', localized: true },
     { name: 'socialLinks', type: 'array', fields: linkFields },
     { name: 'legalLinks', type: 'array', fields: linkFields },
     { name: 'defaultShareImage', type: 'upload', relationTo: 'media' },
+    {
+      name: 'languages',
+      label: 'Additional languages',
+      type: 'select',
+      hasMany: true,
+      options: supportedLocales
+        .filter((l) => l.code !== defaultLocale)
+        .map((l) => ({ label: l.label, value: l.code })),
+      admin: {
+        description: `The main language is ${localeLabel(defaultLocale)}. Add languages to translate pages; untranslated fields show the main language. Translated pages live at /<code>/… (for example /fr/about).`,
+      },
+    },
+    {
+      type: 'collapsible',
+      label: 'Announcement bar',
+      admin: { initCollapsed: true },
+      fields: [
+        {
+          name: 'announcement',
+          type: 'group',
+          label: false,
+          fields: [
+            { name: 'enabled', type: 'checkbox', defaultValue: false },
+            { name: 'text', type: 'text', localized: true },
+            { name: 'linkLabel', type: 'text', localized: true },
+            {
+              name: 'linkURL',
+              type: 'text',
+              validate: (v: unknown) =>
+                !v || (typeof v === 'string' && safeLink(v)) || 'Use a safe link.',
+            },
+            { name: 'dismissible', type: 'checkbox', defaultValue: true },
+          ],
+        },
+      ],
+    },
+    {
+      type: 'collapsible',
+      label: 'Analytics & cookies',
+      admin: { initCollapsed: true },
+      fields: [
+        {
+          name: 'analytics',
+          type: 'group',
+          label: false,
+          // Decides who receives visitor data / site ownership proofs: people only, never AI.
+          access: { create: humanField, update: humanField },
+          fields: [
+            {
+              name: 'provider',
+              type: 'select',
+              defaultValue: 'none',
+              options: [
+                { label: 'None', value: 'none' },
+                { label: 'Vercel Web Analytics (cookie-free)', value: 'vercel' },
+                { label: 'Plausible (cookie-free)', value: 'plausible' },
+                { label: 'Fathom (cookie-free)', value: 'fathom' },
+                { label: 'Umami (cookie-free)', value: 'umami' },
+                { label: 'Google Analytics 4 (uses cookies; asks consent)', value: 'ga4' },
+              ],
+            },
+            {
+              name: 'siteId',
+              label: 'Site ID / domain / measurement ID',
+              type: 'text',
+              admin: {
+                condition: (_, sibling) => !['none', 'vercel'].includes(sibling?.provider),
+                description:
+                  'Plausible: your domain · Fathom: site ID · Umami: website ID · GA4: G-XXXXXXX',
+              },
+              validate: (v: unknown) =>
+                !v ||
+                (typeof v === 'string' && /^[A-Za-z0-9._-]{1,80}$/.test(v)) ||
+                'Check the ID.',
+            },
+            {
+              name: 'scriptURL',
+              label: 'Umami script URL',
+              type: 'text',
+              admin: { condition: (_, sibling) => sibling?.provider === 'umami' },
+              validate: (v: unknown) =>
+                !v || (typeof v === 'string' && /^https:\/\/[^\s"'<>]+$/.test(v)) || 'Use https.',
+            },
+          ],
+        },
+        {
+          name: 'consent',
+          type: 'group',
+          label: 'Cookie notice',
+          fields: [
+            {
+              name: 'message',
+              type: 'textarea',
+              localized: true,
+              defaultValue:
+                'We use cookies to understand how our website is used. You can accept or decline analytics cookies.',
+            },
+            { name: 'policyURL', type: 'text', label: 'Privacy policy link' },
+          ],
+        },
+      ],
+    },
+    {
+      type: 'collapsible',
+      label: 'Search engine verification',
+      admin: { initCollapsed: true },
+      fields: [
+        {
+          name: 'verification',
+          type: 'group',
+          label: false,
+          // Decides who receives visitor data / site ownership proofs: people only, never AI.
+          access: { create: humanField, update: humanField },
+          fields: [
+            { name: 'google', label: 'Google Search Console code', type: 'text' },
+            { name: 'bing', label: 'Bing Webmaster code', type: 'text' },
+          ],
+        },
+      ],
+    },
+    {
+      type: 'collapsible',
+      label: 'Page not found (404)',
+      admin: { initCollapsed: true },
+      fields: [
+        {
+          name: 'notFound',
+          type: 'group',
+          label: false,
+          fields: [
+            { name: 'heading', type: 'text', localized: true, defaultValue: 'Page not found' },
+            {
+              name: 'message',
+              type: 'textarea',
+              localized: true,
+              defaultValue: 'The page you were looking for has moved or no longer exists.',
+            },
+          ],
+        },
+      ],
+    },
   ],
 }
 export const Theme: GlobalConfig = {

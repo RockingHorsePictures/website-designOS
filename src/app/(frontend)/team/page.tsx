@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { siteCMS, siteView } from '@/lib/site'
+import { siteCMS, siteView, requireLocale } from '@/lib/site'
 import { previewUser } from '@/lib/cms'
 import { ContentImage } from '@/components/site/ContentView'
 import { absoluteURL } from '@/lib/urls'
@@ -33,6 +33,7 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 export default async function Team() {
+  await requireLocale()
   const docs = await people()
   const settings = await (await siteCMS()).findGlobal({ slug: 'site-settings' })
   const org = organizationSchema(settings)

@@ -1,5 +1,5 @@
 import { APIError, type CollectionConfig } from 'payload'
-import { authenticated } from '../access'
+import { authenticated, releasedAsset } from '../access'
 
 export const Fonts: CollectionConfig = {
   slug: 'fonts',
@@ -10,7 +10,12 @@ export const Fonts: CollectionConfig = {
     description:
       'Upload licensed WOFF2 or WOFF webfonts (up to 2 MB each). Add each regular, bold or italic file separately, then select them together in Theme tokens.',
   },
-  access: { read: () => true, create: authenticated, update: authenticated, delete: authenticated },
+  access: {
+    read: releasedAsset('fonts'),
+    create: authenticated,
+    update: authenticated,
+    delete: authenticated,
+  },
   upload: {
     staticDir: 'font-files',
     mimeTypes: ['font/woff2', 'font/woff'],

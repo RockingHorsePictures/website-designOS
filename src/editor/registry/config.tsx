@@ -13,8 +13,19 @@ import {
   type PersonSummary,
   type ClientSummary,
   type ContactDetails,
+  type PostSummary,
+  MotionWrap,
 } from '../../components/sections'
-import { sectionMeta, sectionTypes, type SectionProps, type SectionType } from './schema'
+import type { PublicForm } from '../../lib/form-definitions'
+import {
+  columnSlots,
+  motionPresets,
+  sectionMeta,
+  sectionTypes,
+  type AnySection,
+  type SectionProps,
+  type SectionType,
+} from './schema'
 
 // Records the composer can reference. Loaded by the authenticated editor page.
 export type EditorData = {
@@ -25,6 +36,11 @@ export type EditorData = {
   media: MediaSummary[]
   facts: { id: number; statement: string }[]
   contact: ContactDetails
+  posts: PostSummary[]
+  categories: { id: number; title: string }[]
+  forms: (PublicForm & { title: string })[]
+  blocks: { id: number; title: string; content: AnySection[] }[]
+  locale?: string
 }
 
 const options = <T extends string>(pairs: [T, string][]) =>
@@ -227,7 +243,8 @@ export function sectionFields(data: EditorData): { [T in SectionType]: Fields<Pr
         max: 48,
         arrayFields: { media: media(), caption: { type: 'text', label: 'Caption' } },
         defaultItemProps: { media: { image: null, alt: '', decorative: false }, caption: '' },
-        getItemSummary: (item, i) => item.caption || `Image ${(i ?? 0) + 1}`,
+        getItemSummary: (item: Record<string, string>, i?: number) =>
+          item.caption || `Image ${(i ?? 0) + 1}`,
       },
     },
     Video: {
@@ -273,7 +290,8 @@ export function sectionFields(data: EditorData): { [T in SectionType]: Fields<Pr
           link: { label: '', href: '' },
           media: { image: null, alt: '', decorative: false },
         },
-        getItemSummary: (item, i) => item.title || `Item ${(i ?? 0) + 1}`,
+        getItemSummary: (item: Record<string, string>, i?: number) =>
+          item.title || `Item ${(i ?? 0) + 1}`,
       },
     },
     Stats: {
@@ -288,7 +306,8 @@ export function sectionFields(data: EditorData): { [T in SectionType]: Fields<Pr
           factId: facts,
         },
         defaultItemProps: { value: '', label: '', factId: null },
-        getItemSummary: (item, i) => item.value || `Figure ${(i ?? 0) + 1}`,
+        getItemSummary: (item: Record<string, string>, i?: number) =>
+          item.value || `Figure ${(i ?? 0) + 1}`,
       },
     },
     Quotes: {
@@ -305,7 +324,8 @@ export function sectionFields(data: EditorData): { [T in SectionType]: Fields<Pr
           factId: facts,
         },
         defaultItemProps: { quote: '', name: '', role: '', organisation: '', factId: null },
-        getItemSummary: (item, i) => item.name || `Quote ${(i ?? 0) + 1}`,
+        getItemSummary: (item: Record<string, string>, i?: number) =>
+          item.name || `Quote ${(i ?? 0) + 1}`,
       },
     },
     Logos: {
@@ -333,7 +353,8 @@ export function sectionFields(data: EditorData): { [T in SectionType]: Fields<Pr
           answer: body('Answer'),
         },
         defaultItemProps: { question: '', answer: '' },
-        getItemSummary: (item, i) => item.question || `Question ${(i ?? 0) + 1}`,
+        getItemSummary: (item: Record<string, string>, i?: number) =>
+          item.question || `Question ${(i ?? 0) + 1}`,
       },
       structuredData: {
         type: 'radio',
@@ -396,7 +417,143 @@ export function sectionFields(data: EditorData): { [T in SectionType]: Fields<Pr
       submitLabel: { type: 'text', label: 'Button label' },
       successMessage: { type: 'text', label: 'Message after sending' },
     },
-  } as { [T in SectionType]: Fields<Props[T]> }
+    Steps: {
+      heading,
+      intro: body('Introduction'),
+      items: {
+        type: 'array',
+        label: 'Steps',
+        max: 12,
+        arrayFields: { title: { type: 'text', label: 'Step' }, body: body() },
+        defaultItemProps: { title: '', body: '' },
+        getItemSummary: (item: Record<string, string>, i?: number) =>
+          item.title || `Step ${(i ?? 0) + 1}`,
+      },
+    },
+    Pricing: {
+      heading,
+      intro: body('Introduction'),
+      plans: {
+        type: 'array',
+        label: 'Plans',
+        max: 6,
+        arrayFields: {
+          name: { type: 'text', label: 'Plan name' },
+          price: { type: 'text', label: 'Price (e.g. £49)' },
+          period: { type: 'text', label: 'Period (e.g. per month)' },
+          description: body('Description'),
+          features: { type: 'textarea', label: 'Features (one per line)' },
+          link: link('Button'),
+          highlighted: {
+            type: 'radio',
+            label: 'Highlight this plan',
+            options: [
+              { label: 'No', value: false },
+              { label: 'Yes', value: true },
+            ],
+          },
+        },
+        defaultItemProps: {
+          name: '',
+          price: '',
+          period: '',
+          description: '',
+          features: '',
+          link: { label: '', href: '' },
+          highlighted: false,
+        },
+        getItemSummary: (item: Record<string, string>, i?: number) =>
+          item.name || `Plan ${(i ?? 0) + 1}`,
+      },
+      note: body('Small print'),
+    },
+    Posts: {
+      heading,
+      mode: {
+        type: 'select',
+        options: options([
+          ['latest', 'Latest'],
+          ['featured', 'Featured'],
+          ['category', 'From a category'],
+          ['manual', 'Choose posts'],
+        ]),
+      },
+      categoryId: selectRecord(
+        'Category',
+        data.categories.map((c) => ({ id: c.id, label: c.title })),
+        'Any category',
+      ),
+      postIds: idPicker(
+        'Posts',
+        data.posts.map((p) => ({ id: p.id, label: p.title })),
+      ),
+      limit: { type: 'number', min: 1, max: 24 },
+    },
+    Form: {
+      heading,
+      body: body(),
+      formId: selectRecord(
+        'Form',
+        data.forms.map((f) => ({ id: Number(f.id), label: f.title })),
+        'Choose a form',
+      ),
+    },
+    Embed: {
+      title: { type: 'text', label: 'Title (describes the content for screen readers)' },
+      url: {
+        type: 'text',
+        label:
+          'Embed link (Google Maps, Calendly, Cal.com, Spotify, SoundCloud, Typeform, Google Forms, Airtable, Loom, Figma, CodePen)',
+      },
+      aspect: {
+        type: 'select',
+        options: options([
+          ['16:9', 'Wide (16:9)'],
+          ['4:3', 'Standard (4:3)'],
+          ['1:1', 'Square'],
+          ['tall', 'Tall (forms, calendars)'],
+        ]),
+      },
+      caption: { type: 'text', label: 'Caption' },
+    },
+    GlobalBlock: {
+      blockId: selectRecord(
+        'Reusable block',
+        data.blocks.map((b) => ({ id: b.id, label: b.title })),
+        'Choose a block',
+      ),
+    },
+    Columns: {
+      layout: {
+        type: 'select',
+        options: options([
+          ['1-1', 'Two equal columns'],
+          ['2-1', 'Wide + narrow'],
+          ['1-2', 'Narrow + wide'],
+          ['1-1-1', 'Three columns'],
+        ]),
+      },
+      align: {
+        type: 'select',
+        options: options([
+          ['start', 'Align to top'],
+          ['center', 'Centre vertically'],
+        ]),
+      },
+      first: { type: 'slot', label: 'First column', disallow: ['Columns'] },
+      second: { type: 'slot', label: 'Second column', disallow: ['Columns'] },
+      third: { type: 'slot', label: 'Third column (three-column layout)', disallow: ['Columns'] },
+    },
+  } as unknown as { [T in SectionType]: Fields<Props[T]> }
+}
+// Every section can choose a code-defined entrance animation.
+const motionField: Field = {
+  type: 'select',
+  label: 'Entrance animation',
+  options: motionPresets.map((m) => ({
+    value: m,
+    label: m === 'none' ? 'None' : m[0].toUpperCase() + m.slice(1),
+  })),
 }
 
 export function editorSectionData(data: EditorData): SectionData {
@@ -407,6 +564,10 @@ export function editorSectionData(data: EditorData): SectionData {
     team: data.team,
     clients: data.clients,
     contact: data.contact,
+    posts: data.posts,
+    forms: Object.fromEntries(data.forms.map((f) => [Number(f.id), f])),
+    blocks: Object.fromEntries(data.blocks.map((b) => [b.id, b.content])),
+    locale: data.locale,
   }
 }
 
@@ -421,12 +582,24 @@ export function createPuckConfig(data: EditorData, theme: Theme): Config<Props> 
       }) => React.ReactNode
       const component: ComponentConfig<Props[typeof type]> = {
         label: sectionMeta[type].label,
-        fields: fields[type] as Fields<Props[typeof type]>,
+        fields: { ...fields[type], motion: motionField } as Fields<Props[typeof type]>,
         defaultProps: sectionMeta[type].defaults as Props[typeof type],
         render: (props: Record<string, unknown>) => {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { id, puck, editMode, ...rest } = props
-          return <>{render({ props: rest, ctx })}</>
+          const { id, puck, editMode, motion, ...rest } = props
+          // Puck passes Columns slots as components that render editable drop zones.
+          const slot =
+            type === 'Columns'
+              ? (name: (typeof columnSlots)[number]) => {
+                  const Zone = rest[name] as React.ComponentType
+                  return typeof Zone === 'function' ? <Zone /> : null
+                }
+              : undefined
+          return (
+            <MotionWrap motion={motion as string}>
+              {render({ props: rest, ctx: slot ? { ...ctx, slot } : ctx })}
+            </MotionWrap>
+          )
         },
       }
       return [type, component]

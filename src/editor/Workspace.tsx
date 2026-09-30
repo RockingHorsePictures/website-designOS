@@ -1,6 +1,7 @@
 import { PublishingPanel } from './PublishingPanel'
 import { BuildGuide } from './BuildGuide'
 import { SiteHealth } from './SiteHealth'
+import { Dashboard } from './Dashboard'
 
 export function WorkspaceIcon() {
   return (
@@ -65,62 +66,18 @@ export function WorkspaceNav() {
 }
 
 export function WorkspaceHome() {
-  const live = environment() === 'Production'
   return (
     <div className="dos-home">
-      <header className="dos-welcome">
-        <div>
-          <p className="dos-eyebrow">DESIGN OS / WORKSPACE</p>
-          <h1>A home for your website.</h1>
-          <p>Edit your content, shape your brand, and keep everything up to date.</p>
-        </div>
-        <a className="dos-button dos-button--primary" href="/" target="_blank" rel="noreferrer">
-          View website <span aria-hidden="true">↗</span>
-        </a>
-      </header>
-      <div className="dos-shortcuts">
-        <a href="/admin/collections/pages">
-          <span className="dos-shortcut-icon" aria-hidden="true">
-            Aa
-          </span>
-          <div>
-            <strong>Edit your pages</strong>
-            <span>Copy, sections and publishing</span>
-          </div>
-          <span aria-hidden="true">→</span>
-        </a>
-        <a href="/admin/collections/media">
-          <span className="dos-shortcut-icon" aria-hidden="true">
-            ▧
-          </span>
-          <div>
-            <strong>Organise your assets</strong>
-            <span>Images and media descriptions</span>
-          </div>
-          <span aria-hidden="true">→</span>
-        </a>
-        <a href="/admin/globals/site-settings">
-          <span className="dos-shortcut-icon" aria-hidden="true">
-            ◈
-          </span>
-          <div>
-            <strong>Make it yours</strong>
-            <span>Company details and brand assets</span>
-          </div>
-          <span aria-hidden="true">→</span>
-        </a>
+      <Dashboard />
+      <div id="publishing" className="dos-reveal" style={{ ['--i' as string]: 4 }}>
+        <PublishingPanel />
       </div>
-      <aside className="dos-workspace-note">
-        <EnvironmentBadge />
-        <p>
-          {live
-            ? 'One editing workspace. Save to Preview, review it, then publish the whole site to Live.'
-            : 'This is a test workspace. Content and uploads here stay separate from Production; deploying code does not move them.'}
-        </p>
-      </aside>
-      <PublishingPanel />
-      <SiteHealth />
-      <BuildGuide />
+      <div className="dos-reveal" style={{ ['--i' as string]: 5 }}>
+        <SiteHealth />
+      </div>
+      <div className="dos-reveal" style={{ ['--i' as string]: 6 }}>
+        <BuildGuide />
+      </div>
     </div>
   )
 }

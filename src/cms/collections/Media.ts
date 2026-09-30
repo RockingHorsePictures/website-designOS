@@ -1,11 +1,16 @@
 import type { CollectionConfig } from 'payload'
-import { authenticated } from '../access'
+import { authenticated, releasedAsset, staffField } from '../access'
 import { mediaDescription } from '../hooks/media'
 
 export const Media: CollectionConfig = {
   slug: 'media',
   admin: { group: 'Website', useAsTitle: 'filename' },
-  access: { read: () => true, create: authenticated, update: authenticated, delete: authenticated },
+  access: {
+    read: releasedAsset('media'),
+    create: authenticated,
+    update: authenticated,
+    delete: authenticated,
+  },
   upload: {
     staticDir: 'media',
     mimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/avif'],
@@ -17,12 +22,13 @@ export const Media: CollectionConfig = {
   },
   hooks: { beforeChange: [mediaDescription] },
   fields: [
-    { name: 'alt', type: 'text', label: 'Image description' },
+    { name: 'alt', type: 'text', label: 'Image description', localized: true },
     { name: 'decorative', type: 'checkbox', defaultValue: false },
-    { name: 'caption', type: 'text' },
+    { name: 'caption', type: 'text', localized: true },
     {
       name: 'context',
       type: 'textarea',
+      access: { read: staffField },
       label: 'How is this image used?',
       admin: {
         description:
@@ -32,6 +38,7 @@ export const Media: CollectionConfig = {
     {
       name: 'altSource',
       type: 'select',
+      access: { read: staffField },
       options: ['manual', 'ai-draft', 'decorative', 'needs-review'],
       defaultValue: 'needs-review',
       admin: { readOnly: true },
@@ -41,6 +48,6 @@ export const Media: CollectionConfig = {
       type: 'ui',
       admin: { components: { Field: '/src/editor/MediaActions#MediaActions' } },
     },
-    { name: 'demo', type: 'checkbox', defaultValue: false },
+    { name: 'demo', type: 'checkbox', defaultValue: false, access: { read: staffField } },
   ],
 }
