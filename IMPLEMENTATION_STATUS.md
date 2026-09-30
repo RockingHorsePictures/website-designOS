@@ -179,3 +179,17 @@ Obtain explicit instruction to begin the visual design phase, then read this sta
 Published v0.2.1 at c4718a2219b5c760bf4f6af45977e1b18e7e065d. The public installer asset was launched successfully using npm 12 with the documented allow-remote flag. Full CI passed on the final code commit 0345801 (the tag adds handoff documentation only). Hosted demo admin, context export, branding and publication browser checks passed; temporary editor removed. Git history credential scan found no leaks.
 
 RHP maintenance PR: https://github.com/RockingHorsePictures/rhp-website/pull/1. Its existing design folder now contains the update and working private code-preview AI connection; pre-existing discovery changes are intact. Its GitHub/Vercel link was repaired and verified via the project API. Production rollout/account provisioning is pending the explicit approval requested in this conversation; no RHP Production migration, account creation or deployment has been performed. Private database snapshots were saved before repair.
+
+## 0.4.0 release record — 2026-09-30
+
+Published v0.4.0 with the installer asset. Development moved to `main` (now the default branch). The `stable` branch points at the v0.4.0 tag and is what the README's Deploy Button clones. PRs #1, #2 and #3 were merged by fast-forward, with CI green on the final commit.
+
+The product repository's Vercel project has no Production environment, so its "Ignored Build Step" skips Production builds from `main`. Branch pushes still build Previews.
+
+The demo database (Vercel Preview environment) was updated:
+- A private snapshot was taken first.
+- The three pending migrations were applied.
+- All 90 moved text values match the snapshot.
+- The idempotent seed added the new demo post, form, block and layout page.
+
+`designos-preview-rockinghorse.vercel.app` now serves v0.4.0. With no Live release, the public site is still "Coming soon". The saved Preview release, the blog and the new sign-in page render. The new demo content appears in Preview after the next Preview release from the admin.
