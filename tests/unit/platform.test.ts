@@ -87,7 +87,15 @@ describe('forms', () => {
       '::ffff:10.0.0.1',
     ])
       expect(privateAddress(ip), ip).toBe(true)
-    for (const ip of ['::ffff:7f00:1', '::127.0.0.1', '64:ff9b::a9fe:a9fe', '::ffff:0:7f00:1', '2002:7f00:1::', '198.18.0.1', 'not-an-ip'])
+    for (const ip of [
+      '::ffff:7f00:1',
+      '::127.0.0.1',
+      '64:ff9b::a9fe:a9fe',
+      '::ffff:0:7f00:1',
+      '2002:7f00:1::',
+      '198.18.0.1',
+      'not-an-ip',
+    ])
       expect(privateAddress(ip), ip).toBe(true)
     expect(privateAddress('8.8.8.8')).toBe(false)
     expect(privateAddress('2606:4700::1111')).toBe(false)
@@ -219,5 +227,19 @@ describe('Vercel Blob OIDC storage', () => {
     expect(blobStoreBaseURL('store_i1h9YyqmOudQwJsT')).toBe(
       'https://i1h9yyqmoudqwjst.public.blob.vercel-storage.com',
     )
+  })
+})
+
+describe('updates workflow', () => {
+  it('matches the repository workflow and links to a prefilled GitHub file', async () => {
+    const { readFileSync } = await import('node:fs')
+    const { updateWorkflow, updateWorkflowLink } = await import('@/lib/update-workflow')
+    expect(updateWorkflow).toBe(
+      readFileSync('.github/workflows/designos-update.yml', 'utf8').replaceAll('\r\n', '\n'),
+    )
+    const link = new URL(updateWorkflowLink('acme', 'site'))
+    expect(link.pathname).toBe('/acme/site/new/main')
+    expect(link.searchParams.get('filename')).toBe('.github/workflows/designos-update.yml')
+    expect(link.searchParams.get('value')).toBe(updateWorkflow)
   })
 })

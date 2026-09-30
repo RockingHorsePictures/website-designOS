@@ -3,7 +3,6 @@
 .cache
 .agents
 .git
-.github
 .next
 .vercel
 node_modules

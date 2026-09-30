@@ -2,6 +2,7 @@ import type { Payload, TypedUser } from 'payload'
 import { releaseID } from './releases'
 import { googleEnabled } from './auth/google'
 import { enabledLocales } from './locales'
+import { updateWorkflowLink } from './update-workflow'
 import pkg from '../../package.json'
 
 const recentCollections = [
@@ -127,6 +128,10 @@ export async function dashboard(payload: Payload, user: TypedUser) {
     } as never)
   ).docs.map((d) => ({ id: (d as { id: number }).id, title: (d as { title: string }).title }))
   const release = await latestRelease()
+  // Hosted websites made from Design OS (not the product repository itself).
+  const owner = process.env.VERCEL_GIT_REPO_OWNER
+  const repo = process.env.VERCEL_GIT_REPO_SLUG
+  const siteRepo = owner && repo && `${owner}/${repo}` !== 'RockingHorsePictures/website-designOS'
   const protection = (theme.protection || {}) as Record<string, { state?: string }>
   const checklist = [
     {
@@ -168,6 +173,20 @@ export async function dashboard(payload: Payload, user: TypedUser) {
             done: googleEnabled(),
             href: '/admin/collections/users',
           },
+          ...(siteRepo
+            ? [
+                {
+                  id: 'updates',
+                  label: 'Turn on automatic updates',
+                  done: process.env.DESIGNOS_UPDATE_WORKFLOW === 'on',
+                  href: updateWorkflowLink(
+                    owner,
+                    repo,
+                    process.env.VERCEL_GIT_COMMIT_REF || 'main',
+                  ),
+                },
+              ]
+            : []),
           {
             id: 'email',
             label: 'Connect email for enquiries and password resets',

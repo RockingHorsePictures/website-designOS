@@ -8,7 +8,7 @@ Click **Deploy with Vercel** in the [README](../README.md). The button installs 
 
 1. Copy Design OS into a new private repository in your GitHub account.
 2. Create a hosting project.
-3. Add a **Neon Postgres** database and a **Blob** store for images. Accept both when asked. In the Neon step, keep **Preview** switched on. Every proposed change to your site's code (for example an update) is built as a private test copy called a *code preview*, and this gives each one its own copy of the database, so testing never touches your live site.
+3. Add a **Neon Postgres** database and a **Blob** store for images. Accept both when asked. In the Neon step, keep **Preview** switched on. Every proposed change to your site's code (for example an update) is built as a private test copy called a _code preview_, and this gives each one its own copy of the database, so testing never touches your live site.
 4. Ask for **DESIGNOS_SETUP_CODE**. Choose any private phrase of 8 or more characters. You'll type it once in step 3; it stops anyone else claiming your new site first.
 
 The first deployment prepares the database and builds the site. Your address shows **Coming soon** until you publish.
@@ -16,7 +16,7 @@ The first deployment prepares the database and builds the site. Your address sho
 ## 2. Finish two settings
 
 1. **Separate test data.** In Vercel, open your project → **Settings** → **Environment Variables** → **Add**. Name: `DESIGNOS_PREVIEW_DATA`, value: `branch`, and tick **Preview** only. Save. Without this, code previews (including update pull requests) stop with a message instead of building. That's safe, but you couldn't review updates.
-2. **Allow automatic updates.** In GitHub, open your new repository → **Settings** → **Actions** → **General** → tick **Allow GitHub Actions to create and approve pull requests** → **Save**.
+2. **Allow automatic updates.** In GitHub, open your new repository → **Settings** → **Actions** → **General** → tick **Allow GitHub Actions to create and approve pull requests** → **Save**. After step 3, also click **Turn on automatic updates** on your admin Overview. Vercel's copy of Design OS leaves out GitHub's workflow folder, so this opens GitHub with the update workflow filled in. Click **Commit changes**.
 
 ## 3. Create your administrator
 
@@ -35,14 +35,14 @@ Only people you invite (**Overview → Invite a teammate**) can sign in; Google 
 
 Password resets, invitations and enquiry notifications need an email service. Any SMTP provider works: your email host, Resend, Postmark, Amazon SES and others. Add these in Vercel (Production):
 
-| Variable | Example (Resend) |
-| --- | --- |
-| `SMTP_HOST` | `smtp.resend.com` |
-| `SMTP_PORT` | `587` |
-| `SMTP_USER` | `resend` |
-| `SMTP_PASSWORD` | your API key |
-| `SMTP_FROM` | `website@yourcompany.com` (a verified sender) |
-| `SMTP_FROM_NAME` | `Acme website` (optional) |
+| Variable            | Example (Resend)                                                   |
+| ------------------- | ------------------------------------------------------------------ |
+| `SMTP_HOST`         | `smtp.resend.com`                                                  |
+| `SMTP_PORT`         | `587`                                                              |
+| `SMTP_USER`         | `resend`                                                           |
+| `SMTP_PASSWORD`     | your API key                                                       |
+| `SMTP_FROM`         | `website@yourcompany.com` (a verified sender)                      |
+| `SMTP_FROM_NAME`    | `Acme website` (optional)                                          |
 | `FORM_NOTIFY_EMAIL` | where enquiries go (optional; defaults to the Site Settings email) |
 
 Without email, enquiries are still stored under **Enquiries** in the admin.
@@ -95,23 +95,23 @@ Add languages in **Site Settings → Additional languages**. Translated pages ap
 
 ## Settings reference
 
-| Variable | When | Purpose |
-| --- | --- | --- |
-| `DESIGNOS_SETUP_CODE` | Required on hosted sites | Protects the one-time `/setup` page |
-| `DATABASE_URL`, `BLOB_STORE_ID` (or `BLOB_READ_WRITE_TOKEN`) | Added by Vercel | Database and image storage |
-| `DESIGNOS_PREVIEW_DATA=branch` | Preview only (step 2) | Confirms code previews use separate database copies |
-| `NEXT_PUBLIC_SERVER_URL` | With a custom domain | Your site's address for links, sitemaps and sign-in |
-| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Optional | Sign in with Google |
-| `GOOGLE_ALLOWED_DOMAIN` | Recommended with Google | Only accounts on your Google Workspace domain can sign in (invitations are still required) |
-| `PASSWORD_SIGN_IN` | Optional | `all` (default), `admins` or `off` |
-| `TRUSTED_PROXY=1` | Self-hosting only | Trust `X-Forwarded-For` from your own proxy for rate limits. Not needed on Vercel; without it, self-hosted sites share one rate-limit bucket |
-| `SMTP_*`, `FORM_NOTIFY_EMAIL` | Recommended | Email |
-| `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY` | Optional | Stronger spam protection |
-| `DESIGNOS_DEFAULT_LOCALE` | Before first deploy | Main content language (default `en`) |
-| `PAYLOAD_SECRET`, `CRON_SECRET` | Leave blank | Created automatically; set only if a developer asks you to |
-| `DESIGNOS_AUTO_MIGRATE=false` | Leave blank | Only if a developer manages database changes by hand |
-| `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION`, `INDEXNOW_KEY` | Optional | Search engine tools (verification codes can also go in Site Settings) |
-| `AI_ENABLED`, `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL`, `AI_DAILY_LIMIT` | Optional | Automatic image descriptions via your own AI service ([ARCHITECTURE.md](ARCHITECTURE.md#media-and-optional-ai)) |
+| Variable                                                                | When                     | Purpose                                                                                                                                      |
+| ----------------------------------------------------------------------- | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DESIGNOS_SETUP_CODE`                                                   | Required on hosted sites | Protects the one-time `/setup` page                                                                                                          |
+| `DATABASE_URL`, `BLOB_STORE_ID` (or `BLOB_READ_WRITE_TOKEN`)            | Added by Vercel          | Database and image storage                                                                                                                   |
+| `DESIGNOS_PREVIEW_DATA=branch`                                          | Preview only (step 2)    | Confirms code previews use separate database copies                                                                                          |
+| `NEXT_PUBLIC_SERVER_URL`                                                | With a custom domain     | Your site's address for links, sitemaps and sign-in                                                                                          |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`                              | Optional                 | Sign in with Google                                                                                                                          |
+| `GOOGLE_ALLOWED_DOMAIN`                                                 | Recommended with Google  | Only accounts on your Google Workspace domain can sign in (invitations are still required)                                                   |
+| `PASSWORD_SIGN_IN`                                                      | Optional                 | `all` (default), `admins` or `off`                                                                                                           |
+| `TRUSTED_PROXY=1`                                                       | Self-hosting only        | Trust `X-Forwarded-For` from your own proxy for rate limits. Not needed on Vercel; without it, self-hosted sites share one rate-limit bucket |
+| `SMTP_*`, `FORM_NOTIFY_EMAIL`                                           | Recommended              | Email                                                                                                                                        |
+| `TURNSTILE_SITE_KEY`, `TURNSTILE_SECRET_KEY`                            | Optional                 | Stronger spam protection                                                                                                                     |
+| `DESIGNOS_DEFAULT_LOCALE`                                               | Before first deploy      | Main content language (default `en`)                                                                                                         |
+| `PAYLOAD_SECRET`, `CRON_SECRET`                                         | Leave blank              | Created automatically; set only if a developer asks you to                                                                                   |
+| `DESIGNOS_AUTO_MIGRATE=false`                                           | Leave blank              | Only if a developer manages database changes by hand                                                                                         |
+| `GOOGLE_SITE_VERIFICATION`, `BING_SITE_VERIFICATION`, `INDEXNOW_KEY`    | Optional                 | Search engine tools (verification codes can also go in Site Settings)                                                                        |
+| `AI_ENABLED`, `AI_BASE_URL`, `AI_API_KEY`, `AI_MODEL`, `AI_DAILY_LIMIT` | Optional                 | Automatic image descriptions via your own AI service ([ARCHITECTURE.md](ARCHITECTURE.md#media-and-optional-ai))                              |
 
 ## Good to know
 

@@ -1,9 +1,14 @@
+import { existsSync } from 'node:fs'
 import './src/lib/env-defaults.mjs'
 import { withPayload } from '@payloadcms/next/withPayload'
 
 export default withPayload({
   reactStrictMode: true,
   poweredByHeader: false,
+  // Whether this deployment's repository has the updates workflow (Overview checklist).
+  env: {
+    DESIGNOS_UPDATE_WORKFLOW: existsSync('.github/workflows/designos-update.yml') ? 'on' : '',
+  },
   images: { remotePatterns: [{ protocol: 'https', hostname: '*.public.blob.vercel-storage.com' }] },
   async headers() {
     return [
