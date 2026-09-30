@@ -180,6 +180,12 @@ Published v0.2.1 at c4718a2219b5c760bf4f6af45977e1b18e7e065d. The public install
 
 RHP maintenance PR: https://github.com/RockingHorsePictures/rhp-website/pull/1. Its existing design folder now contains the update and working private code-preview AI connection; pre-existing discovery changes are intact. Its GitHub/Vercel link was repaired and verified via the project API. Production rollout/account provisioning is pending the explicit approval requested in this conversation; no RHP Production migration, account creation or deployment has been performed. Private database snapshots were saved before repair.
 
+## 0.4.1 — Blob stores connected by the Deploy Button
+
+The first real Deploy Button run failed with "Hosted media requires persistent Blob storage." Vercel now connects new Blob stores with `BLOB_STORE_ID` and the deployment's OIDC identity, and no longer adds `BLOB_READ_WRITE_TOKEN`. Payload's adapter (including 3.90) only accepts tokens.
+
+`src/cms/storage/vercel-blob-oidc.ts` is a small adapter covering the same public-file behaviour using OIDC credentials, on `@vercel/blob` 2.8. Token-based stores (the demo, installer sites) keep Payload's adapter unchanged. Locally pulled OIDC tokens are development-scoped, so they are rejected by Blob stores connected to Preview and Production only. Verification is therefore on a real deployment.
+
 ## 0.4.0 release record — 2026-09-30
 
 Published v0.4.0 with the installer asset. Development moved to `main` (now the default branch). The `stable` branch points at the v0.4.0 tag and is what the README's Deploy Button clones. PRs #1, #2 and #3 were merged by fast-forward, with CI green on the final commit.

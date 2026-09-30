@@ -33,7 +33,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     )
   try {
     let bytes: Buffer
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
+    if (process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID) {
       const url = new URL(media.url || '')
       if (!url.hostname.endsWith('.public.blob.vercel-storage.com'))
         throw new Error('Unexpected media host')

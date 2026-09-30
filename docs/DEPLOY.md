@@ -98,7 +98,7 @@ Add languages in **Site Settings → Additional languages**. Translated pages ap
 | Variable | When | Purpose |
 | --- | --- | --- |
 | `DESIGNOS_SETUP_CODE` | Required on hosted sites | Protects the one-time `/setup` page |
-| `DATABASE_URL`, `BLOB_READ_WRITE_TOKEN` | Added by Vercel | Database and image storage |
+| `DATABASE_URL`, `BLOB_STORE_ID` (or `BLOB_READ_WRITE_TOKEN`) | Added by Vercel | Database and image storage |
 | `DESIGNOS_PREVIEW_DATA=branch` | Preview only (step 2) | Confirms code previews use separate database copies |
 | `NEXT_PUBLIC_SERVER_URL` | With a custom domain | Your site's address for links, sitemaps and sign-in |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Optional | Sign in with Google |

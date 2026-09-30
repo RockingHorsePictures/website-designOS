@@ -212,3 +212,12 @@ describe('embeds, hosting defaults and layout', () => {
     expect(findings.some((f) => /embed a title/.test(f.message))).toBe(true)
   })
 })
+
+describe('Vercel Blob OIDC storage', () => {
+  it('derives the public host from a connected store ID', async () => {
+    const { blobStoreBaseURL } = await import('@/cms/storage/vercel-blob-oidc')
+    expect(blobStoreBaseURL('store_i1h9YyqmOudQwJsT')).toBe(
+      'https://i1h9yyqmoudqwjst.public.blob.vercel-storage.com',
+    )
+  })
+})

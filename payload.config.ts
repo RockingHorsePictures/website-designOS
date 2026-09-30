@@ -5,6 +5,7 @@ import { buildConfig } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
+import { vercelBlobOIDCStorage } from './src/cms/storage/vercel-blob-oidc'
 import sharp from 'sharp'
 import { Users } from './src/cms/collections/Users'
 import { Pages } from './src/cms/collections/Pages'
@@ -39,8 +40,14 @@ if (
   (process.env.DATABASE_ENV !== 'production' || process.env.SITE_ENV !== 'production')
 )
   throw new Error('Vercel production requires explicitly configured production resources.')
-if (process.env.VERCEL && !process.env.BLOB_READ_WRITE_TOKEN)
-  throw new Error('Hosted media requires persistent Blob storage.')
+// Blob stores connect with a read-write token (older stores, the installer) or, when connected
+// by the Deploy Button, a store ID plus the deployment's OIDC identity.
+const blobToken = process.env.BLOB_READ_WRITE_TOKEN
+const blobStoreID = blobToken ? undefined : process.env.BLOB_STORE_ID
+if (process.env.VERCEL && !blobToken && !blobStoreID)
+  throw new Error(
+    'Hosted media requires persistent Blob storage. In Vercel, open Storage, create a Blob store and connect it to this project, then redeploy.',
+  )
 
 export default buildConfig({
   i18n: {
@@ -184,11 +191,13 @@ export default buildConfig({
   },
   typescript: { outputFile: path.resolve(dirname, 'src/payload-types.ts') },
   plugins: [
-    vercelBlobStorage({
-      enabled: Boolean(process.env.BLOB_READ_WRITE_TOKEN),
-      collections: { media: true, fonts: true },
-      token: process.env.BLOB_READ_WRITE_TOKEN,
-    }),
+    blobStoreID
+      ? vercelBlobOIDCStorage(blobStoreID, ['media', 'fonts'])
+      : vercelBlobStorage({
+          enabled: Boolean(blobToken),
+          collections: { media: true, fonts: true },
+          token: blobToken,
+        }),
   ],
   onInit: async (payload) => {
     if (!process.env.VERCEL) return
