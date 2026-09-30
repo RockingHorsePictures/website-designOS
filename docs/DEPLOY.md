@@ -4,7 +4,7 @@ This takes about fifteen minutes and needs no software on your computer: just a 
 
 ## 1. Deploy
 
-Click **Deploy with Vercel** in the [README](../README.md). The button installs the latest stable release. (It becomes available when version 0.4 is released; until then use the [local installer](NEW_SITE.md).) Vercel will:
+Click **Deploy with Vercel** in the [README](../README.md). The button installs the latest stable release. Vercel will:
 
 1. Copy Design OS into a new private repository in your GitHub account.
 2. Create a hosting project.
