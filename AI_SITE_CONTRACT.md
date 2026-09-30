@@ -45,7 +45,7 @@ Code deployments update renderers and the admin together, and migrate that deplo
 
 ## Starting a later design phase
 
-Read START_HERE.md for the workspace entry point, docs/DESIGN_HANDOFF.md for the practical workflow and docs/DEPLOY.md when creating a separate company's site. Work on a feature branch of the site's own repository (in the Design OS product repository itself, branch from `foundation/design-os` until it is merged to `main`).
+Read START_HERE.md for the workspace entry point, docs/DESIGN_HANDOFF.md for the practical workflow and docs/DEPLOY.md when creating a separate company's site. Work on a feature branch of the site's own repository (`main` in the Design OS product repository too).
 
 Once the owner asks, inventory references and agree the sitemap, templates and visual direction. Design normal React components first, then expose their smallest useful editable API. Replace neutral proof renderers while retaining their content contracts or supply migrations. Use the existing authentication, collections, search helpers, preview routes, media and deployment wiring. Run unit, integration, browser and accessibility tests before review.
 

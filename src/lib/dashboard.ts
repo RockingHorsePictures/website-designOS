@@ -172,7 +172,7 @@ export async function dashboard(payload: Payload, user: TypedUser) {
             id: 'email',
             label: 'Connect email for enquiries and password resets',
             done: Boolean(process.env.SMTP_HOST),
-            href: 'https://github.com/RockingHorsePictures/website-designOS/blob/foundation/design-os/docs/DEPLOY.md#email',
+            href: 'https://github.com/RockingHorsePictures/website-designOS/blob/stable/docs/DEPLOY.md#email',
           },
         ]
       : []),

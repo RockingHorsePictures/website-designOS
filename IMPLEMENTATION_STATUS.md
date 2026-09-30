@@ -78,9 +78,8 @@ Requested by the owner on 2026-09-30:
 
 **Release prerequisites**
 
-- The Deploy Button in the README clones the `stable` branch, which must be created (or moved) when 0.4.0 is released.
-- The installer (`installer/release.json`) still points at v0.2.1 until that tag exists.
-- The localization migration drops columns, so take a Neon backup before the first production deploy.
+- Each release moves the `stable` branch to its tag; the README's Deploy Button clones `stable`.
+- The localization migration drops columns. Existing sites should take a Neon backup before deploying 0.4.
 
 
 ## Version 0.3 (unreleased, branch `feature/v0.3-toolkit`) — section library, forms and AI toolkit
@@ -120,7 +119,7 @@ Requested by the owner on 2026-09-29: audit and fix the app, make it a complete 
 - Local verification: all migrations applied to a fresh disposable PostgreSQL database; seed and release/lock integration passed; 13 unit tests, seven installer tests and eight browser scenarios passed. Installer tests cover origin/token restrictions, shared-resource rejection before migration, setup completion, blocked deployments, GitHub-app account steps and upgrade conflicts. The production build, lint and type checks passed.
 - Installer verification: an isolated private repository and Vercel project were provisioned through the real workflow, with two Neon databases and two Blob stores. Migrations, administrator initialization, Production and code Preview deployments, GitHub connection, bootstrap cleanup, checkpoint resume and the site's completion record succeeded. Browser verification passed on the installed Production site: administrator login, saved Preview, Live publication and unpublication. The smoke test caught a commit-author mismatch; the installer now uses the connected GitHub identity and reports blocked deployments explicitly. Setup screens also passed desktop/mobile and light/dark accessibility checks.
 - Hosted app verification: revision 9508307 passed both GitHub CI runs and the hosted admin, font/logo and publishing/lock browser scenarios. Preview database migration passed after a private data snapshot. Temporary editors were removed and existing approval states restored. The demo is left unpublished with a saved content Preview at https://designos-preview-rockinghorse.vercel.app/preview; its admin remains at /admin. Deployment dpl_D8QpdTVdkHPAyiEjYC2ceuE8UsAt contains the verified app changes.
-- Public source: RockingHorsePictures/website-designOS is public and a GitHub template. Its default branch is foundation/design-os. The existing Vercel project's production branch remains main, so publishing the template does not deploy the app into its unconfigured Production environment. All publishable Git history passed a secret scan before changing visibility.
+- Public source: RockingHorsePictures/website-designOS is public and a GitHub template. Its default branch was foundation/design-os until 0.4.0, when development moved to `main`. The existing Vercel project's production branch remains main, so publishing the template does not deploy the app into its unconfigured Production environment. All publishable Git history passed a secret scan before changing visibility.
 - Current constraints: snapshots support release format 1 and up to 8 MB of content. Assets are conservatively retained by all stored releases; there is no release-pruning UI. Whole-site scheduled publication, email delivery/password reset, managed backups and custom domains remain launch configuration work. Code/database administrators must follow the AI contract; CMS locks cannot sandbox direct infrastructure access.
 
 ## Working foundation

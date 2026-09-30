@@ -12,7 +12,7 @@ Every site should look made for its company. The CMS structure (sections, record
 
 ## Starting point
 
-Use the site's own repository and start a design branch from its main branch (in the Design OS product repository itself, from `foundation/design-os` until it is merged). Read AI_SITE_CONTRACT.md, docs/SECTIONS.md, IMPLEMENTATION_STATUS.md, docs/ARCHITECTURE.md and EDITOR_GUIDE.md before editing. Run the application and inspect its editor.
+Use the site's own repository and start a design branch from its main branch. Read AI_SITE_CONTRACT.md, docs/SECTIONS.md, IMPLEMENTATION_STATUS.md, docs/ARCHITECTURE.md and EDITOR_GUIDE.md before editing. Run the application and inspect its editor.
 
 ## Inputs to provide
 
