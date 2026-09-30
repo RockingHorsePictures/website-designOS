@@ -7,7 +7,7 @@ Most people should use the **Deploy with Vercel** button (see docs/DEPLOY.md): i
 With Node.js 22+ and Git installed, run:
 
 ```sh
-npx --yes --allow-remote=all --package="https://github.com/RockingHorsePictures/website-designOS/releases/download/v0.4.1/design-os-installer-0.4.1.tgz" design-os
+npx --yes --allow-remote=all --package="https://github.com/RockingHorsePictures/website-designOS/releases/download/v0.4.2/design-os-installer-0.4.2.tgz" design-os
 ```
 
 The flag permits downloading the installer URL for this one command (npm 12 otherwise blocks URL packages with `EALLOWREMOTE`); it does not change your npm settings. Copy the plain command, without Markdown link formatting. Each release publishes its own installer URL on the GitHub Releases page. It opens a local browser wizard. Sign in to Vercel using its browser flow. The wizard reuses a GitHub Git credential when available, or accepts a temporary GitHub token with repo/workflow permission; organisation access may need approval from that organisation. Credentials never go to a Design OS service.

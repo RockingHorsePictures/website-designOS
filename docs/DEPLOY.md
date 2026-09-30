@@ -22,6 +22,7 @@ The first deployment prepares the database and builds the site. Your address sho
       - In your project's left sidebar, click **Storage**, then click your Neon database (its name starts with `neon-`).
       - In the database's left sidebar, click **Projects**. On your project's row, click the **⋮** menu at the far right and choose **Update Project Connection**.
       - In the **Configure** window, under **Create Database Branch For Deployment**, tick **Preview** only. Leave **Production** unticked, or every live deploy would start from a fresh database copy. Leave everything else unchanged, and click **Save Changes**.
+   4. As a safety net, every code preview checks that it isn't using the live database. If it is, it stops before changing anything and says how to fix it.
 2. **Allow automatic updates.** In GitHub, open your new repository → **Settings** → **Actions** → **General** → tick **Allow GitHub Actions to create and approve pull requests** → **Save**. After step 3, also click **Turn on automatic updates** on your admin Overview. Vercel's copy of Design OS leaves out GitHub's workflow folder, so this opens GitHub with the update workflow filled in. Click **Commit changes**.
 
 ## 3. Create your administrator

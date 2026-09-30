@@ -14,6 +14,16 @@ if (vercel === 'preview' && process.env.DATABASE_ENV !== 'preview') {
   )
   process.exit(1)
 }
+const databaseURL = process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL
+if (vercel === 'preview' && databaseURL) {
+  const { isProductionDatabase, withDatabase } = await import('./database-identity.mjs')
+  if (await withDatabase(databaseURL, (client) => isProductionDatabase(databaseURL, client))) {
+    console.error(
+      '\nThis code preview is connected to your live database, so it has stopped before changing anything. In Vercel → Storage → your Neon database → Projects → ⋮ → Update Project Connection, tick Preview under "Create Database Branch For Deployment", save, then redeploy this preview. (Or remove DESIGNOS_PREVIEW_DATA from the Preview environment.) Your live site is not affected.\n',
+    )
+    process.exit(1)
+  }
+}
 // The Design OS product repository shares a demo database between branches, so it only migrates
 // when asked. Websites made from it migrate automatically.
 const productRepo =
@@ -25,5 +35,10 @@ const migrate = productRepo
 if (migrate && process.env.DATABASE_URL) {
   console.log(`Applying database migrations for ${process.env.DATABASE_ENV || 'this'} environment…`)
   run(process.execPath, ['node_modules/payload/bin.js', 'migrate'])
+}
+// Remember which database server is live, so previews can prove they are not using it.
+if (vercel === 'production' && process.env.DATABASE_ENV === 'production' && databaseURL) {
+  const { recordProductionDatabase, withDatabase } = await import('./database-identity.mjs')
+  await withDatabase(databaseURL, (client) => recordProductionDatabase(databaseURL, client))
 }
 run(process.execPath, ['node_modules/next/dist/bin/next', 'build', '--webpack'])

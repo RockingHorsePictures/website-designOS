@@ -243,3 +243,18 @@ describe('updates workflow', () => {
     expect(link.searchParams.get('value')).toBe(updateWorkflow)
   })
 })
+
+describe('preview database check', () => {
+  it('treats pooled and direct hosts of one database as the same, and branches as different', async () => {
+    const { databaseFingerprint } = await import('../../scripts/database-identity.mjs')
+    const live = databaseFingerprint(
+      'postgres://u:p@ep-cool-sun-123-pooler.eu-west-2.aws.neon.tech/db',
+    )
+    expect(databaseFingerprint('postgres://u:p@ep-cool-sun-123.eu-west-2.aws.neon.tech/db')).toBe(
+      live,
+    )
+    expect(
+      databaseFingerprint('postgres://u:p@ep-other-456-pooler.eu-west-2.aws.neon.tech/db'),
+    ).not.toBe(live)
+  })
+})

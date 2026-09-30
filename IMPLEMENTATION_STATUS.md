@@ -180,6 +180,12 @@ Published v0.2.1 at c4718a2219b5c760bf4f6af45977e1b18e7e065d. The public install
 
 RHP maintenance PR: https://github.com/RockingHorsePictures/rhp-website/pull/1. Its existing design folder now contains the update and working private code-preview AI connection; pre-existing discovery changes are intact. Its GitHub/Vercel link was repaired and verified via the project API. Production rollout/account provisioning is pending the explicit approval requested in this conversation; no RHP Production migration, account creation or deployment has been performed. Private database snapshots were saved before repair.
 
+## 0.4.2 — Preview database safety check
+
+Code previews trust `DESIGNOS_PREVIEW_DATA=branch`, but that setting can be added while Neon preview branching is off. The first Deploy Button site had exactly that. In that state a preview would migrate and edit the live database.
+
+Production builds now record a fingerprint of their database server in `designos_database_identity`. A Neon branch copies that row but runs on a different server, so a preview build that still matches the live fingerprint stops before migrating, with instructions (`scripts/database-identity.mjs`). Verified against local Postgres: with no record, the preview is allowed; on the same server it is blocked; on a different server it is allowed.
+
 ## 0.4.1 — Blob stores connected by the Deploy Button
 
 The first real Deploy Button run failed with "Hosted media requires persistent Blob storage." Vercel now connects new Blob stores with `BLOB_STORE_ID` and the deployment's OIDC identity, and no longer adds `BLOB_READ_WRITE_TOKEN`. Payload's adapter (including 3.90) only accepts tokens.
