@@ -16,6 +16,8 @@ const origin = (page: Page) => ({ Origin: new URL(page.url()).origin })
 test('dashboard, new page dialog and composer', async ({ page }) => {
   const errors: string[] = []
   page.on('pageerror', (error) => errors.push(error.message))
+  // Contrast is checked on settled colours, not mid-way through the entrance animations.
+  await page.emulateMedia({ reducedMotion: 'reduce' })
   await login(page)
   await expect(
     page.getByRole('heading', { level: 1, name: /Good (morning|afternoon|evening)/ }),
