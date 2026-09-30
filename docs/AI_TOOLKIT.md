@@ -29,15 +29,15 @@ Claude also picks these skills up automatically when a request matches, for exam
 
 ## MCP tools
 
-| Tool                                     | Notes                                                                                                                                          |
-| ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `designos_check`                         | Which environments are reachable and each account's scope                                                                                      |
-| `designos_context`                       | Refreshes `.designos/ai-context.json`: content, editable fields, approval states                                                               |
-| `cms_read` / `cms_write`                 | Read any protected collection or global; write drafts to `preview` or `local`. Pass `locale` (for example `fr`) to read or write a translation |
-| `cms_upload_image`                       | Upload an image from inside the site folder, with alt text                                                                                     |
-| `list_sections` / `validate_composition` | Section catalog as JSON schema; validate a page before saving                                                                                  |
-| `site_health`                            | Whole-site CMS checks (links, orphans, duplicates, alt text, claims, brand details)                                                            |
-| `audit_site`                             | Crawls a URL and writes `report.md` / `report.json` under `.designos/audits/`                                                                  |
+| Tool                                     | Notes                                                                                                                                                                                                                           |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `designos_check`                         | Which environments are reachable and each account's scope                                                                                                                                                                       |
+| `designos_context`                       | Refreshes `.designos/ai-context.json`: content, editable fields, approval states                                                                                                                                                |
+| `cms_read` / `cms_write`                 | Read any protected collection or global; write drafts to `preview` or `local`. Pass `locale` (for example `fr`) to read or write a translation. Set `position` (1 is first) on an ordered record to move it in the custom order |
+| `cms_upload_image`                       | Upload an image from inside the site folder, with alt text                                                                                                                                                                      |
+| `list_sections` / `validate_composition` | Section catalog as JSON schema; validate a page before saving                                                                                                                                                                   |
+| `site_health`                            | Whole-site CMS checks (links, orphans, duplicates, alt text, claims, brand details)                                                                                                                                             |
+| `audit_site`                             | Crawls a URL and writes `report.md` / `report.json` under `.designos/audits/`                                                                                                                                                   |
 
 Every CMS call goes through `scripts/ai.mjs`, which uses the installer-provisioned AI accounts. Production is read-only. AI accounts cannot approve, unlock, delete, verify facts, sign off factual review or publish. Locked fields are rejected by the CMS itself. Credentials never appear in tool output.
 

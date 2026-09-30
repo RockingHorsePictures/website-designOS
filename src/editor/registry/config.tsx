@@ -1,3 +1,4 @@
+import { listingOrderOptions } from '../../lib/ordering'
 import type { ComponentConfig, Config, Field, Fields } from '@puckeditor/core'
 import type { Theme } from '../../payload-types'
 import { tokenStyle } from '../../design-system/tokens'
@@ -177,6 +178,7 @@ export function sectionFields(data: EditorData): { [T in SectionType]: Fields<Pr
           ['manual', 'Choose projects'],
         ]),
       },
+      order: orderField,
       projectIds: idPicker(
         'Case studies',
         data.projects.map((p) => ({ id: p.id, label: p.title })),
@@ -337,6 +339,7 @@ export function sectionFields(data: EditorData): { [T in SectionType]: Fields<Pr
           ['manual', 'Choose clients'],
         ]),
       },
+      order: orderField,
       clientIds: idPicker(
         'Clients',
         data.clients.map((c) => ({ id: c.id, label: c.name })),
@@ -374,6 +377,7 @@ export function sectionFields(data: EditorData): { [T in SectionType]: Fields<Pr
           ['manual', 'Choose services'],
         ]),
       },
+      order: orderField,
       serviceIds: idPicker(
         'Services',
         data.services.map((s) => ({ id: s.id, label: s.title })),
@@ -389,6 +393,7 @@ export function sectionFields(data: EditorData): { [T in SectionType]: Fields<Pr
           ['manual', 'Choose people'],
         ]),
       },
+      order: orderField,
       memberIds: idPicker(
         'People',
         data.team.map((p) => ({ id: p.id, label: `${p.name} (${p.role})` })),
@@ -478,6 +483,7 @@ export function sectionFields(data: EditorData): { [T in SectionType]: Fields<Pr
           ['manual', 'Choose posts'],
         ]),
       },
+      order: orderField,
       categoryId: selectRecord(
         'Category',
         data.categories.map((c) => ({ id: c.id, label: c.title })),
@@ -547,6 +553,15 @@ export function sectionFields(data: EditorData): { [T in SectionType]: Fields<Pr
   } as unknown as { [T in SectionType]: Fields<Props[T]> }
 }
 // Every section can choose a code-defined entrance animation.
+// Order for list sections (ignored when records are chosen by hand: that order is kept).
+const orderField: Field = {
+  type: 'select',
+  label: 'Order',
+  options: [
+    { label: 'Site default (Site Settings → Listing order)', value: 'default' },
+    ...listingOrderOptions,
+  ],
+}
 const motionField: Field = {
   type: 'select',
   label: 'Entrance animation',

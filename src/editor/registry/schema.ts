@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { embedAllowed, safeLink } from '../../lib/urls'
+import { listingOrders } from '../../lib/ordering'
 
 // Section contracts: the stored shape of every editor-facing section. Pure TypeScript so the CMS
 // config, CLI tools and tests can import it. Renderers live in src/components/sections and Puck
@@ -20,6 +21,9 @@ export const mediaRef = z
 export const linkRef = z.object({ label: short, href: optionalHref }).strict()
 const factRef = id.nullable()
 const mode = z.enum(['all', 'manual'])
+// How a list section orders its records; 'default' follows Site Settings → Listing order.
+export const sectionOrders = ['default', ...listingOrders] as const
+const order = z.enum(sectionOrders).optional()
 
 // Entrance animation presets, defined in code (src/styles/proof.css). Optional on every section;
 // reduced-motion preferences always turn them off.
@@ -41,6 +45,7 @@ const leafSchemas = {
   SelectedProjects: section('SelectedProjects', {
     heading: text,
     mode: z.enum(['latest', 'featured', 'manual']),
+    order,
     projectIds: z.array(id).max(24),
     limit: z.number().int().min(1).max(24),
   }),
@@ -102,7 +107,7 @@ const leafSchemas = {
       )
       .max(12),
   }),
-  Logos: section('Logos', { heading: text, mode, clientIds: z.array(id).max(48) }),
+  Logos: section('Logos', { heading: text, mode, order, clientIds: z.array(id).max(48) }),
   FAQ: section('FAQ', {
     heading: text,
     items: z.array(z.object({ question: short, answer: text }).strict()).max(40),
@@ -111,12 +116,14 @@ const leafSchemas = {
   Services: section('Services', {
     heading: text,
     mode,
+    order,
     serviceIds: z.array(id).max(48),
     limit: z.number().int().min(1).max(48),
   }),
   Team: section('Team', {
     heading: text,
     mode,
+    order,
     memberIds: z.array(id).max(100),
     limit: z.number().int().min(1).max(100),
   }),
@@ -156,6 +163,7 @@ const leafSchemas = {
   Posts: section('Posts', {
     heading: text,
     mode: z.enum(['latest', 'featured', 'category', 'manual']),
+    order,
     categoryId: id.nullable(),
     postIds: z.array(id).max(24),
     limit: z.number().int().min(1).max(24),
@@ -220,7 +228,7 @@ export const sectionMeta: {
     label: 'Selected case studies',
     category: 'Records',
     description: 'Case study records, by latest, featured or chosen.',
-    defaults: { heading: '', mode: 'latest', projectIds: [], limit: 3 },
+    defaults: { heading: '', mode: 'latest', order: 'default', projectIds: [], limit: 3 },
   },
   Hero: {
     label: 'Hero',
@@ -297,7 +305,7 @@ export const sectionMeta: {
     label: 'Client logos',
     category: 'Proof',
     description: 'Logos from Client records.',
-    defaults: { heading: '', mode: 'all', clientIds: [] },
+    defaults: { heading: '', mode: 'all', order: 'default', clientIds: [] },
   },
   FAQ: {
     label: 'Questions and answers',
@@ -309,13 +317,13 @@ export const sectionMeta: {
     label: 'Services',
     category: 'Records',
     description: 'Service records, all or chosen.',
-    defaults: { heading: '', mode: 'all', serviceIds: [], limit: 12 },
+    defaults: { heading: '', mode: 'all', order: 'default', serviceIds: [], limit: 12 },
   },
   Team: {
     label: 'Team',
     category: 'Records',
     description: 'Team Member records, all or chosen.',
-    defaults: { heading: '', mode: 'all', memberIds: [], limit: 24 },
+    defaults: { heading: '', mode: 'all', order: 'default', memberIds: [], limit: 24 },
   },
   Contact: {
     label: 'Contact',
@@ -346,7 +354,14 @@ export const sectionMeta: {
     label: 'Blog posts',
     category: 'Records',
     description: 'Latest, featured, by category or chosen blog posts.',
-    defaults: { heading: '', mode: 'latest', categoryId: null, postIds: [], limit: 3 },
+    defaults: {
+      heading: '',
+      mode: 'latest',
+      order: 'default',
+      categoryId: null,
+      postIds: [],
+      limit: 3,
+    },
   },
   Form: {
     label: 'Form',

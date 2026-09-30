@@ -28,7 +28,15 @@ export function editableFields(
     if (
       'name' in field &&
       field.name &&
-      !['protection', 'publishedAt', '_status', 'updatedAt', 'createdAt'].includes(field.name)
+      ![
+        'protection',
+        'publishedAt',
+        '_status',
+        'updatedAt',
+        'createdAt',
+        'position',
+        '_order',
+      ].includes(field.name)
     )
       return [
         {

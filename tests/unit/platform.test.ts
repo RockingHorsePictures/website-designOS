@@ -258,3 +258,54 @@ describe('preview database check', () => {
     ).not.toBe(live)
   })
 })
+
+describe('listing order', () => {
+  const docs = [
+    { id: 1, title: 'banana', _order: 'a1', publishedAt: '2026-01-02' },
+    { id: 2, title: 'Apple', _order: 'a105', publishedAt: '2026-03-01' },
+    { id: 3, title: 'cherry', _order: 'a2', publishedAt: '2025-12-31' },
+  ]
+  it('orders by custom key (by character code), dates and titles', async () => {
+    const { sortDocs } = await import('@/lib/ordering')
+    const ids = (order: Parameters<typeof sortDocs>[2]) =>
+      sortDocs(docs, 'services', order).map((d) => d.id)
+    // 'a105' sits between 'a1' and 'a2'; a numeric locale compare would put it last.
+    expect(ids('custom')).toEqual([1, 2, 3])
+    expect(ids('newest')).toEqual([2, 1, 3])
+    expect(ids('oldest')).toEqual([3, 1, 2])
+    expect(ids('az')).toEqual([2, 1, 3])
+    expect(ids('za')).toEqual([3, 1, 2])
+  })
+  it('falls back to the old numeric order in releases captured before custom keys', async () => {
+    const { sortDocs } = await import('@/lib/ordering')
+    const legacy = [
+      { id: 1, order: 3 },
+      { id: 2, order: 1 },
+      { id: 3, order: 2 },
+    ]
+    expect(sortDocs(legacy, 'team-members', 'custom').map((d) => d.id)).toEqual([2, 3, 1])
+  })
+  it('uses a section choice, then Site Settings, then the collection default', async () => {
+    const { listingOrder } = await import('@/lib/ordering')
+    const settings = { listingOrder: { services: 'az', posts: 'custom' } }
+    expect(listingOrder('services', settings, 'newest')).toBe('newest')
+    expect(listingOrder('services', settings, 'default')).toBe('az')
+    expect(listingOrder('posts', settings)).toBe('custom')
+    expect(listingOrder('posts', null)).toBe('newest')
+    expect(listingOrder('clients', {})).toBe('az')
+  })
+  it('keeps hand-picked records in their chosen order and "Latest" newest first', async () => {
+    const { pick } = await import('@/components/sections')
+    expect(
+      pick(docs, 'manual', [3, 1], 10, undefined, { collection: 'services', order: 'az' }).map(
+        (d) => d.id,
+      ),
+    ).toEqual([3, 1])
+    expect(
+      pick(docs, 'latest', [], 10, undefined, { collection: 'posts' }).map((d) => d.id),
+    ).toEqual([2, 1, 3])
+    expect(
+      pick(docs, 'all', [], 2, undefined, { collection: 'services', order: 'za' }).map((d) => d.id),
+    ).toEqual([3, 1])
+  })
+})

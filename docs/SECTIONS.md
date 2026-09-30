@@ -35,6 +35,8 @@ The base library below exists so owners can keep building pages after launch. **
 | `GlobalBlock`      | Reusable block        | Sections from a Reusable block, edited once                                                                                                                                |
 | `Columns`          | Columns               | Two or three columns, each holding ordinary sections (one level deep)                                                                                                      |
 
+List sections (`SelectedProjects`, `Services`, `Team`, `Logos`, `Posts`) take an optional `order`: `default` (Site Settings → Listing order), `custom`, `newest`, `oldest`, `az` or `za`. Hand-picked records (`mode: 'manual'`) keep the order they were chosen in, and `latest` means newest. Bespoke list sections should use `pick()` or `sortDocs()` from `src/lib/ordering.ts` rather than sorting by hand, so the owner's order choices keep working.
+
 Every section also accepts an optional `motion` preset (`none`, `fade`, `rise`, `zoom`, `slide`). Presets are defined in CSS and disabled for reduced-motion users.
 
 `npm run sections -- catalog` prints every section's props as JSON schema. That output, not this table, is authoritative, and it includes bespoke sections once they are registered.

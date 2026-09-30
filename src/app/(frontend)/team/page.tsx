@@ -1,22 +1,22 @@
 import type { Metadata } from 'next'
 import { siteCMS, siteView, requireLocale } from '@/lib/site'
 import { previewUser } from '@/lib/cms'
+import { listingOrder, querySort, sortDocs } from '@/lib/ordering'
 import { ContentImage } from '@/components/site/ContentView'
 import { absoluteURL } from '@/lib/urls'
 import { breadcrumbSchema, organizationSchema, serializeSchema } from '@/lib/search/metadata'
 
 async function people() {
-  return (
-    await (
-      await siteCMS()
-    ).find({
-      collection: 'team-members',
-      overrideAccess: false,
-      user: await previewUser(),
-      limit: 200,
-      sort: 'order',
-    })
-  ).docs
+  const payload = await siteCMS()
+  const order = listingOrder('team-members', await payload.findGlobal({ slug: 'site-settings' }))
+  const { docs } = await payload.find({
+    collection: 'team-members',
+    overrideAccess: false,
+    user: await previewUser(),
+    limit: 200,
+    sort: querySort('team-members', order),
+  })
+  return sortDocs(docs, 'team-members', order)
 }
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await (await siteCMS()).findGlobal({ slug: 'site-settings' })

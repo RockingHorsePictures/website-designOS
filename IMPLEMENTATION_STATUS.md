@@ -180,6 +180,20 @@ Published v0.2.1 at c4718a2219b5c760bf4f6af45977e1b18e7e065d. The public install
 
 RHP maintenance PR: https://github.com/RockingHorsePictures/rhp-website/pull/1. Its existing design folder now contains the update and working private code-preview AI connection; pre-existing discovery changes are intact. Its GitHub/Vercel link was repaired and verified via the project API. Production rollout/account provisioning is pending the explicit approval requested in this conversation; no RHP Production migration, account creation or deployment has been performed. Private database snapshots were saved before repair.
 
+## 0.5.0 — Orderable collections
+
+Requested 2026-10-01: a way to order CMS collections, with date and title options and a custom order entered by hand or by drag and drop.
+
+- **Custom order:** pages, services, case studies, team, blog posts, categories and clients use Payload's `orderable` (a fractional `_order` key). Their admin lists open in that order with drag handles; drags go through Payload's `/reorder` endpoint, which checks edit access and respects drafts.
+- **Position:** a virtual sidebar field on each record (`src/cms/fields/ordering.ts`) shows the record's place and moves it when a new number is typed. AI writes can set `position` too. `_order` and `position` are not lockable, so records with locked fields can still be moved.
+- **Listing order:** a Site Settings group chooses custom, newest, oldest, A–Z or Z–A for each listed collection. The defaults (posts newest, clients A–Z, others custom) keep current behaviour. List sections (`SelectedProjects`, `Services`, `Team`, `Logos`, `Posts`) take an optional `order` that overrides it. Hand-picked records keep their chosen order, and `latest` means newest. All site listings (index pages, team, blog, categories, sections) use `src/lib/ordering.ts`.
+- **Migrations:**
+  - `20260930_230214_custom_order` adds the keys and settings, and converts each collection's existing numeric order (then ID; clients by name) into keys, including draft versions.
+  - `20260930_230410_remove_numeric_order` then drops the old `order` columns.
+  - Verified locally: every collection kept its order exactly.
+- **Older releases:** releases captured before 0.5 carry the old numeric `order`, which the custom sort falls back to. Custom keys are compared by character code, never by locale.
+- **Verified:** typecheck, lint, 55 unit tests, the new `test:ordering`, releases, integration and AI regression tests, the production build, and 16 browser tests. The new browser test drags a row in the admin list, types a Position and checks Site Settings.
+
 ## 0.4.2 — Preview database safety check
 
 Code previews trust `DESIGNOS_PREVIEW_DATA=branch`, but that setting can be added while Neon preview branching is off. The first Deploy Button site had exactly that. In that state a preview would migrate and edit the live database.

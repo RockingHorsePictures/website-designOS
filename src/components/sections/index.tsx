@@ -1,3 +1,4 @@
+import { isListingOrder, sortDocs, type OrderedCollection } from '@/lib/ordering'
 import Image from 'next/image'
 import type { ReactNode } from 'react'
 import { SiteLink as Link } from '@/components/site/SiteLink'
@@ -53,6 +54,7 @@ export type PostSummary = {
   slug: string
   summary?: string | null
   date?: string | null
+  _order?: string | null
   featured?: boolean | null
   categories?: number[]
   image?: number | null
@@ -95,17 +97,25 @@ export type SectionContext = {
   formatDate?: (iso: string) => string
 }
 
+// Records chosen by hand keep that order. Otherwise lists arrive in the site's order
+// (Site Settings → Listing order); a section may choose its own, and "Latest" means newest.
 export function pick<T extends { id: number }>(
   all: T[],
   mode: string,
   ids: number[],
   limit = 100,
   filter?: (item: T) => boolean,
+  ordering?: { collection: OrderedCollection; order?: string },
 ): T[] {
-  const chosen =
-    mode === 'manual'
-      ? ids.flatMap((id) => all.filter((item) => item.id === id))
-      : all.filter((item) => !filter || filter(item))
+  if (mode === 'manual')
+    return ids.flatMap((id) => all.filter((item) => item.id === id)).slice(0, limit)
+  let chosen = all.filter((item) => !filter || filter(item))
+  const order = isListingOrder(ordering?.order)
+    ? ordering.order
+    : mode === 'latest'
+      ? 'newest'
+      : null
+  if (ordering && order) chosen = sortDocs(chosen, ordering.collection, order)
   return chosen.slice(0, limit)
 }
 
@@ -207,6 +217,7 @@ export const sectionRenderers: {
         props.projectIds,
         props.limit,
         props.mode === 'featured' ? (p) => Boolean(p.featured) : undefined,
+        { collection: 'case-studies', order: props.order },
       )}
     />
   ),
@@ -344,7 +355,10 @@ export const sectionRenderers: {
     <section className="section section-logos">
       <Heading level={2}>{props.heading}</Heading>
       <ul className="grid">
-        {pick(ctx.data.clients, props.mode, props.clientIds).map((client) => {
+        {pick(ctx.data.clients, props.mode, props.clientIds, 100, undefined, {
+          collection: 'clients',
+          order: props.order,
+        }).map((client) => {
           const logo = client.logo ? ctx.data.media[client.logo] : null
           const mark = logo?.url ? (
             <Image
@@ -387,7 +401,10 @@ export const sectionRenderers: {
     <section className="section section-services">
       <Heading level={2}>{props.heading}</Heading>
       <ul className="grid">
-        {pick(ctx.data.services, props.mode, props.serviceIds, props.limit).map((s) => (
+        {pick(ctx.data.services, props.mode, props.serviceIds, props.limit, undefined, {
+          collection: 'services',
+          order: props.order,
+        }).map((s) => (
           <li key={s.id}>
             <h3>
               <Link href={`/services/${s.slug}`}>{s.title}</Link>
@@ -402,7 +419,10 @@ export const sectionRenderers: {
     <section className="section section-team">
       <Heading level={2}>{props.heading}</Heading>
       <ul className="grid">
-        {pick(ctx.data.team, props.mode, props.memberIds, props.limit).map((p) => (
+        {pick(ctx.data.team, props.mode, props.memberIds, props.limit, undefined, {
+          collection: 'team-members',
+          order: props.order,
+        }).map((p) => (
           <li key={p.id}>
             <MediaImage value={p.portrait} data={ctx.data} sizes="(max-width: 768px) 50vw, 25vw" />
             <h3>{p.name}</h3>
@@ -505,6 +525,7 @@ export const sectionRenderers: {
         : props.mode === 'category'
           ? (p) => Boolean(props.categoryId && p.categories?.includes(props.categoryId))
           : undefined,
+      { collection: 'posts', order: props.order },
     )
     return (
       <section className="section section-posts">

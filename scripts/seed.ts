@@ -46,7 +46,6 @@ for (let n = 1; n <= 3; n++) {
         summary:
           'Representative service record for testing structured content, relationships and publishing. Not a company claim.',
         demo: true,
-        order: n,
         _status: 'published',
       },
     }))
@@ -79,7 +78,6 @@ for (let n = 1; n <= 3; n++) {
         services: [serviceIDs[n - 1]],
         demo: true,
         featured: true,
-        order: n,
         _status: 'published',
       },
     })
@@ -97,7 +95,6 @@ for (let n = 1; n <= 6; n++) {
         role: 'Example role',
         bio: 'Demo team record for testing variable team counts.',
         active: true,
-        order: n,
         demo: true,
       },
     })

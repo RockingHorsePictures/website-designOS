@@ -113,7 +113,7 @@ export const TeamMembers: CollectionConfig = {
   admin: {
     useAsTitle: 'name',
     group: 'Website',
-    defaultColumns: ['name', 'role', 'active', 'order'],
+    defaultColumns: ['name', 'role', 'active'],
   },
   access: {
     read: ({ req }) => (req.user ? true : { active: { equals: true } }),
@@ -129,7 +129,6 @@ export const TeamMembers: CollectionConfig = {
     { name: 'bio', type: 'textarea', localized: true },
     { name: 'longBio', type: 'richText', localized: true },
     { name: 'links', type: 'array', fields: linkFields },
-    { name: 'order', type: 'number', defaultValue: 0 },
     { name: 'active', type: 'checkbox', defaultValue: true },
     { name: 'demo', type: 'checkbox', defaultValue: false },
   ],

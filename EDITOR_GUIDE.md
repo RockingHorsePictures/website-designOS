@@ -41,13 +41,26 @@ Two kinds of preview:
   - A bullet point
   - **Bold words** and a [link to a page](/about)
   ```
+
 - Sections showing services, case studies, people, clients or posts use those records, so edit the record once and every page updates. Link figures and testimonials to an **Approved Fact**.
 - **Page header → Hide** lets the first section (a Hero) act as the page title.
 
-Every page has a title, a web address (slug) and a summary. On **Team** records, **Active** decides whether a person appears on the site and **Order** arranges them. Add new pages to **Navigation** so visitors can find them. Changing a published page's address creates a redirect automatically. **Include in site releases** leaves a page out of the next Preview without deleting it.
+Every page has a title, a web address (slug) and a summary. On **Team** records, **Active** decides whether a person appears on the site. Add new pages to **Navigation** so visitors can find them. Changing a published page's address creates a redirect automatically. **Include in site releases** leaves a page out of the next Preview without deleting it.
 
 - **Page template**: tick this on a page to make it a starting point for new pages. Templates are never published.
 - **Password protected**: visitors must enter the page password (set it on the page) to see it. Useful for client previews or private information. Protected pages are hidden from search engines, search results and feeds.
+
+## Ordering lists
+
+Pages, services, case studies, team, blog posts, categories and clients each have a **custom order**:
+
+- **Drag** rows by the handle on the left of the list. Lists open in the custom order. If you've sorted by another column, click the **Order** column heading to get the handles back.
+- **Or type a Position** on the record's edit screen (right-hand side): 1 is first. A number past the end moves it to the end.
+- New records join the end.
+
+Where each kind of record appears on the site, **Site Settings → Listing order** chooses how it's ordered: **Custom order**, **Newest first**, **Oldest first**, **A to Z** or **Z to A**. By default, blog posts are newest first, clients A to Z, and everything else follows your custom order. List sections in the composer (Services, Team, Clients, Selected projects, Blog posts) have their own **Order** option, which can override Site Settings for that section. Records you choose by hand in a section keep the order you picked them in, and **Latest** always means newest first.
+
+As with any change, the new order shows on the site after your next **Save Preview** and **Publish**.
 
 ## Blog
 

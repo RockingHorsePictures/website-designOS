@@ -1,3 +1,5 @@
+import type { DataFromCollectionSlug } from 'payload'
+import { listingOrder, querySort, sortDocs, type OrderedCollection } from '@/lib/ordering'
 import { siteCMS, siteLocale } from '@/lib/site'
 import { previewUser } from '@/lib/cms'
 import {
@@ -38,6 +40,7 @@ export function postSummary(doc: Record<string, unknown>): PostSummary {
     slug: String(doc.slug),
     summary: (doc.summary as string) || null,
     date: ((doc.date || doc.publishedAt || doc.createdAt) as string) || null,
+    _order: (doc._order as string) || null,
     featured: Boolean(doc.featured),
     categories: ((doc.categories as unknown[]) || []).map(idOf).filter((v): v is number => !!v),
     image: idOf((doc.heroMedia as { image?: unknown } | null)?.image),
@@ -81,22 +84,29 @@ export async function sectionData(
     .filter((s) => s.type === 'Form')
     .map((s) => (s.props as { formId: number | null }).formId)
     .filter((v): v is number => !!v)
+  // Every list arrives in the site's order (Site Settings → Listing order).
+  const listed = async <C extends OrderedCollection>(collection: C, depth: number) => {
+    const order = listingOrder(collection, settings)
+    const found = await payload.find({
+      collection,
+      sort: querySort(collection, order),
+      depth,
+      ...read,
+    } as never)
+    return {
+      docs: sortDocs(
+        (found as unknown as { docs: DataFromCollectionSlug<C>[] }).docs,
+        collection,
+        order,
+      ),
+    }
+  }
   const [projects, services, team, clients, posts, forms] = await Promise.all([
-    types.has('SelectedProjects')
-      ? payload.find({ collection: 'case-studies', sort: '-publishedAt', depth: 0, ...read })
-      : null,
-    types.has('Services')
-      ? payload.find({ collection: 'services', sort: 'order', depth: 0, ...read })
-      : null,
-    types.has('Team')
-      ? payload.find({ collection: 'team-members', sort: 'order', depth: 1, ...read })
-      : null,
-    types.has('Logos')
-      ? payload.find({ collection: 'clients', sort: 'name', depth: 1, ...read })
-      : null,
-    types.has('Posts')
-      ? payload.find({ collection: 'posts', sort: '-publishedAt', depth: 0, ...read })
-      : null,
+    types.has('SelectedProjects') ? listed('case-studies', 0) : null,
+    types.has('Services') ? listed('services', 0) : null,
+    types.has('Team') ? listed('team-members', 1) : null,
+    types.has('Logos') ? listed('clients', 1) : null,
+    types.has('Posts') ? listed('posts', 0) : null,
     formIds.length
       ? payload.find({ collection: 'forms', where: { id: { in: formIds } }, depth: 0, ...read })
       : null,

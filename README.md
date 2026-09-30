@@ -33,7 +33,7 @@ npm run migrate && npm run seed && npm run dev   # terminal 2
 
 Open http://localhost:3000 and http://localhost:3000/admin. The seed is idempotent and refuses production: it creates one administrator only when no user exists, plus neutral demo services, case studies, people, a blog post, a form, a reusable block and demo pages showing every section. On Windows, sandboxed shells may stop Node resolving the OS account; run the database and Payload tools in a normal terminal.
 
-**Checks:** `npm run generate:types`, `npm run generate:importmap`, `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:integration`, `npm run test:releases`, `npm run test:ai`, `npm run test:installer`, `npm run build`, then `npm start` and `npm run test:e2e` (Edge on Windows, Chromium on Linux; reports in `playwright-report/`). CI runs the same on a disposable database.
+**Checks:** `npm run generate:types`, `npm run generate:importmap`, `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:integration`, `npm run test:releases`, `npm run test:ordering`, `npm run test:ai`, `npm run test:installer`, `npm run build`, then `npm start` and `npm run test:e2e` (Edge on Windows, Chromium on Linux; reports in `playwright-report/`). CI runs the same on a disposable database.
 
 **AI tools:** `npm run ai:check`, `npm run ai:context`, `npm run ai:health -- local`, `npm run sections -- catalog`, `npm run audit -- http://localhost:3000`, `npm run mcp`. See [docs/AI_TOOLKIT.md](docs/AI_TOOLKIT.md).
 

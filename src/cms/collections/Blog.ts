@@ -82,6 +82,5 @@ export const Categories: CollectionConfig = {
         validSlug(v) || 'Use lowercase letters, numbers and single hyphens.',
     },
     { name: 'description', type: 'textarea', localized: true },
-    { name: 'order', type: 'number', defaultValue: 0 },
   ],
 }

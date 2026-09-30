@@ -1,4 +1,5 @@
 import 'server-only'
+import { isOrderedCollection, sortDocs } from './ordering'
 import { cache } from 'react'
 import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
@@ -177,11 +178,15 @@ export const siteCMS = cache(async () => {
     if (options.sort) {
       const descending = options.sort.startsWith('-')
       const key = options.sort.replace(/^-/, '')
-      docs = [...docs].sort(
-        (a, b) =>
-          String(a[key] ?? '').localeCompare(String(b[key] ?? ''), undefined, { numeric: true }) *
-          (descending ? -1 : 1),
-      )
+      docs =
+        key === '_order' && isOrderedCollection(options.collection)
+          ? sortDocs(docs, options.collection, 'custom')
+          : [...docs].sort(
+              (a, b) =>
+                String(a[key] ?? '').localeCompare(String(b[key] ?? ''), undefined, {
+                  numeric: true,
+                }) * (descending ? -1 : 1),
+            )
     }
     const totalDocs = docs.length
     const limit = options.limit || 100

@@ -260,6 +260,7 @@ export interface UserAuthOperations {
  */
 export interface Page {
   id: number;
+  _order?: string | null;
   /**
    * Turn off to exclude this page from the next whole-site Preview. Existing Live releases stay unchanged.
    */
@@ -267,7 +268,6 @@ export interface Page {
   title: string;
   slug: string;
   summary: string;
-  order?: number | null;
   /**
    * Demo records are excluded from production search indexing.
    */
@@ -321,6 +321,10 @@ export interface Page {
         }[]
       | null;
   };
+  /**
+   * Place in the custom order (1 is first). You can also drag rows in the list. Site Settings → Listing order chooses where the custom order is used.
+   */
+  position?: number | null;
   protection?:
     | {
         [k: string]: unknown;
@@ -396,6 +400,7 @@ export interface Media {
  */
 export interface Service {
   id: number;
+  _order?: string | null;
   /**
    * Turn off to exclude this page from the next whole-site Preview. Existing Live releases stay unchanged.
    */
@@ -403,7 +408,6 @@ export interface Service {
   title: string;
   slug: string;
   summary: string;
-  order?: number | null;
   /**
    * Demo records are excluded from production search indexing.
    */
@@ -470,6 +474,10 @@ export interface Service {
         }[]
       | null;
   };
+  /**
+   * Place in the custom order (1 is first). You can also drag rows in the list. Site Settings → Listing order chooses where the custom order is used.
+   */
+  position?: number | null;
   protection?:
     | {
         [k: string]: unknown;
@@ -491,6 +499,7 @@ export interface Service {
  */
 export interface CaseStudy {
   id: number;
+  _order?: string | null;
   /**
    * Turn off to exclude this page from the next whole-site Preview. Existing Live releases stay unchanged.
    */
@@ -498,7 +507,6 @@ export interface CaseStudy {
   title: string;
   slug: string;
   summary: string;
-  order?: number | null;
   /**
    * Demo records are excluded from production search indexing.
    */
@@ -586,6 +594,10 @@ export interface CaseStudy {
         }[]
       | null;
   };
+  /**
+   * Place in the custom order (1 is first). You can also drag rows in the list. Site Settings → Listing order chooses where the custom order is used.
+   */
+  position?: number | null;
   protection?:
     | {
         [k: string]: unknown;
@@ -605,10 +617,15 @@ export interface CaseStudy {
  */
 export interface Client {
   id: number;
+  _order?: string | null;
   name: string;
   website?: string | null;
   logo?: (number | null) | Media;
   demo?: boolean | null;
+  /**
+   * Place in the custom order (1 is first). You can also drag rows in the list. Site Settings → Listing order chooses where the custom order is used.
+   */
+  position?: number | null;
   protection?:
     | {
         [k: string]: unknown;
@@ -627,6 +644,7 @@ export interface Client {
  */
 export interface TeamMember {
   id: number;
+  _order?: string | null;
   name: string;
   role: string;
   portrait?: {
@@ -662,9 +680,12 @@ export interface TeamMember {
         id?: string | null;
       }[]
     | null;
-  order?: number | null;
   active?: boolean | null;
   demo?: boolean | null;
+  /**
+   * Place in the custom order (1 is first). You can also drag rows in the list. Site Settings → Listing order chooses where the custom order is used.
+   */
+  position?: number | null;
   protection?:
     | {
         [k: string]: unknown;
@@ -717,6 +738,7 @@ export interface ApprovedFact {
  */
 export interface Post {
   id: number;
+  _order?: string | null;
   /**
    * Turn off to exclude this page from the next whole-site Preview. Existing Live releases stay unchanged.
    */
@@ -724,7 +746,6 @@ export interface Post {
   title: string;
   slug: string;
   summary: string;
-  order?: number | null;
   /**
    * Demo records are excluded from production search indexing.
    */
@@ -781,6 +802,10 @@ export interface Post {
         }[]
       | null;
   };
+  /**
+   * Place in the custom order (1 is first). You can also drag rows in the list. Site Settings → Listing order chooses where the custom order is used.
+   */
+  position?: number | null;
   protection?:
     | {
         [k: string]: unknown;
@@ -800,10 +825,14 @@ export interface Post {
  */
 export interface Category {
   id: number;
+  _order?: string | null;
   title: string;
   slug: string;
   description?: string | null;
-  order?: number | null;
+  /**
+   * Place in the custom order (1 is first). You can also drag rows in the list. Site Settings → Listing order chooses where the custom order is used.
+   */
+  position?: number | null;
   protection?:
     | {
         [k: string]: unknown;
@@ -1298,11 +1327,11 @@ export interface PayloadMigration {
  * via the `definition` "pages_select".
  */
 export interface PagesSelect<T extends boolean = true> {
+  _order?: T;
   includeInSite?: T;
   title?: T;
   slug?: T;
   summary?: T;
-  order?: T;
   demo?: T;
   publishedAt?: T;
   isTemplate?: T;
@@ -1340,6 +1369,7 @@ export interface PagesSelect<T extends boolean = true> {
               id?: T;
             };
       };
+  position?: T;
   protection?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1350,11 +1380,11 @@ export interface PagesSelect<T extends boolean = true> {
  * via the `definition` "posts_select".
  */
 export interface PostsSelect<T extends boolean = true> {
+  _order?: T;
   includeInSite?: T;
   title?: T;
   slug?: T;
   summary?: T;
-  order?: T;
   demo?: T;
   publishedAt?: T;
   date?: T;
@@ -1392,6 +1422,7 @@ export interface PostsSelect<T extends boolean = true> {
               id?: T;
             };
       };
+  position?: T;
   protection?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1402,10 +1433,11 @@ export interface PostsSelect<T extends boolean = true> {
  * via the `definition` "categories_select".
  */
 export interface CategoriesSelect<T extends boolean = true> {
+  _order?: T;
   title?: T;
   slug?: T;
   description?: T;
-  order?: T;
+  position?: T;
   protection?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1426,11 +1458,11 @@ export interface BlocksSelect<T extends boolean = true> {
  * via the `definition` "case-studies_select".
  */
 export interface CaseStudiesSelect<T extends boolean = true> {
+  _order?: T;
   includeInSite?: T;
   title?: T;
   slug?: T;
   summary?: T;
-  order?: T;
   demo?: T;
   publishedAt?: T;
   client?: T;
@@ -1505,6 +1537,7 @@ export interface CaseStudiesSelect<T extends boolean = true> {
               id?: T;
             };
       };
+  position?: T;
   protection?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1515,11 +1548,11 @@ export interface CaseStudiesSelect<T extends boolean = true> {
  * via the `definition` "services_select".
  */
 export interface ServicesSelect<T extends boolean = true> {
+  _order?: T;
   includeInSite?: T;
   title?: T;
   slug?: T;
   summary?: T;
-  order?: T;
   demo?: T;
   publishedAt?: T;
   description?: T;
@@ -1572,6 +1605,7 @@ export interface ServicesSelect<T extends boolean = true> {
               id?: T;
             };
       };
+  position?: T;
   protection?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1582,6 +1616,7 @@ export interface ServicesSelect<T extends boolean = true> {
  * via the `definition` "team-members_select".
  */
 export interface TeamMembersSelect<T extends boolean = true> {
+  _order?: T;
   name?: T;
   role?: T;
   portrait?:
@@ -1607,9 +1642,9 @@ export interface TeamMembersSelect<T extends boolean = true> {
         url?: T;
         id?: T;
       };
-  order?: T;
   active?: T;
   demo?: T;
+  position?: T;
   protection?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -1619,10 +1654,12 @@ export interface TeamMembersSelect<T extends boolean = true> {
  * via the `definition` "clients_select".
  */
 export interface ClientsSelect<T extends boolean = true> {
+  _order?: T;
   name?: T;
   website?: T;
   logo?: T;
   demo?: T;
+  position?: T;
   protection?: T;
   updatedAt?: T;
   createdAt?: T;
@@ -2033,6 +2070,14 @@ export interface SiteSetting {
         | 'cy'
       )[]
     | null;
+  listingOrder?: {
+    services?: ('custom' | 'newest' | 'oldest' | 'az' | 'za') | null;
+    caseStudies?: ('custom' | 'newest' | 'oldest' | 'az' | 'za') | null;
+    team?: ('custom' | 'newest' | 'oldest' | 'az' | 'za') | null;
+    posts?: ('custom' | 'newest' | 'oldest' | 'az' | 'za') | null;
+    categories?: ('custom' | 'newest' | 'oldest' | 'az' | 'za') | null;
+    clients?: ('custom' | 'newest' | 'oldest' | 'az' | 'za') | null;
+  };
   announcement?: {
     enabled?: boolean | null;
     text?: string | null;
@@ -2237,6 +2282,16 @@ export interface SiteSettingsSelect<T extends boolean = true> {
       };
   defaultShareImage?: T;
   languages?: T;
+  listingOrder?:
+    | T
+    | {
+        services?: T;
+        caseStudies?: T;
+        team?: T;
+        posts?: T;
+        categories?: T;
+        clients?: T;
+      };
   announcement?:
     | T
     | {

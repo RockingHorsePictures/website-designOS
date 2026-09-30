@@ -31,7 +31,7 @@ export async function GET() {
       draft: false,
       limit: 500,
       depth: 0,
-      sort: 'order',
+      sort: '_order',
     })
     const entries = docs.filter((doc) =>
       indexable(

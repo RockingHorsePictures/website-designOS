@@ -127,7 +127,6 @@ export const baseFields: Field[] = [
     validate: (v: unknown) => validSlug(v) || 'Use lowercase letters, numbers and single hyphens.',
   },
   { name: 'summary', type: 'textarea', required: true, localized: true },
-  { name: 'order', type: 'number', defaultValue: 0 },
   {
     name: 'demo',
     type: 'checkbox',

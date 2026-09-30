@@ -62,13 +62,13 @@ export default async function Editor({
       payload.find({
         collection: 'services',
         draft: true,
-        sort: 'order',
+        sort: '_order',
         select: { title: true, slug: true, summary: true },
         ...read,
       }),
       payload.find({
         collection: 'team-members',
-        sort: 'order',
+        sort: '_order',
         where: { active: { equals: true } },
         select: { name: true, role: true, bio: true, portrait: true },
         ...read,
@@ -101,7 +101,7 @@ export default async function Editor({
         ...read,
       }),
       payload.find({ collection: 'posts', draft: true, sort: '-publishedAt', ...read }),
-      payload.find({ collection: 'categories', sort: 'order', ...read }),
+      payload.find({ collection: 'categories', sort: '_order', ...read }),
       payload.find({ collection: 'forms', sort: 'title', ...read }),
       payload.find({ collection: 'blocks', sort: 'title', ...read }),
     ])

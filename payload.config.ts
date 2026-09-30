@@ -21,6 +21,8 @@ import { FormSubmissions } from './src/cms/collections/FormSubmissions'
 import { Forms } from './src/cms/collections/Forms'
 import { Posts, Categories } from './src/cms/collections/Blog'
 import { Blocks } from './src/cms/collections/Blocks'
+import { orderable } from './src/cms/fields/ordering'
+import { isOrderedCollection } from './src/lib/ordering'
 import { defaultLocale, enabledLocales, supportedLocales } from './src/lib/locales'
 import { nodemailerAdapter } from '@payloadcms/email-nodemailer'
 import { siteOrigin } from './src/lib/urls'
@@ -149,6 +151,10 @@ export default buildConfig({
     Forms,
     FormSubmissions,
   ]
+    // Custom order (drag to arrange, or type a Position) for everything listed on the site.
+    .map((collection) =>
+      isOrderedCollection(collection.slug) ? orderable(collection.slug, collection) : collection,
+    )
     .map((collection) => ({
       ...collection,
       admin: {

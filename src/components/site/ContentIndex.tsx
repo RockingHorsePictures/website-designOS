@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { siteCMS, siteView, requireLocale } from '@/lib/site'
 import { previewUser } from '@/lib/cms'
+import { listingOrder, querySort, sortDocs } from '@/lib/ordering'
 import { SiteLink as Link } from '@/components/site/SiteLink'
 import { absoluteURL, contentPath } from '@/lib/urls'
 import {
@@ -13,17 +14,17 @@ import {
 type IndexCollection = 'case-studies' | 'services'
 async function records(collection: IndexCollection) {
   const user = await previewUser()
-  const { docs } = await (
-    await siteCMS()
-  ).find({
+  const payload = await siteCMS()
+  const order = listingOrder(collection, await payload.findGlobal({ slug: 'site-settings' }))
+  const { docs } = await payload.find({
     collection,
     overrideAccess: false,
     user,
     draft: Boolean(user),
     limit: 100,
-    sort: 'order',
+    sort: querySort(collection, order),
   })
-  return docs
+  return sortDocs(docs, collection, order)
 }
 export async function indexMetadata(collection: IndexCollection): Promise<Metadata> {
   const settings = await (await siteCMS()).findGlobal({ slug: 'site-settings' })

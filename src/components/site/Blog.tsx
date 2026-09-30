@@ -14,12 +14,13 @@ import {
   serializeSchema,
 } from '@/lib/search/metadata'
 import { dateFormatter } from './Sections'
+import { listingOrder, querySort, sortDocs } from '@/lib/ordering'
 import type { Category, Post } from '@/payload-types'
 
 export const PAGE_SIZE = 12
 const dateOf = (p: Post) => p.date || p.publishedAt || p.createdAt
 
-// Published posts, newest first, optionally in one category.
+// Published posts in the site's order (newest first unless changed), optionally in one category.
 export async function blogPosts(categoryId?: number) {
   const user = await previewUser()
   const { docs } = await (
@@ -37,20 +38,21 @@ export async function blogPosts(categoryId?: number) {
       (p as { visibility?: string }).visibility !== 'password' &&
       (!categoryId || p.categories?.some((c) => (typeof c === 'object' ? c.id : c) === categoryId)),
   )
-  return visible.sort((a, b) => String(dateOf(b)).localeCompare(String(dateOf(a))))
+  const settings = await (await siteCMS()).findGlobal({ slug: 'site-settings' })
+  return sortDocs(visible, 'posts', listingOrder('posts', settings))
 }
 export async function blogCategories() {
-  const { docs } = await (
-    await siteCMS()
-  ).find({
+  const payload = await siteCMS()
+  const order = listingOrder('categories', await payload.findGlobal({ slug: 'site-settings' }))
+  const { docs } = await payload.find({
     collection: 'categories',
     overrideAccess: false,
     user: await previewUser(),
     limit: 200,
     depth: 0,
-    sort: 'order',
+    sort: querySort('categories', order),
   })
-  return docs as Category[]
+  return sortDocs(docs as Category[], 'categories', order)
 }
 export async function blogMetadata(
   title: string,

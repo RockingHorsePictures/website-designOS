@@ -4,6 +4,7 @@ import { linkFields } from '../fields/shared'
 import { safeLink } from '../../lib/urls'
 import { defaultLocale, localeLabel, supportedLocales } from '../../lib/locales'
 import { tokenDefaults, validColor } from '../../design-system/tokens'
+import { listingOrderOptions, orderedCollections } from '../../lib/ordering'
 import { fontOptions, weightOptions, typographyDefaults } from '../../design-system/typography'
 
 const publicAccess = { read: () => true, update: authenticated }
@@ -119,6 +120,37 @@ export const SiteSettings: GlobalConfig = {
       admin: {
         description: `The main language is ${localeLabel(defaultLocale)}. Add languages to translate pages; untranslated fields show the main language. Translated pages live at /<code>/… (for example /fr/about).`,
       },
+    },
+    {
+      type: 'collapsible',
+      label: 'Listing order',
+      admin: {
+        initCollapsed: true,
+        description:
+          'How each kind of record is ordered wherever it is listed on the site. Arrange the custom order by dragging rows in each list (or typing a Position on a record). A list section can choose a different order.',
+      },
+      fields: [
+        {
+          name: 'listingOrder',
+          type: 'group',
+          label: false,
+          fields: [
+            ['services', 'Services'],
+            ['caseStudies', 'Case studies'],
+            ['team', 'Team'],
+            ['posts', 'Blog posts'],
+            ['categories', 'Blog categories'],
+            ['clients', 'Clients (logos)'],
+          ].map(([name, label]) => ({
+            name,
+            label,
+            type: 'select' as const,
+            options: listingOrderOptions,
+            defaultValue: Object.values(orderedCollections).find((c) => c.setting === name)!
+              .fallback,
+          })),
+        },
+      ],
     },
     {
       type: 'collapsible',
