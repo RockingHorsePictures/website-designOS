@@ -44,7 +44,7 @@ Theme typography uses a stable approved-font registry and CSS variables shared b
 
 ## Enquiries
 
-Contact sections post to `/api/forms/contact` (JSON or a plain form POST, so it works without JavaScript). The route checks origin, a hidden trap field, a minimum fill time and a per-sender rate limit (salted address hash), stores a Form Submission, and sends an optional SMTP notification. Submissions are readable by admin/editor roles only and never enter releases or AI context.
+Contact and Form sections post to `/api/forms/[id]` (`contact` for the built-in Contact form, or a Forms collection ID), rendered by `SiteForm`. It accepts JSON or a plain form POST (so it works without JavaScript), checks origin, a hidden trap field, a minimum fill time, Turnstile when configured and atomic per-sender and site-wide rate limits, validates against the released form definition, stores a Form Submission and sends optional SMTP notifications and signed webhooks. Submissions are readable by admin/editor roles only and never enter releases or AI context.
 
 ## AI toolkit
 

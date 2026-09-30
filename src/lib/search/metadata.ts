@@ -65,12 +65,13 @@ export function metadataFor(
   const description = locked
     ? 'This page is password protected.'
     : doc.seo?.description || doc.summary || settings.description || ''
-  const socialImage =
-    mediaURL(doc.seo?.socialImage) ||
-    mediaURL(doc.heroMedia?.image) ||
-    mediaURL(settings.defaultShareImage) ||
-    // Generated from the page title when nothing else is set.
-    absoluteURL(`/og?path=${encodeURIComponent(localePath(path, locales?.current))}`)
+  const socialImage = locked
+    ? absoluteURL(`/og?path=${encodeURIComponent(localePath(path, locales?.current))}`)
+    : mediaURL(doc.seo?.socialImage) ||
+      mediaURL(doc.heroMedia?.image) ||
+      mediaURL(settings.defaultShareImage) ||
+      // Generated from the page title when nothing else is set.
+      absoluteURL(`/og?path=${encodeURIComponent(localePath(path, locales?.current))}`)
   const article = collection === 'case-studies' || collection === 'posts'
   const alternates = languageAlternates(path, locales)
   return {
@@ -88,8 +89,8 @@ export function metadataFor(
         ? locales.current
         : settings.language || 'en'
       ).replace('-', '_'),
-      title: doc.seo?.socialTitle || title,
-      description: doc.seo?.socialDescription || description,
+      title: (!locked && doc.seo?.socialTitle) || title,
+      description: (!locked && doc.seo?.socialDescription) || description,
       url,
       ...(article && doc.publishedAt ? { publishedTime: doc.publishedAt } : {}),
       ...(article ? { modifiedTime: doc.updatedAt } : {}),
@@ -97,8 +98,8 @@ export function metadataFor(
     },
     twitter: {
       card: socialImage ? 'summary_large_image' : 'summary',
-      title: doc.seo?.socialTitle || title,
-      description: doc.seo?.socialDescription || description,
+      title: (!locked && doc.seo?.socialTitle) || title,
+      description: (!locked && doc.seo?.socialDescription) || description,
       ...(socialImage ? { images: [socialImage] } : {}),
     },
   }

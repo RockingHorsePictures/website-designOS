@@ -1,7 +1,7 @@
 'use client'
 import Script from 'next/script'
-import { useRouter } from 'next/navigation'
-import { prefixed } from '@/components/site/SiteLink'
+import { usePathname, useRouter } from 'next/navigation'
+import { prefixed } from '@/lib/locales'
 import { useEffect, useId, useRef, useState, useSyncExternalStore, type FormEvent } from 'react'
 import type { PublicForm } from '@/lib/form-definitions'
 
@@ -9,6 +9,8 @@ const noSubscription = () => () => {}
 // After a no-JavaScript submission the route redirects back with ?sent=contact.
 const redirectedAfterSending = () =>
   new URLSearchParams(window.location.search).get('sent') === 'contact'
+// After a failed no-JavaScript submission the route returns with ?form_error=….
+const returnedError = () => new URLSearchParams(window.location.search).get('form_error')
 
 // Renders a Contact or Form-builder form. Works without JavaScript (a normal POST that redirects
 // back); with JavaScript it submits in place. The hidden "website" field is a spam trap and
@@ -28,6 +30,9 @@ export function SiteForm({
 }) {
   const uid = useId()
   const router = useRouter()
+  // The address the visitor is on, including any /preview or language prefix.
+  const visible = usePathname() || pagePath
+  const serverError = useSyncExternalStore(noSubscription, returnedError, () => null)
   const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
   const [error, setError] = useState('')
   const started = useRef(0)
@@ -65,7 +70,7 @@ export function SiteForm({
     )
   return (
     <form className="site-form" method="post" action={action} onSubmit={submit} noValidate={false}>
-      <input type="hidden" name="page" value={pagePath} />
+      <input type="hidden" name="page" value={visible} />
       {locale && <input type="hidden" name="locale" value={locale} />}
       <p className="trap" aria-hidden="true">
         <label>
@@ -149,6 +154,11 @@ export function SiteForm({
           <Script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />
           <div className="cf-turnstile" data-sitekey={turnstileSiteKey} />
         </>
+      )}
+      {state !== 'error' && serverError && (
+        <p role="alert" className="form-status">
+          {serverError.slice(0, 200)}
+        </p>
       )}
       {state === 'error' && (
         <p role="alert" className="form-status">

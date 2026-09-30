@@ -9,7 +9,8 @@ import {
   type PublicForm,
 } from '@/lib/forms'
 import { clientIP, senderKey, withinLimit } from '@/lib/rate-limit'
-import { isLocale } from '@/lib/locales'
+import { isLocale, prefixed } from '@/lib/locales'
+import { currentUser } from '@/lib/cms'
 
 // Receives Contact and Form section submissions. Works as JSON (fetch) or a plain form POST
 // (no JavaScript), validates against the released form definition, stores the enquiry, then
@@ -24,6 +25,7 @@ function reply(request: Request, status: number, body: Record<string, unknown>, 
     return Response.json(body, { status })
   const url = new URL(page, request.url)
   if (status < 300) url.searchParams.set('sent', 'contact')
+  else if (typeof body.error === 'string') url.searchParams.set('form_error', body.error)
   url.hash = 'contact'
   return Response.redirect(url, 303)
 }
@@ -64,6 +66,21 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       (f) => f.id === Number(id),
     )
     if (doc) form = publicForm(doc)
+    const workspacePreview = /^\/workspace-preview(\/|$)/.test(
+      new URL(referer || request.url, request.url).pathname,
+    )
+    if (!doc && workspacePreview && (await currentUser()))
+      form = publicForm(
+        ((await payload
+          .findByID({
+            collection: 'forms',
+            id: Number(id),
+            depth: 0,
+            overrideAccess: true,
+            locale: locale || undefined,
+          } as never)
+          .catch(() => null)) as unknown as Record<string, unknown>) || { id, fields: [] },
+      )
     workspace = (await payload
       .findByID({ collection: 'forms', id: Number(id), depth: 0, overrideAccess: true })
       .catch(() => null)) as unknown as Record<string, unknown> | null
@@ -135,17 +152,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         page,
         data,
         createdAt: new Date().toISOString(),
-      }).then(async (delivery) => {
-        if (record)
-          await payload.update({
-            collection: 'form-submissions',
-            id: record.id,
-            data: { delivery },
-          })
-      }),
+      })
+        .then(async (delivery) => {
+          if (record)
+            await payload.update({
+              collection: 'form-submissions',
+              id: record.id,
+              data: { delivery },
+            })
+        })
+        .catch(() => payload.logger.warn('Enquiry stored; webhook status could not be saved.')),
     )
   await Promise.all(tasks)
   if (form.redirect && !(request.headers.get('accept') || '').includes('application/json'))
-    return Response.redirect(new URL(samePath(form.redirect, request), request.url), 303)
+    return Response.redirect(
+      new URL(samePath(prefixed(form.redirect, page), request), request.url),
+      303,
+    )
   return reply(request, 200, { ok: true, redirect: form.redirect || null }, page)
 }

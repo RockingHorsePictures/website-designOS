@@ -20,7 +20,7 @@ Design first, then expose the smallest useful editable API. Read `docs/SECTIONS.
 2. **Content rules.** Replaceable copy and imagery are props. Structured records (case studies, services, people, clients) are referenced by ID with a `mode` (`all`/`manual`), never copied. Links use `linkRef` (validated by `safeLink`). Images use `mediaRef` (media ID + per-use alt + decorative). Long text uses the Markdown subset (`<Markdown source=… />`). Figures and testimonials link to Approved Facts (`factId`).
 3. **Defaults** are empty or neutral — never sample marketing copy.
 4. **Renderer.** Semantic HTML, one heading level below the page (`h2`, items `h3`; `ctx.headingLevel` for a first Hero), visible focus, reduced-motion safe, images through `MediaImage`/`next/image` with `imageSrc`. Add styles in the site's stylesheet using the section's class names.
-5. **Data.** If it needs a new record type, extend `SectionData`, `EditorData` (`src/app/(frontend)/editor/[id]/page.tsx`) and `sectionData()` in `src/components/site/Sections.tsx`.
+5. **Data.** If it needs a new record type, extend `SectionData`, `EditorData` (`src/app/(composer)/editor/[id]/page.tsx`) and `sectionData()` in `src/components/site/Sections.tsx`.
 6. **Audits.** If it carries claims, links or media, check `src/lib/quality.ts` covers them; add structured data in `sectionSchemas()` of `src/lib/search/metadata.ts` only for visible content.
 7. **Verify.** `npm run typecheck && npm run lint && npm test`, then open `/editor/<page id>`, add the section, save a draft and check `/workspace-preview/<slug>` at 390/768/1440px. Run `npm run sections -- catalog` to confirm it is listed for AI tools.
 

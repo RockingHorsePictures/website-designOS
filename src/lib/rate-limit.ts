@@ -1,3 +1,5 @@
+// Hosted defaults (derived secrets) must apply before PAYLOAD_SECRET is read.
+import './env'
 import { createHash } from 'node:crypto'
 import { sql, type PostgresAdapter } from '@payloadcms/db-postgres'
 import type { Payload } from 'payload'
@@ -5,14 +7,23 @@ import type { Payload } from 'payload'
 // The address set by the hosting platform, not one a client can forge. Vercel overwrites
 // x-vercel-forwarded-for / x-real-ip; other proxies may set cf-connecting-ip. The first
 // x-forwarded-for entry is only a last resort (self-hosting behind a trusted proxy).
+// Forwarding headers are only trusted on Vercel or behind a proxy declared with TRUSTED_PROXY=1;
+// otherwise every request shares one bucket, which keeps limits effective (if strict).
 export function clientIP(headers: Headers) {
-  return (
-    headers.get('x-vercel-forwarded-for')?.split(',')[0]?.trim() ||
-    headers.get('x-real-ip')?.trim() ||
-    headers.get('cf-connecting-ip')?.trim() ||
-    headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    'unknown'
-  )
+  if (process.env.VERCEL)
+    return (
+      headers.get('x-vercel-forwarded-for')?.split(',')[0]?.trim() ||
+      headers.get('x-real-ip')?.trim() ||
+      'unknown'
+    )
+  if (process.env.TRUSTED_PROXY === '1')
+    return (
+      headers.get('cf-connecting-ip')?.trim() ||
+      headers.get('x-real-ip')?.trim() ||
+      headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
+      'unknown'
+    )
+  return 'direct'
 }
 // A salted, truncated hash so addresses are never stored.
 export function senderKey(headers: Headers) {

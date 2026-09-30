@@ -3,6 +3,7 @@ import { withPayload } from '@payloadcms/next/withPayload'
 
 export default withPayload({
   reactStrictMode: true,
+  poweredByHeader: false,
   images: { remotePatterns: [{ protocol: 'https', hostname: '*.public.blob.vercel-storage.com' }] },
   async headers() {
     return [
@@ -15,12 +16,12 @@ export default withPayload({
           // Baseline policy that never blocks Next.js inline scripts; sites can tighten it.
           {
             key: 'Content-Security-Policy',
-            value:
-              "frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'",
+            value: "frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'",
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()',
+            value:
+              'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()',
           },
           ...(process.env.SITE_ENV === 'production'
             ? [{ key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' }]

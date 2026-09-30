@@ -22,20 +22,22 @@ Open your site's repository in Claude Code and run `/designos-build`. Start with
 
 ## Develop locally
 
-Requirements: Node 22+ (24 tested) and npm. PostgreSQL is included.
+Requirements: Node 22+ (24 tested) and npm. A local PostgreSQL is included; to use your own PostgreSQL 17/18 instead, point `DATABASE_URL` at it and skip `db:local`.
 
 ```sh
 npm ci
-cp .env.example .env        # set PAYLOAD_SECRET (32+ random characters) and SEED_PASSWORD
-npm run db:local            # terminal 1: local PostgreSQL on 127.0.0.1:54329
+cp .env.example .env        # set PAYLOAD_SECRET (32+ random characters) and SEED_PASSWORD; never commit .env
+npm run db:local            # terminal 1: local PostgreSQL on 127.0.0.1:54329 (data in .local/postgres)
 npm run migrate && npm run seed && npm run dev   # terminal 2
 ```
 
-Open http://localhost:3000 and http://localhost:3000/admin. The seed creates neutral demo content only and refuses production.
+Open http://localhost:3000 and http://localhost:3000/admin. The seed is idempotent and refuses production: it creates one administrator only when no user exists, plus neutral demo services, case studies, people, a blog post, a form, a reusable block and demo pages showing every section. On Windows, sandboxed shells may stop Node resolving the OS account; run the database and Payload tools in a normal terminal.
 
-Checks: `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:integration`, `npm run test:releases`, `npm run test:ai`, `npm run test:installer`, `npm run build`, then `npm start` and `npm run test:e2e`. CI runs the same on a disposable database.
+**Checks:** `npm run generate:types`, `npm run generate:importmap`, `npm run typecheck`, `npm run lint`, `npm test`, `npm run test:integration`, `npm run test:releases`, `npm run test:ai`, `npm run test:installer`, `npm run build`, then `npm start` and `npm run test:e2e` (Edge on Windows, Chromium on Linux; reports in `playwright-report/`). CI runs the same on a disposable database.
 
-Schema changes: edit the collections, run `npm run generate:types`, then `npm run payload -- migrate:create name`, and review the migration (keep it additive where possible). Migrations run automatically on deploy (`scripts/vercel-build.mjs`).
+**AI tools:** `npm run ai:check`, `npm run ai:context`, `npm run ai:health -- local`, `npm run sections -- catalog`, `npm run audit -- http://localhost:3000`, `npm run mcp`. See [docs/AI_TOOLKIT.md](docs/AI_TOOLKIT.md).
+
+**Schema changes:** edit the collections, run `npm run generate:types`, then `npm run payload -- migrate:create name` and review the migration (keep it additive where possible; see docs/OPERATIONS.md → Migrations). Migrations run automatically on deploy (`scripts/vercel-build.mjs`).
 
 ## Documentation
 

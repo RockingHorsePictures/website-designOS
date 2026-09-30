@@ -4,7 +4,13 @@ Most people should use the **Deploy with Vercel** button (see docs/DEPLOY.md): i
 
 ## Guided installer
 
-With Node.js 22+ and Git installed, run the single command in README.md. It opens a local browser wizard. Sign in to Vercel using its browser flow. The wizard reuses a GitHub Git credential when available, or accepts a temporary GitHub token with repo/workflow permission; organisation access may need approval from that organisation. Credentials never go to a Design OS service.
+With Node.js 22+ and Git installed, run:
+
+```sh
+npx --yes --allow-remote=all --package="https://github.com/RockingHorsePictures/website-designOS/releases/download/v0.2.1/design-os-installer-0.2.1.tgz" design-os
+```
+
+The flag permits downloading the installer URL for this one command (npm 12 otherwise blocks URL packages with `EALLOWREMOTE`); it does not change your npm settings. Copy the plain command, without Markdown link formatting. Each release publishes its own installer URL on the GitHub Releases page. It opens a local browser wizard. Sign in to Vercel using its browser flow. The wizard reuses a GitHub Git credential when available, or accepts a temporary GitHub token with repo/workflow permission; organisation access may need approval from that organisation. Credentials never go to a Design OS service.
 
 Choose a new site name, GitHub owner, Vercel team, local folder, data region and administrator credentials. Review the resources before starting. The installer creates a private website repository, Vercel project, separate Production and code-testing Neon databases/Blob stores, independent signing secrets, and an initial administrator and page. It migrates before deployment and verifies the editor's assigned address. The live URL shows Coming soon until you publish from /admin; /preview is the saved content Preview inside this same CMS deployment. Feature-branch Vercel deployments remain a separate code-testing environment.
 
@@ -18,7 +24,7 @@ Setup commits use the connected GitHub account's private commit identity, indepe
 
 Every exported site records its originating version, commit and baseline file hashes in designos-installation.json. Plan an upgrade with `npm run upgrade -- vX.Y.Z`. Review .designos/upgrade-review.json, then add `--apply` to prepare a separate upgrade branch. Neither command changes the database or deploys anything.
 
-Upstream changes are compared with the original baseline and your current files. Custom changes are preserved where upstream did not change the same file. If both changed a file, the upgrade stops before writing website files. Resolve those changes through an AI/developer review; there is no automatic overwrite or unattended upgrade. Commit the reviewed branch, install dependencies, run checks on a disposable database, review its code Preview, back up Production, and apply compatible migrations before releasing. Code rollback alone cannot undo an incompatible database migration.
+Upstream changes are compared with the original baseline and your current files. Custom changes are preserved where upstream did not change the same file. If both changed a file, the upgrade stops before writing website files. Resolve those changes through an AI/developer review; there is no automatic overwrite or unattended upgrade. Commit the reviewed branch, install dependencies, run checks on a disposable database, review its code Preview, back up Production, then merge; the deployment applies the migrations. Code rollback alone cannot undo an incompatible database migration.
 
 Use one project, repository, CMS database and media store per company. A new conversation for the same site does not need any duplication.
 

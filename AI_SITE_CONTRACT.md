@@ -1,10 +1,10 @@
 # AI Site Contract
 
-The current project is the Design OS foundation from specification V5. **Do not begin Phase 4 without a new explicit instruction.** The public frontend is deliberately neutral test scaffolding.
+Rules for every AI agent and developer working on a Design OS website. **Start visual design only when the owner asks for it** (for example with `/designos-build`); until then the public frontend is neutral scaffolding. The original specification (docs/history/COMPANY_WEBSITE_BUILD_SPEC_V5.md) is historical intent; later owner instructions take precedence.
 
 ## Preserve the architecture
 
-Payload owns all editorial data. React components own rendering and responsive behaviour. Git owns code and schema changes. Content publishing must never require a deployment. One company, one CMS, one application. Version 0.2 adds whole-site releases and approval locks by explicit user request.
+Payload owns all editorial data. React components own rendering and responsive behaviour. Git owns code and schema changes. Content publishing must never require a deployment. One company, one CMS, one application.
 
 1. Never hard-code replaceable copy, company claims or imagery into reusable components. Obtain it from CMS fields, global settings or persisted section props. Ordinary interface labels can be static.
 2. Case studies, services, people and clients remain structured records. Page composition stores record IDs and query settings, never copied entity content.
@@ -41,14 +41,14 @@ These controls protect CMS operations. Repository or database administrators ret
 
 Save individual forms to the workspace. **Save to Preview** captures all included content, saved drafts, navigation, brand settings and retained assets in one immutable release. **Publish to Live** promotes exactly the reviewed Preview version; it does not capture later edits. **Unpublish site** clears the Live pointer and shows Coming soon. Use **Include in site releases** to omit a page from the next snapshot; moving a document to draft is an editorial state, not a whole-site release action. Keep release writes transactional, reject stale Preview IDs, and never edit an existing release snapshot.
 
-Code deployments update renderers and the admin together. They must not seed, restore, reset, or copy a database automatically. Content publication does not approve a code deployment. Sites receive updates as pull requests from the **Design OS updates** GitHub Action (`npm run upgrade -- latest --pr`); files a site customised are never overwritten, and conflicts are kept side by side as `<file>.designos-upstream` for review. Locally, `npm run upgrade -- vX.Y.Z` to review a core upgrade plan, then `--apply` to prepare a separate branch. Any customised file that also changed upstream must stop for review. Test migrations on a disposable database and preserve old release-format compatibility before deploying.
+Code deployments update renderers and the admin together, and migrate that deployment's own database (rule 16). They must never seed, restore, reset or copy a database. Content publication does not approve a code deployment. Sites receive updates as pull requests from the **Design OS updates** GitHub Action (`npm run upgrade -- latest --pr`); files a site customised are never overwritten, and conflicts are kept side by side as `<file>.designos-upstream` for review. Locally, `npm run upgrade -- vX.Y.Z` to review a core upgrade plan, then `--apply` to prepare a separate branch. Any customised file that also changed upstream must stop for review. Test migrations on a disposable database and preserve old release-format compatibility before deploying.
 
 ## Starting a later design phase
 
-Read START_HERE.md for the workspace entry point, docs/DESIGN_HANDOFF.md for the practical workflow and docs/NEW_SITE.md when creating a separate company's site. Until the foundation PR is merged, start from foundation/design-os, not main.
+Read START_HERE.md for the workspace entry point, docs/DESIGN_HANDOFF.md for the practical workflow and docs/DEPLOY.md when creating a separate company's site. Work on a feature branch of the site's own repository (in the Design OS product repository itself, branch from `foundation/design-os` until it is merged to `main`).
 
-After explicit authorization, inventory references and agree the sitemap, templates and visual direction. Design normal React components first, then expose their smallest useful editable API. Replace neutral proof renderers while retaining their content contracts or supply migrations. Use the existing authentication, collections, search helpers, preview routes, media and deployment wiring. Run unit, integration, browser and accessibility tests before review.
+Once the owner asks, inventory references and agree the sitemap, templates and visual direction. Design normal React components first, then expose their smallest useful editable API. Replace neutral proof renderers while retaining their content contracts or supply migrations. Use the existing authentication, collections, search helpers, preview routes, media and deployment wiring. Run unit, integration, browser and accessibility tests before review.
 
-## AI connection (0.2.1)
+## AI connection
 
-Before CMS work, read docs/AI_CONNECTION.md. In the installed website folder run `npm run ai:check` and `npm run ai:context`; read fresh Production and code-preview approvals from `.designos/ai-context.json`. The installer provisions separate restricted accounts. If missing, use the documented `npm run ai:connect` repair after upgrading/migrating, not a request for the owner to paste passwords into chat. Use `npm run ai:request` for automated CMS operations. Production access is read-only and its approvals are authoritative. Browser-only conversations can use the admin’s credential-free context download for planning, but need a connected coding runtime for writes.
+See START_HERE.md → AI connection and docs/AI_CONNECTION.md. Never ask the owner to paste a CMS password into chat.

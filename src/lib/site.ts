@@ -143,13 +143,23 @@ export const siteCMS = cache(async () => {
   const locale = await siteLocale()
   if ((await siteView()) === 'workspace') {
     // Authenticated draft preview: the live workspace in the request language.
+    // Reads run as the signed-in person, even when a caller omits the user or draft mode is off.
+    const user = await currentUser()
     const localized = { locale, fallbackLocale: defaultLocale } as const
     return {
       ...payload,
       find: ((options: Parameters<typeof payload.find>[0]) =>
-        payload.find({ ...localized, ...options } as never)) as typeof payload.find,
+        payload.find({
+          ...localized,
+          ...options,
+          user: options.user ?? user,
+        } as never)) as typeof payload.find,
       findGlobal: ((options: Parameters<typeof payload.findGlobal>[0]) =>
-        payload.findGlobal({ ...localized, ...options } as never)) as typeof payload.findGlobal,
+        payload.findGlobal({
+          ...localized,
+          ...options,
+          user: (options as { user?: unknown }).user ?? user,
+        } as never)) as typeof payload.findGlobal,
     }
   }
   const snapshot = await siteBody()

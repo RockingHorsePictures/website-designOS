@@ -2,7 +2,7 @@
 
 ## Environment isolation
 
-Application releases include both the public website and Payload admin. Test code changes on a feature-branch Preview, review the checks, apply any compatible schema migrations to Production using its own credentials, then release the reviewed code using Production configuration. Do not merely assign the production domain to a Preview instance connected to preview data.
+Application releases include both the public website and Payload admin. Test code changes on a feature-branch Preview, review the checks, merge it; the production deployment migrates the Production database during its build (unless `DESIGNOS_AUTO_MIGRATE=false`) and then serves the reviewed code. Do not merely assign the production domain to a Preview instance connected to preview data.
 
 The code release does not transfer CMS records or Blob objects. After launch, routine content work belongs in the Production CMS with draft/preview/publish for versioned documents. All forms save to the workspace. The Production CMS creates a frozen whole-site Preview, then explicitly publishes that reviewed release to Live. Globals no longer change Live immediately. For initial launch, transfer only reviewed content and assets into the new Production resources, remap relationship IDs where needed, verify metadata and uploads, and provision production users separately. This is an operational plan, not an implemented automatic content-transfer feature. Never overwrite a populated Production database with a Preview snapshot as part of a routine release.
 
@@ -24,7 +24,7 @@ Payload versions recover previous content edits. Restore and review a version, t
 
 Whole-site publication is now explicit from Overview. Legacy scheduled document operations only update workspace state and do not release a site. Do not promise timed whole-site launches using the document job runner.
 
-An authenticated scheduler calls `/api/payload-jobs/run?allQueues=true` with the deployment's CRON_SECRET. Jobs are stored in PostgreSQL and survive process restarts. Review failed jobs in Payload/admin or logs. Local development runs a minute worker. The current Hobby preview has no automatic scheduler; its endpoint is tested by explicit invocation. Configure a production scheduler before relying on timed changes (see README), and verify publication occurs at the scheduled time.
+An authenticated scheduler calls `/api/payload-jobs/run?allQueues=true` with the deployment's CRON_SECRET. Jobs are stored in PostgreSQL and survive process restarts. Review failed jobs in Payload/admin or logs. Local development runs a minute worker. The current Hobby preview has no automatic scheduler; its endpoint is tested by explicit invocation. Configure a production scheduler before relying on timed changes (see Manual deployment, step 7, below), and verify publication occurs at the scheduled time.
 
 ## Search onboarding / legacy URL inventory
 

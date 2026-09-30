@@ -1,4 +1,4 @@
-import { APIError, type CollectionConfig } from 'payload'
+import { APIError, type CollectionConfig, type Where } from 'payload'
 import { administrator, adminField, isAI, readOnlyAI } from '../access'
 import { withinLimit, clientIP } from '../../lib/rate-limit'
 
@@ -46,6 +46,35 @@ export const Users: CollectionConfig = {
         // anonymous "first user" registration on a freshly deployed site.
         if (operation === 'create' && http && !req.user)
           throw new APIError('Create the first administrator at /setup.', 403)
+        // Password sign-in policy is enforced before any password is checked, so a disabled
+        // password neither confirms a guess nor can be reset.
+        const policy = passwordPolicy()
+        if (
+          http &&
+          policy !== 'all' &&
+          ['login', 'forgotPassword', 'resetPassword'].includes(operation)
+        ) {
+          const data = (args as { data?: { email?: string; token?: string } }).data || {}
+          const where: Where | null = data.email
+            ? { email: { equals: String(data.email).toLowerCase() } }
+            : data.token
+              ? { resetPasswordToken: { equals: String(data.token) } }
+              : null
+          const found = where
+            ? (
+                await req.payload.find({
+                  collection: 'users',
+                  where,
+                  limit: 1,
+                  depth: 0,
+                  overrideAccess: true,
+                  showHiddenFields: true,
+                })
+              ).docs[0]
+            : null
+          if (policy === 'off' || found?.role !== 'admin')
+            throw new APIError('Password sign-in is turned off. Use Sign in with Google.', 403)
+        }
         if (http && (operation === 'login' || operation === 'forgotPassword')) {
           const key = clientIP(req.headers)
           // Per network address; generous enough for an office sharing one IP. Local development

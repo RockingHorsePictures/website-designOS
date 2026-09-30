@@ -26,7 +26,7 @@ A new conversation for the same site needs no duplication: the contract lives in
 
 `AI_SITE_CONTRACT.md` (rules), `docs/DESIGN_HANDOFF.md` (design workflow), `docs/SECTIONS.md` (the editable page structure), `docs/AI_TOOLKIT.md` (skills, subagents, MCP, audits), `docs/ARCHITECTURE.md`, `EDITOR_GUIDE.md` (what owners do), `docs/DEPLOY.md` (hosting and updates) and `IMPLEMENTATION_STATUS.md` (verified state). `docs/history/COMPANY_WEBSITE_BUILD_SPEC_V5.md` records original intent; later explicit instructions take precedence. These documents alone do not authorise visual design work: the owner must ask for it.
 
-Keep `site-workspace.json` updated when the site's repository or working branch changes; the admin handoff uses it. Until the original foundation PR is merged, `foundation/design-os` contains the app and `main` does not.
+Keep `site-workspace.json` updated when the site's repository or working branch changes; the admin handoff uses it. In the Design OS product repository itself, `foundation/design-os` holds the app until it is merged to `main`; a website made from Design OS works on its own `main`.
 
 ## Prepare the website
 

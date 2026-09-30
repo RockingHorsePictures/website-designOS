@@ -5,7 +5,7 @@ import { compositionSchema, type Composition } from '@/editor/registry/schema'
 import { cookies } from 'next/headers'
 import type { Media, Page, CaseStudy, Service, Post, SiteSetting } from '@/payload-types'
 import { accessCookie, hasPageAccess } from '@/lib/page-access'
-import { siteLocale } from '@/lib/site'
+import { siteLocale, siteView } from '@/lib/site'
 import { dateFormatter } from './Sections'
 import { collectionIndex, schemaFor, serializeSchema } from '@/lib/search/metadata'
 import { contentPath, imageSrc, type ContentCollection } from '@/lib/urls'
@@ -47,7 +47,7 @@ export async function ContentView({
 }) {
   const path = contentPath(collection, doc.slug)
   // Password-protected pages show only a sign-in form until the visitor enters the password.
-  if ('visibility' in doc && doc.visibility === 'password') {
+  if ('visibility' in doc && doc.visibility === 'password' && (await siteView()) !== 'workspace') {
     const jar = await cookies()
     if (!hasPageAccess(doc as never, jar.get(accessCookie(doc.id))?.value))
       return (

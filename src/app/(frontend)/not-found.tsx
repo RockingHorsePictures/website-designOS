@@ -1,9 +1,17 @@
+import { headers } from 'next/headers'
 import { siteCMS } from '@/lib/site'
+import { sitePrefix } from '@/lib/locales'
 import { SiteLink as Link } from '@/components/site/SiteLink'
 
 // Editable in Site Settings → Page not found. Offers search and the main navigation.
 export default async function NotFound() {
   const payload = await siteCMS()
+  // Keep searches inside the current preview channel and language.
+  const view = (await headers()).get('x-designos-view')
+  const locale = (await headers()).get('x-designos-locale')
+  const { channel, locale: prefix } = sitePrefix(
+    `${view === 'preview' ? '/preview' : view === 'workspace' ? '/workspace-preview' : ''}/${locale || ''}`,
+  )
   const [settings, navigation] = await Promise.all([
     payload.findGlobal({ slug: 'site-settings' }).catch(() => null),
     payload.findGlobal({ slug: 'navigation' }).catch(() => null),
@@ -13,7 +21,12 @@ export default async function NotFound() {
     <section className="not-found">
       <h1>{copy?.heading || 'Page not found'}</h1>
       <p>{copy?.message || 'The page you were looking for has moved or no longer exists.'}</p>
-      <form role="search" method="get" action="/search" className="site-search">
+      <form
+        role="search"
+        method="get"
+        action={`${channel}${prefix}/search`}
+        className="site-search"
+      >
         <label htmlFor="not-found-q">Search this site</label>
         <input id="not-found-q" name="q" type="search" maxLength={120} />
         <button type="submit">Search</button>

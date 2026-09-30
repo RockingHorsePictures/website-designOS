@@ -67,13 +67,28 @@ async function latestTag() {
   if (!res.ok || !body.tag_name) throw new Error('Could not find the latest Design OS release.')
   return body.tag_name
 }
-// Files and hashes of an upstream release, exactly as a new site would receive them.
-function releaseFiles(tag, temp) {
+// Files and hashes of an upstream release. Installer sites received the exported starter;
+// Deploy Button sites are a copy of the whole repository, so they compare against the raw tree.
+function releaseFiles(tag, temp, raw) {
   const source = path.join(temp, `source-${tag}`)
+  if (!existsSync(source))
+    execFileSync('git', ['clone', '--depth', '1', '--branch', tag, UPSTREAM, source], {
+      stdio: 'pipe',
+    })
+  if (raw) {
+    const files = {}
+    for (const name of git(source, 'ls-files', '-z').split('\0').filter(Boolean)) {
+      try {
+        safePath(source, name)
+      } catch {
+        continue
+      }
+      files[name] = hash(readFileSync(path.join(source, name)), name)
+    }
+    const { version } = JSON.parse(readFileSync(path.join(source, 'designos-release.json'), 'utf8'))
+    return { root: source, installation: { version, files } }
+  }
   const out = path.join(temp, `export-${tag}`)
-  execFileSync('git', ['clone', '--depth', '1', '--branch', tag, UPSTREAM, source], {
-    stdio: 'pipe',
-  })
   execFileSync(process.execPath, [path.join(source, 'scripts/export-starter.mjs'), out], {
     stdio: 'pipe',
   })
@@ -82,7 +97,9 @@ function releaseFiles(tag, temp) {
     installation: JSON.parse(readFileSync(path.join(out, 'designos-installation.json'), 'utf8')),
   }
 }
-function pullRequestBody(from, to, plan) {
+// GitHub Actions tokens may not change workflow files, so PR mode leaves them for a person.
+const isWorkflow = (name) => name.startsWith('.github/workflows/')
+function pullRequestBody(from, to, plan, manual = []) {
   return [
     `Design OS **${to}** is available (this site is on ${from}).`,
     '',
@@ -92,6 +109,11 @@ function pullRequestBody(from, to, plan) {
     plan.conflicts.length
       ? `- ⚠️ ${plan.conflicts.length} file(s) were customised on this site **and** changed upstream. Your version is kept; the new upstream version is saved beside it as \`<file>.designos-upstream\`. Ask Claude Code to "merge the Design OS update conflicts", or merge them by hand, then delete the \`.designos-upstream\` files:\n${plan.conflicts.map((c) => `  - \`${c}\``).join('\n')}`
       : '- No conflicts.',
+    ...(manual.length
+      ? [
+          `- GitHub does not let automated updates change workflow files. Copy these from the release by hand:\n${manual.map((c) => `  - \`${c.path}\``).join('\n')}`,
+        ]
+      : []),
     '',
     `Release notes: https://github.com/RockingHorsePictures/website-designOS/releases/tag/${to}`,
   ].join('\n')
@@ -110,14 +132,15 @@ export async function upgrade(args = process.argv.slice(2), root = process.cwd()
   const release = JSON.parse(readFileSync(path.join(root, 'designos-release.json'), 'utf8'))
   // Sites made with the guided installer record their baseline; Deploy Button sites start from
   // the published release matching their version.
-  const installation = existsSync(installationPath)
-    ? JSON.parse(readFileSync(installationPath, 'utf8'))
-    : releaseFiles(`v${release.version}`, temp).installation
+  const deployButton = !existsSync(installationPath)
+  const installation = deployButton
+    ? releaseFiles(`v${release.version}`, temp, true).installation
+    : JSON.parse(readFileSync(installationPath, 'utf8'))
   if (`v${installation.version}` === tag) {
     console.log(`Already on ${tag}. Nothing to do.`)
     return { changes: [], conflicts: [] }
   }
-  const next = releaseFiles(tag, temp)
+  const next = releaseFiles(tag, temp, deployButton)
   const nextRoot = next.root
   const nextInstallation = next.installation
   const current = {}
@@ -153,7 +176,9 @@ export async function upgrade(args = process.argv.slice(2), root = process.cwd()
     }
   }
   git(root, 'switch', '-c', branch)
+  const manual = pr ? plan.changes.filter((c) => isWorkflow(c.path)) : []
   for (const change of plan.changes) {
+    if (manual.includes(change)) continue
     const destination = safePath(root, change.path)
     if (change.action === 'remove') unlinkSync(destination)
     else {
@@ -162,18 +187,21 @@ export async function upgrade(args = process.argv.slice(2), root = process.cwd()
     }
   }
   for (const conflict of plan.conflicts) {
+    if (pr && isWorkflow(conflict)) continue
     const upstream = safePath(nextRoot, conflict)
     if (existsSync(upstream))
       writeFileSync(`${safePath(root, conflict)}.designos-upstream`, readFileSync(upstream))
   }
-  writeFileSync(
-    installationPath,
-    JSON.stringify(
-      { ...nextInstallation, installedAt: installation.installedAt || new Date().toISOString() },
-      null,
-      2,
-    ) + '\n',
-  )
+  // Deploy Button sites track their version in designos-release.json (updated with the files).
+  if (!deployButton)
+    writeFileSync(
+      installationPath,
+      JSON.stringify(
+        { ...nextInstallation, installedAt: installation.installedAt || new Date().toISOString() },
+        null,
+        2,
+      ) + '\n',
+    )
   if (!pr) {
     console.log(
       `Prepared ${branch}. Nothing has been deployed or migrated. Install dependencies, run checks against a disposable database, review a code Preview, back up Production, and apply reviewed migrations before releasing. Your previous branch remains available.`,
@@ -193,7 +221,7 @@ export async function upgrade(args = process.argv.slice(2), root = process.cwd()
         '--title',
         title,
         '--body',
-        pullRequestBody(installation.version, tag, plan),
+        pullRequestBody(installation.version, tag, plan, manual),
         '--head',
         branch,
       ],

@@ -42,7 +42,14 @@ export async function blogPosts(categoryId?: number) {
 export async function blogCategories() {
   const { docs } = await (
     await siteCMS()
-  ).find({ collection: 'categories', overrideAccess: false, limit: 200, depth: 0, sort: 'order' })
+  ).find({
+    collection: 'categories',
+    overrideAccess: false,
+    user: await previewUser(),
+    limit: 200,
+    depth: 0,
+    sort: 'order',
+  })
   return docs as Category[]
 }
 export async function blogMetadata(
@@ -60,7 +67,11 @@ export async function blogMetadata(
     alternates: {
       ...alternates,
       canonical: page > 1 ? `${alternates.canonical}?page=${page}` : alternates.canonical,
-      types: { 'application/rss+xml': absoluteURL('/blog/feed.xml') },
+      types: {
+        'application/rss+xml': absoluteURL(
+          localePath('/blog/feed.xml', (await localeContext()).current),
+        ),
+      },
     },
     robots: { index: live && count > 0, follow: live },
   }

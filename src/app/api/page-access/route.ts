@@ -16,9 +16,16 @@ export async function POST(request: Request) {
   const target = new URL(/^\/(?!\/)[^\s\\]*$/.test(back) ? back : '/', request.url)
   if (target.origin !== new URL(request.url).origin) target.pathname = '/'
   // Return to the address the visitor used (keeps /preview and language prefixes).
-  const returnTo = new URL(referer.startsWith('/') ? referer : target.pathname, request.url)
+  const returnTo = new URL(
+    request.headers.get('referer') && !referer.startsWith('/api/') ? referer : target.pathname,
+    request.url,
+  )
   const payload = await cms()
-  if (!(await withinLimit(payload, 'page-access', clientIP(request.headers), 10, 900)))
+  // Per visitor, and per page regardless of address (so rotating addresses cannot brute force).
+  if (
+    !(await withinLimit(payload, 'page-access', clientIP(request.headers), 10, 900)) ||
+    !(await withinLimit(payload, 'page-access-page', String(id), 100, 900))
+  )
     return new Response('Too many attempts. Try again in a few minutes.', { status: 429 })
   const snapshot = await currentSnapshot(payload, channel)
   const doc = snapshot?.collections.pages.find((p) => p.id === id)

@@ -9,6 +9,12 @@ import { googleEnabled } from '@/lib/auth/google'
 import { clientIP, withinLimit } from '@/lib/rate-limit'
 
 export type SetupState = { error?: string }
+async function releaseSetupClaim(payload: Awaited<ReturnType<typeof cms>>) {
+  const { sql } = await import('@payloadcms/db-postgres')
+  await (
+    payload.db as unknown as { drizzle: { execute: (q: unknown) => Promise<unknown> } }
+  ).drizzle.execute(sql`DELETE FROM designos_rate_limits WHERE bucket = 'setup-claim'`)
+}
 // The owner chooses DESIGNOS_SETUP_CODE when deploying. Local development needs no code.
 export const setupCodeRequired = async () => process.env.SITE_ENV !== 'local'
 const sameCode = (given: string, expected: string) => {
@@ -46,6 +52,9 @@ export async function createOwner(_: SetupState, form: FormData): Promise<SetupS
   if (!company) return { error: 'Enter your company or website name.' }
   if (!useGoogle && password.length < 12)
     return { error: 'Choose a password of at least 12 characters.' }
+  // Only one setup can run: the first request claims it, a concurrent one is turned away.
+  if (!(await withinLimit(payload, 'setup-claim', 'owner', 1, 3600)))
+    return { error: 'Setup is already in progress. Reload in a minute.' }
   try {
     const user = await initializeSite(payload, { name, email, password, company })
     if (useGoogle) redirect('/api/auth/google?next=/admin')
@@ -67,6 +76,7 @@ export async function createOwner(_: SetupState, form: FormData): Promise<SetupS
     })
   } catch (error) {
     if ((error as { digest?: string }).digest?.startsWith('NEXT_REDIRECT')) throw error
+    await releaseSetupClaim(payload)
     return { error: 'The administrator could not be created. Check the details and try again.' }
   }
   redirect('/admin?welcome=1')

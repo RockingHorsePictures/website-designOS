@@ -10,7 +10,78 @@ Verified locally: additive migration, typecheck, lint, 13 unit tests, 9 installe
 
 ## Scope and current phase
 
-V5 supersedes V4. Phases 1, 2, 2B and 3 are complete within the foundation scope. Version 0.2 extends that foundation through explicit user requests below. Every public template is neutral verification scaffolding, not a company website design proposal. Phase 4 requires a new explicit instruction.
+V5 supersedes V4. Phases 1, 2, 2B and 3 are complete within the foundation scope. Version 0.2 extends that foundation through the explicit user requests below. Versions 0.3 and 0.4 add the section library, AI toolkit and platform features. Every public template is neutral verification scaffolding, not a company website design proposal. The visual website design phase for any company begins only on a new explicit instruction.
+
+## Version 0.4 (unreleased, branch `feature/v0.4-platform`, stacked on 0.3) — platform
+
+Requested by the owner on 2026-09-30:
+
+- an overhauled, animated admin experience;
+- simple installation and updates (Deploy Button; database migrated on deploy; updates as pull requests);
+- a review of the contact form and its integrations;
+- a security review;
+- Google sign-in with a password fallback;
+- a Webflow/Framer-class feature set (blog and search, layout power, forms and integrations, multi-language, plus anything else AI can build and control);
+- simplified documentation;
+- a final audit.
+
+**Added**
+
+- **Languages**: field localization for 26 supported codes; languages switched on per site; `/<code>/` routes; `hreflang`; per-language releases; composer language switching.
+- **Blog**: Posts and Categories, index, category pages, RSS, BlogPosting data and a Posts section.
+- **Site search**: `/search`.
+- **Forms**: a form builder, a Form section, signed webhooks, per-form notifications and redirects, optional Turnstile, and atomic rate limits.
+- **New sections**: Columns (nesting), Reusable blocks, Steps, Pricing and Embed (allowlisted providers).
+- **Page options and site chrome**: motion presets; page templates; password-protected pages; announcement bar; analytics (Vercel, Plausible, Fathom, Umami, or GA4 behind cookie consent); verification codes and an editable 404 in Site Settings; generated share images.
+- **Sign-in and setup**: Google sign-in for invited users (native Payload sessions); `PASSWORD_SIGN_IN`; `/setup` behind `DESIGNOS_SETUP_CODE`, with anonymous first-user registration blocked.
+- **Admin**: the Overview dashboard (status, stats, checklist, recent edits, quick actions, New page and Invite dialogs, update banner), a refreshed admin theme with motion (reduced-motion safe), a redesigned sign-in page and a standalone composer.
+- **Hosting**: the Deploy Button (Neon + Blob), hosted environment defaults, migrate-on-deploy (the product repository opts in), and the weekly updates Action opening pull requests.
+- **Docs**: reorganised into `docs/`, with the new `docs/DEPLOY.md`.
+
+**Security fixes from review**
+
+- Anonymous visitors could list every media file, including internal notes and unreleased uploads. Now only released files are readable, and internal fields are staff-only.
+- The contact form's no-JavaScript redirect was an open redirect.
+- The session cookie lacked `Secure`. It is now set outside local development.
+- No CSP, HSTS or Permissions-Policy. Baseline headers are now sent.
+- The form rate limit could be raced and spoofed. It is now atomic and uses platform client-IP headers.
+- Login and password reset had no IP throttle. They now do.
+- Raw errors were returned from the approval and publication APIs. They are now sanitised.
+- AI accounts could edit their own login details, and could set analytics, verification or form delivery fields. All of these are now blocked.
+- The starter exporter omitted the 0.3 AI toolkit files. Its allowlist is fixed.
+
+**Migrations**
+
+- `20260930_000010_blog_forms_blocks_access` is additive (including `designos_rate_limits`).
+- `20260930_000113_localization` moves translatable columns into `*_locales` tables. It is hand-edited to copy every value first. It was verified on the local database: 129 values in pages, case studies, services, team, media, site settings and navigation matched their pre-migration release copies, with 0 mismatches.
+- Deploying it drops old columns, so the previous deployment can error briefly during the switch. Release at a quiet time and confirm Neon backups.
+
+**Final audit fixes**
+
+- Reads in the signed-in workspace preview now always run as the signed-in person. Before, categories, reusable blocks and forms could come back empty when draft mode was off.
+- Routes that don't load the Payload config (Google sign-in, page passwords, rate limits) now apply the hosted environment defaults first. Before, derived secrets could differ.
+- The Google redirect address now follows the address the person is signing in on (for example a preview URL), not only the configured site address.
+- Forms:
+  - Forms submit the address the visitor is actually on, so redirects stay in the same language and preview.
+  - After-send redirects get the same prefixes.
+  - Without JavaScript, errors are shown on return.
+  - Workspace previews use the unpublished form.
+  - A failed webhook status update no longer fails the submission.
+- Editors see password-protected pages in the workspace preview without entering the password.
+- The list of released file IDs is cached per publication state. Before, every image request re-queried every release.
+- `llms.txt` links, the RSS link and the 404 search form keep the current language and preview.
+- Updates:
+  - Deploy Button sites (which have no installation file) are compared against the full release tree, not the starter export.
+  - Automated update pull requests no longer try to change `.github/workflows` files, which GitHub Actions tokens can't do. They're listed in the pull request for a person to copy.
+  - The version is now 0.4.0.
+- A reported issue about protected pages being readable through the REST API was checked and is not a bug: anonymous `/api/pages` returns 403.
+
+**Release prerequisites**
+
+- The Deploy Button in the README clones the `stable` branch, which must be created (or moved) when 0.4.0 is released.
+- The installer (`installer/release.json`) still points at v0.2.1 until that tag exists.
+- The localization migration drops columns, so take a Neon backup before the first production deploy.
+
 
 ## Version 0.3 (unreleased, branch `feature/v0.3-toolkit`) — section library, forms and AI toolkit
 
@@ -29,7 +100,7 @@ Requested by the owner on 2026-09-29: audit and fix the app, make it a complete 
 - First-party media URLs (absolute, via serverURL) crashed `next/image` for local/non-Blob storage; they are served same-origin.
 - The alt-text endpoint spent AI budget before validating the request; bootstrap admin creation could race on cold starts; the upgrade planner missed CRLF normalisation for `LICENSE`.
 
-**Added:** 17-section base library with composer fields, pickers for media/records/facts, Markdown-subset text, and `pageHeader: hidden`; Contact sections with an Enquiries collection (spam trap, rate limit, no-JS fallback, optional SMTP notifications, which also enable password reset); Site Settings address/language/organisation type; separate answer-engine crawler toggle; `/llms.txt`; richer JSON-LD (organisation details, three-level breadcrumbs, CreativeWork, FAQPage and VideoObject from visible sections, CollectionPage/ItemList, AboutPage/Person); `html lang`; index/team metadata; section-aware quality checks; admin **Site health**; crawler audit (`npm run audit`); section catalog/validator; MCP server; Claude Code skills and subagents; `local` bridge profile, `ai:health` and image upload; AI_TOOLKIT.md and SECTIONS.md.
+**Added:** 17-section base library with composer fields, pickers for media/records/facts, Markdown-subset text, and `pageHeader: hidden`; Contact sections with an Enquiries collection (spam trap, rate limit, no-JS fallback, optional SMTP notifications, which also enable password reset); Site Settings address/language/organisation type; separate answer-engine crawler toggle; `/llms.txt`; richer JSON-LD (organisation details, three-level breadcrumbs, CreativeWork, FAQPage and VideoObject from visible sections, CollectionPage/ItemList, AboutPage/Person); `html lang`; index/team metadata; section-aware quality checks; admin **Site health**; crawler audit (`npm run audit`); section catalog/validator; MCP server; Claude Code skills and subagents; `local` bridge profile, `ai:health` and image upload; docs/AI_TOOLKIT.md and docs/SECTIONS.md.
 
 **Migration:** `20260929_204851_sections_forms_answer_engines` is additive (new table and columns with defaults). Existing compositions validate unchanged; a unit test pins 0.2 compositions.
 
@@ -73,7 +144,7 @@ Requested by the owner on 2026-09-29: audit and fix the app, make it a complete 
 - Hosted Preview is READY: https://designos-preview-rockinghorse.vercel.app. Editor: /admin. Sign in to Vercel first, then use the CMS credentials in the ignored local file .local/preview-access.txt. Temporary bootstrap environment variables were removed after provisioning.
 - Hosted authenticated upload passed. Media record 4 and the exact 274-byte PNG checksum survived replacement of deployment dpl_EgGi1n7DafMtbWfG8YFfV9QLjifi with dpl_6ffGVZbQhKes6ms4eczPF3qEdJHV. Both are Preview builds of application commit 34fb029 on foundation/design-os. Public page, editor and media persistence use real PostgreSQL and Blob storage.
 - The hosted job endpoint successfully published and unpublished a persisted test page through authenticated invocation. Automatic clock-driven execution is a launch prerequisite below.
-- Vercel's initial-deployment constraint was resolved using the user's explicitly approved, credential-free static bootstrap. Its public alias was removed and verified 404; its hashed URL remains protected. Subsequent branch builds correctly target Preview. Main and existing company production systems remain unchanged. See HOSTED_SETUP_REVIEW.md for the audit trail.
+- Vercel's initial-deployment constraint was resolved using the user's explicitly approved, credential-free static bootstrap. Its public alias was removed and verified 404; its hashed URL remains protected. Subsequent branch builds correctly target Preview. Main and existing company production systems remain unchanged. See docs/history/HOSTED_SETUP_REVIEW.md for the audit trail.
 - Added and dry-run verified .vercelignore: local databases, credentials, caches and test artifacts are excluded from uploads. Git ignores alone were insufficient for this CLI.
 
 ## Architectural decisions affecting later design
@@ -90,19 +161,19 @@ Requested by the owner on 2026-09-29: audit and fix the app, make it a complete 
 - The current Vercel Hobby preview has no automatic scheduled-job worker. The durable job framework is verified locally and through the hosted endpoint; configure an authenticated production scheduler before relying on timed publishing. Vercel Cron only executes in Production and minute intervals require a suitable plan.
 - Configure production email delivery/password reset, backups/PITR and independent media recovery; operations documents provide the recovery procedure, not a claim those services are configured.
 - Runtime AI, IndexNow and search-engine account integrations require their optional credentials. The full Search Assistant and content intelligence belong to later phases.
-- Remaining moderate dependency advisories are in transitive migration tooling; see OPERATIONS.md.
+- Remaining moderate dependency advisories are in transitive migration tooling; see docs/OPERATIONS.md.
 
 ## How a future design agent begins
 
-The subsequent requested foundation extension adds a Font files upload library (WOFF2/WOFF, static or variable faces), custom body/heading font selection and standard weights 100–900, main/inverse logos and a browser icon in Site Settings, and an admin dashboard AI handoff. START_HERE.md and NEW_SITE.md explain where to work and how to export a clean starter for another company. The contract is now linked from AGENTS.md so a new task can discover it without this conversation. No website visual design has begun.
+The subsequent requested foundation extension adds a Font files upload library (WOFF2/WOFF, static or variable faces), custom body/heading font selection and standard weights 100–900, main/inverse logos and a browser icon in Site Settings, and an admin dashboard AI handoff. START_HERE.md and docs/NEW_SITE.md explain where to work and how to export a clean starter for another company. The contract is now linked from AGENTS.md so a new task can discover it without this conversation. No website visual design has begun.
 
 All six local browser flows pass, including font upload and persisted bytes, rejection of a disguised non-font, the Theme sample, public page, composer, main logo and icon. Thirteen unit checks, typecheck, lint, integration checks and the production build pass. The same upload/logo/handoff flow passes on the hosted Preview; original settings are restored and test uploads removed afterward. Both GitHub CI runs for application revision e46d626 passed. The AI handoff panel and download work without browser errors. Both additive migrations preserve existing values and are applied to local and Preview databases.
 
 The clean starter contains 104 files with no source-site credentials, uploaded assets, repository connection or hosting links. It independently passed dependency installation, all four migrations, demo seeding into a separate local database, and a production build. It begins with one fresh demo administrator and no font/logo records. These checks establish repeatability of the foundation; each future site's hosting and credentials still need their own setup and verification.
 
-The requested typography extension adds a live Theme sample, independently selectable heading/body fonts and heading/body/emphasis weights, with real self-hosted font files. Twelve unit checks, the production build, lint and all five local browser flows pass. The additive migration preserves existing theme values and versions with the original system-font defaults. See DESIGN_HANDOFF.md for the next design task's baseline, inputs and starting prompt.
+The requested typography extension adds a live Theme sample, independently selectable heading/body fonts and heading/body/emphasis weights, with real self-hosted font files. Twelve unit checks, the production build, lint and all five local browser flows pass. The additive migration preserves existing theme values and versions with the original system-font defaults. See docs/DESIGN_HANDOFF.md for the next design task's baseline, inputs and starting prompt.
 
-Obtain explicit Phase 4 authorization, then read this status, V5, ARCHITECTURE.md and AI_SITE_CONTRACT.md. Run the existing tests and inspect the real editor before modifying templates. Obtain approved company references and visual direction. Extend shared sections and schemas together; preserve draft isolation, structured records and existing content migrations. Keep demo content clearly identified until approved content replaces it.
+Obtain explicit instruction to begin the visual design phase, then read this status, V5, docs/ARCHITECTURE.md and AI_SITE_CONTRACT.md. Run the existing tests and inspect the real editor before modifying templates. Obtain approved company references and visual direction. Extend shared sections and schemas together; preserve draft isolation, structured records and existing content migrations. Keep demo content clearly identified until approved content replaces it.
 
 ## 0.2.1 release verification
 

@@ -87,7 +87,12 @@ describe('forms', () => {
       '::ffff:10.0.0.1',
     ])
       expect(privateAddress(ip), ip).toBe(true)
+    for (const ip of ['::ffff:7f00:1', '::127.0.0.1', '64:ff9b::a9fe:a9fe', '::ffff:0:7f00:1', '2002:7f00:1::', '198.18.0.1', 'not-an-ip'])
+      expect(privateAddress(ip), ip).toBe(true)
     expect(privateAddress('8.8.8.8')).toBe(false)
+    expect(privateAddress('2606:4700::1111')).toBe(false)
+    expect(await safeWebhookTarget('https://[::ffff:127.0.0.1]/')).toBe(false)
+    expect(await safeWebhookTarget('https://[::ffff:169.254.169.254]/')).toBe(false)
     expect(await safeWebhookTarget('https://169.254.169.254/latest')).toBe(false)
     expect(await safeWebhookTarget('http://8.8.8.8/hook')).toBe(false)
     expect(await safeWebhookTarget('https://user:pw@8.8.8.8/hook')).toBe(false)

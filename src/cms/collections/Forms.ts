@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto'
 import type { CollectionConfig } from 'payload'
-import { authenticated, humanField } from '../access'
+import { adminField, authenticated, humanField } from '../access'
 import { safeLink } from '../../lib/urls'
 
 export const formFieldTypes = [
@@ -136,7 +136,7 @@ export const Forms: CollectionConfig = {
             description:
               'Each submission is POSTed as JSON, signed with the secret below (header X-DesignOS-Signature: sha256=<hmac>).',
           },
-          access: { create: humanField, update: humanField },
+          access: { create: adminField, update: adminField },
           validate: (v: unknown) =>
             !v || (typeof v === 'string' && /^https:\/\/[^\s/]+/.test(v)) || 'Use an https:// URL.',
         },

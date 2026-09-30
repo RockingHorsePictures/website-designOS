@@ -205,7 +205,14 @@ export const SiteSettings: GlobalConfig = {
               defaultValue:
                 'We use cookies to understand how our website is used. You can accept or decline analytics cookies.',
             },
-            { name: 'policyURL', type: 'text', label: 'Privacy policy link' },
+            {
+              name: 'policyURL',
+              type: 'text',
+              label: 'Privacy policy link',
+              access: { create: humanField, update: humanField },
+              validate: (v: unknown) =>
+                !v || (typeof v === 'string' && safeLink(v)) || 'Use a page path or https link.',
+            },
           ],
         },
       ],

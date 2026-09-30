@@ -1,4 +1,5 @@
-import { siteCMS, siteView, siteSnapshot } from '@/lib/site'
+import { siteCMS, siteView, siteSnapshot, siteLocale } from '@/lib/site'
+import { localePath } from '@/lib/locales'
 import { absoluteURL, contentCollections, contentPath } from '@/lib/urls'
 import { indexable } from '@/lib/search/metadata'
 
@@ -43,7 +44,7 @@ export async function GET() {
     lines.push(`## ${headings[collection]}`, '')
     for (const doc of entries)
       lines.push(
-        `- [${doc.title}](${absoluteURL(contentPath(collection, doc.slug))}): ${(doc.seo?.description || doc.summary || '').replace(/\s+/g, ' ')}`,
+        `- [${doc.title}](${absoluteURL(localePath(contentPath(collection, doc.slug), await siteLocale()))}): ${(doc.seo?.description || doc.summary || '').replace(/\s+/g, ' ')}`,
       )
     lines.push('')
   }

@@ -76,7 +76,7 @@ export function validateSubmission(form: PublicForm, raw: Record<string, unknown
       continue
     }
     if (text.length > limits[field.type]) errors.push(`${field.label} is too long.`)
-    else if (field.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text))
+    else if (field.type === 'email' && !/^[^\s@,;<>]+@[^\s@,;<>]+\.[^\s@,;<>]+$/.test(text))
       errors.push(`${field.label} must be an email address.`)
     else if (field.type === 'number' && !/^-?\d+(\.\d+)?$/.test(text))
       errors.push(`${field.label} must be a number.`)

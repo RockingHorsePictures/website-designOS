@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs'
 import { parseEnv } from 'node:util'
 import { spawnSync } from 'node:child_process'
+import { applyHostedDefaults } from '../src/lib/env-defaults.mjs'
 
 // CMS bridge for AI coding tools. Environments come from this site's private env files:
 //   production → .env.production.local (read-only AI account)
@@ -18,7 +19,9 @@ const files = { production: '.env.production.local', preview: '.env.preview.loca
 const all = {}
 for (const [environment, file] of Object.entries(files)) {
   if (!existsSync(file)) continue
-  const values = parseEnv(readFileSync(file, 'utf8'))
+  // Files pulled with `vercel env pull` carry VERCEL_ENV; derive the same labels and secrets the
+  // deployment uses.
+  const values = applyHostedDefaults({ ...parseEnv(readFileSync(file, 'utf8')) })
   // A plain .env belongs to the local profile only when it is explicitly labelled local.
   if (environment === 'local' && values.SITE_ENV !== 'local') continue
   if (values.SITE_ENV !== environment || values.DATABASE_ENV !== environment) {

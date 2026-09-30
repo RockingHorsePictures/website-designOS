@@ -1,3 +1,5 @@
+// Hosted defaults (derived secrets) must apply before PAYLOAD_SECRET is read.
+import '../env'
 import { createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
 import { createRemoteJWKSet, jwtVerify } from 'jose'
 import { siteOrigin } from '../urls'
@@ -6,7 +8,8 @@ import { siteOrigin } from '../urls'
 // administrator has already added under Users can sign in; nobody is created automatically.
 export const googleEnabled = () =>
   Boolean(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET)
-export const redirectURI = () => `${siteOrigin()}/api/auth/google/callback`
+// The address the visitor is on (Google checks it against the registered redirect URIs).
+export const redirectURI = (origin = siteOrigin()) => `${origin}/api/auth/google/callback`
 const COOKIE = 'designos-oauth'
 const jwks = createRemoteJWKSet(new URL('https://www.googleapis.com/oauth2/v3/certs'))
 const b64 = (buf: Buffer) => buf.toString('base64url')
@@ -14,7 +17,7 @@ const sign = (value: string) =>
   createHmac('sha256', `${process.env.PAYLOAD_SECRET}|oauth`).update(value).digest('base64url')
 
 type Pending = { state: string; nonce: string; verifier: string; next: string; exp: number }
-export function beginGoogleSignIn(next: string) {
+export function beginGoogleSignIn(next: string, origin?: string) {
   const pending: Pending = {
     state: b64(randomBytes(24)),
     nonce: b64(randomBytes(24)),
@@ -24,7 +27,7 @@ export function beginGoogleSignIn(next: string) {
   }
   const params = new URLSearchParams({
     client_id: process.env.GOOGLE_CLIENT_ID!,
-    redirect_uri: redirectURI(),
+    redirect_uri: redirectURI(origin),
     response_type: 'code',
     scope: 'openid email profile',
     state: pending.state,
@@ -76,7 +79,7 @@ export async function finishGoogleSignIn(request: Request) {
       code: url.searchParams.get('code') || '',
       client_id: process.env.GOOGLE_CLIENT_ID!,
       client_secret: process.env.GOOGLE_CLIENT_SECRET!,
-      redirect_uri: redirectURI(),
+      redirect_uri: redirectURI(url.origin),
       grant_type: 'authorization_code',
       code_verifier: pending.verifier,
     }),

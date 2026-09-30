@@ -54,12 +54,23 @@ function scanJSON(value: unknown, found: Record<AssetCollection, Set<number>>) {
 }
 
 // IDs of files anonymous visitors may fetch: those in the current Live and Preview releases.
+// Cached per publication state, so image requests do not re-read the release snapshots.
+const cache = new Map<string, number[]>()
 export async function publicAssetIDs(payload: Payload, collection: AssetCollection) {
   const db = (payload.db as unknown as PostgresAdapter).drizzle
+  const state = (
+    await db.execute(sql`SELECT live_release_id, preview_release_id FROM publication LIMIT 1`)
+  ).rows[0] as { live_release_id: number | null; preview_release_id: number | null } | undefined
+  const key = `${collection}:${state?.live_release_id}:${state?.preview_release_id}`
+  const hit = cache.get(key)
+  if (hit) return hit
   const { rows } = await db.execute(sql`
     SELECT DISTINCT (item->>'id')::int AS id
     FROM publication p
     JOIN site_releases r ON r.id IN (p.live_release_id, p.preview_release_id)
     CROSS JOIN LATERAL jsonb_array_elements(COALESCE(r.snapshot -> 'collections' -> ${collection}, '[]'::jsonb)) AS item`)
-  return (rows as { id: number }[]).map((r) => r.id)
+  const ids = (rows as { id: number }[]).map((r) => r.id)
+  if (cache.size > 20) cache.clear()
+  cache.set(key, ids)
+  return ids
 }
