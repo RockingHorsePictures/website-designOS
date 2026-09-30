@@ -18,7 +18,11 @@ The first deployment prepares the database and builds the site. Your address sho
 1. **Separate test data.** Without this, code previews (including update pull requests) stop with a message instead of building. That's safe, but you couldn't review updates.
    1. At [vercel.com](https://vercel.com), open your project and click **Settings** in the top menu, then **Environment Variables** in the left sidebar.
    2. In the form at the top: **Key** `DESIGNOS_PREVIEW_DATA`, **Value** `branch`. Under **Environments**, tick **Preview** only (untick Production and Development). Click **Save**.
-   3. Check the database side. Click **Storage** in the top menu and open your Neon database (its name starts with `neon-`). Make sure **Preview** deployments get their own database branch (wording like "Create database branch for deployment → Preview"). The Deploy Button normally sets this up if you kept Preview switched on in step 1.
+   3. **Do this before step 2, or together with it:** switch on Neon's preview branching. Without it, previews use your live database, so the setting above would let previews change live data. The Deploy Button doesn't always switch it on.
+      - Click **Storage** in the top menu, then your Neon database (its name starts with `neon-`).
+      - In the list of connected projects, open the **`…`** menu on your project's row and choose the option to edit or configure the connection.
+      - Open **Advanced Options → Deployments Configuration**, switch on **Preview**, keep **Resource must be active before deployment** on, and save.
+      - If there's no edit option: **Disconnect** the project from the same `…` menu, then use **Connect Project**, choose your project, keep all environments ticked, and switch on **Preview** under **Advanced Options → Deployments Configuration**. It's the same database, so nothing is lost. Then redeploy: **Deployments** → `…` on the latest one → **Redeploy**.
 2. **Allow automatic updates.** In GitHub, open your new repository → **Settings** → **Actions** → **General** → tick **Allow GitHub Actions to create and approve pull requests** → **Save**. After step 3, also click **Turn on automatic updates** on your admin Overview. Vercel's copy of Design OS leaves out GitHub's workflow folder, so this opens GitHub with the update workflow filled in. Click **Commit changes**.
 
 ## 3. Create your administrator
