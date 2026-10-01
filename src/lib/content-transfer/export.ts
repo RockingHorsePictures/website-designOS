@@ -17,6 +17,8 @@ export async function exportContent(
   payload: Payload,
   options: {
     includeDemo?: boolean
+    // Defaults to the languages switched on in Site Settings.
+    locales?: string[]
     source?: string
     only?: (slug: string, doc: Doc) => boolean
   } = {},
@@ -26,7 +28,7 @@ export async function exportContent(
     depth: 0,
     overrideAccess: true,
   })
-  const locales = enabledLocales(settings as { languages?: unknown })
+  const locales = options.locales || enabledLocales(settings as { languages?: unknown })
   const bundle: Bundle = {
     manifest: {
       format: bundleFormat,

@@ -212,7 +212,9 @@ try {
 
   // Export (through a real zip), then remove the originals as if this were another site.
   const bundle = readBundle(
-    writeBundle(await exportContent(payload, { includeDemo: true, only: mine })),
+    writeBundle(
+      await exportContent(payload, { includeDemo: true, only: mine, locales: ['en', 'fr'] }),
+    ),
   )
   assert.deepEqual(Object.keys(bundle.manifest.collections).sort(), [
     'case-studies',
