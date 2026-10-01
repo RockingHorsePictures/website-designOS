@@ -179,6 +179,20 @@ Published v0.2.1 at c4718a2219b5c760bf4f6af45977e1b18e7e065d. The public install
 
 RHP maintenance PR: https://github.com/RockingHorsePictures/rhp-website/pull/1. Its existing design folder now contains the update and working private code-preview AI connection; pre-existing discovery changes are intact. Its GitHub/Vercel link was repaired and verified via the project API. Production rollout/account provisioning is pending the explicit approval requested in this conversation; no RHP Production migration, account creation or deployment has been performed. Private database snapshots were saved before repair.
 
+## 0.6.1 — Updates merge customised files
+
+Every release changes `package.json` (at least its version), and sites add their own packages, so every update pull request flagged `package.json` and `package-lock.json` as conflicts. Releasing 0.6.0 to rhp-website showed it: those two plus `EDITOR_GUIDE.md` needed manual merging.
+
+The updater (`scripts/upgrade.mjs`) now resolves these against the baseline release's file:
+
+- **`package.json`:** merged entry by entry (`mergePackageJson`). Upstream changes apply, site additions stay, and only an entry both sides changed differently is a conflict.
+- **`package-lock.json`:** regenerated with `npm install --package-lock-only`.
+- **Other text files:** three-way merged (`git merge-file`) when the edits don't overlap.
+
+Workflow files a site doesn't have are ignored in every mode, not only PR mode. On a clone of rhp-website's `main`, a 0.5.1 → 0.6.0 update went from 3 conflicts to 0, with every site package locked. Sites get this behaviour from the update after they install 0.6.1.
+
+The transfer test's record creation is loosely typed, so it compiles on sites whose collections add required fields. This failed rhp-website's 0.6.0 preview build.
+
 ## 0.6.0 — Content transfer
 
 Requested 2026-10-01. Content built while designing (in the local database) had no supported route to the live site, and the AI's production connection is read-only by design.

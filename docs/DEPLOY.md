@@ -68,7 +68,7 @@ Every week your repository's **Design OS updates** Action checks for a new relea
 
 - Vercel builds a code preview of the updated site on its own database copy. Open it from the pull request and look around. It's read-only and shows a **Code preview** banner, because nothing saved there would be kept. Content is always edited at your live address's `/admin`.
 - **Merge** the pull request to update your live site. The database is updated during that deployment.
-- Files you (or your AI) customised are never overwritten. If an update also changed one of them, the pull request says so and saves the new version beside yours as `<file>.designos-upstream`. Ask Claude Code to "merge the Design OS update conflicts" before merging.
+- Files you (or your AI) customised are never overwritten. When an update changed one of them too, it's merged automatically where possible: `package.json` entry by entry (your packages stay), the lock file regenerated, and text files where the edits don't overlap. Only genuinely overlapping edits are left for review: the pull request lists them and saves the new version beside yours as `<file>.designos-upstream`. Ask Claude Code to "merge the Design OS update conflicts" before merging.
 
 The admin Overview shows when an update is available. To check straight away, open **Actions → Design OS updates → Run workflow**. Before merging an update that changes the database, check that Neon backups cover at least the last day (Neon → your project → **Backup & Restore**).
 

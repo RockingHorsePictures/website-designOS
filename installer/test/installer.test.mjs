@@ -271,3 +271,46 @@ for (const mode of ['success', 'shared', 'blocked', 'github-access', 'github-sil
     }
   })
 }
+
+test('updates merge package.json entry by entry and keep the site’s own packages', async () => {
+  const { mergePackageJson } = await import('../../scripts/upgrade.mjs')
+  const base = {
+    version: '0.5.1',
+    scripts: { build: 'next build' },
+    dependencies: { next: '16.3.5', zod: '4.3.6' },
+  }
+  const site = { ...base, dependencies: { ...base.dependencies, gsap: '3.15.0' } }
+  const next = {
+    version: '0.6.0',
+    scripts: { build: 'next build', 'content:export': 'tsx scripts/content-export.ts' },
+    dependencies: { fflate: '0.8.3', next: '16.4.0', zod: '4.3.6' },
+  }
+  const clean = mergePackageJson(base, site, next)
+  assert.deepEqual(clean.conflicts, [])
+  assert.equal(clean.merged.version, '0.6.0')
+  assert.deepEqual(clean.merged.dependencies, {
+    fflate: '0.8.3',
+    gsap: '3.15.0',
+    next: '16.4.0',
+    zod: '4.3.6',
+  })
+  assert.equal(clean.merged.scripts['content:export'], 'tsx scripts/content-export.ts')
+  // Only an entry both sides changed differently needs a person.
+  const pinned = { ...site, dependencies: { ...site.dependencies, next: '16.3.9' } }
+  assert.deepEqual(mergePackageJson(base, pinned, next).conflicts, ['dependencies.next'])
+})
+
+test('updates merge text files when the site’s and upstream edits do not overlap', async () => {
+  const { mergeText } = await import('../../scripts/upgrade.mjs')
+  const base = 'one\r\ntwo\r\nthree\r\nfour\r\nfive\r\n'
+  const site = 'one\ntwo (site)\nthree\nfour\nfive\n'
+  const next = 'one\ntwo\nthree\nfour\nfive (upstream)\n'
+  assert.deepEqual(mergeText(base, site, next), {
+    text: 'one\ntwo (site)\nthree\nfour\nfive (upstream)\n',
+    clean: true,
+  })
+  assert.equal(
+    mergeText(base, 'one\nTWO\nthree\nfour\nfive\n', 'one\n2\nthree\nfour\nfive\n').clean,
+    false,
+  )
+})

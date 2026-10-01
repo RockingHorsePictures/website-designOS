@@ -1,4 +1,4 @@
-import { execFileSync } from 'node:child_process'
+import { execFileSync, execSync, spawnSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
 import {
   existsSync,
@@ -24,6 +24,54 @@ export const hash = (bytes, name = '') =>
         : bytes,
     )
     .digest('hex')
+const textFile = (name) =>
+  /\.(?:ts|tsx|js|mjs|cjs|json|md|css|html|yml|yaml|svg|txt)$/.test(name) ||
+  /(?:^|\/)(?:\.(?:gitignore|vercelignore|prettierignore|env\.example|npmrc)|LICENSE)$/.test(name)
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b)
+const plain = (v) => Boolean(v) && typeof v === 'object' && !Array.isArray(v)
+const sorted = (o) => Object.fromEntries(Object.entries(o).sort(([a], [b]) => a.localeCompare(b)))
+
+// package.json merged entry by entry: the site's own scripts and packages stay, upstream
+// additions and upgrades apply, and only an entry both sides changed differently is a conflict.
+export function mergePackageJson(base, current, next) {
+  const merged = JSON.parse(JSON.stringify(current))
+  const conflicts = []
+  for (const key of new Set([...Object.keys(base), ...Object.keys(next)])) {
+    const [b, n, c] = [base[key], next[key], current[key]]
+    if (same(b, n)) continue
+    if ((plain(b) || plain(n)) && (plain(c) || c === undefined)) {
+      const map = { ...(c || {}) }
+      for (const k of new Set([...Object.keys(b || {}), ...Object.keys(n || {})])) {
+        const [bv, nv, cv] = [b?.[k], n?.[k], c?.[k]]
+        if (same(bv, nv)) continue
+        if (same(cv, bv) || same(cv, nv)) {
+          if (nv === undefined) delete map[k]
+          else map[k] = nv
+        } else conflicts.push(`${key}.${k}`)
+      }
+      merged[key] = /dependencies$/i.test(key) ? sorted(map) : map
+    } else if (key === 'version' || same(c, b)) merged[key] = n
+    else if (!same(c, n)) conflicts.push(key)
+  }
+  return { merged, conflicts }
+}
+
+// A three-way text merge (git merge-file). Clean only when no edits overlap.
+export function mergeText(base, current, next) {
+  const dir = mkdtempSync(path.join(os.tmpdir(), 'designos-merge-'))
+  const file = (name, text) => {
+    const p = path.join(dir, name)
+    writeFileSync(p, text.replace(/\r\n/g, '\n'))
+    return p
+  }
+  const result = spawnSync(
+    'git',
+    ['merge-file', '-p', file('site', current), file('base', base), file('next', next)],
+    { encoding: 'utf8', maxBuffer: 20 * 1024 * 1024 },
+  )
+  return { text: result.stdout, clean: result.status === 0 }
+}
+
 export function planUpgrade(baseline, current, next) {
   const changes = []
   const conflicts = []
@@ -106,6 +154,11 @@ function pullRequestBody(from, to, plan, manual = []) {
     'Vercel builds a Preview of this pull request against a separate database branch. Check the Preview, then **merge** to update the live site; the database is migrated during the production deployment.',
     '',
     `- ${plan.changes.length} file(s) updated without touching your customisations.`,
+    ...(plan.merged?.length
+      ? [
+          `- ${plan.merged.length} customised file(s) merged automatically, keeping your changes: ${plan.merged.map((m) => `\`${m}\``).join(', ')}${plan.merged.includes('package-lock.json') || plan.merged.includes('package.json') ? ' (the lock file is regenerated to match)' : ''}.`,
+        ]
+      : []),
     plan.conflicts.length
       ? `- ⚠️ ${plan.conflicts.length} file(s) were customised on this site **and** changed upstream. Your version is kept; the new upstream version is saved beside it as \`<file>.designos-upstream\`. Ask Claude Code to "merge the Design OS update conflicts", or merge them by hand, then delete the \`.designos-upstream\` files:\n${plan.conflicts.map((c) => `  - \`${c}\``).join('\n')}`
       : '- No conflicts.',
@@ -156,17 +209,65 @@ export async function upgrade(args = process.argv.slice(2), root = process.cwd()
   // have the updates workflow (added from the Overview); workflows a site doesn't have are not
   // its concern, and changes to ones it has are listed for a person to copy.
   const workflowPlan = { changes: [], conflicts: [] }
+  const used = (name) => current[name] !== undefined
+  // Workflows a site doesn't have are not its concern.
+  plan.changes = plan.changes.filter((c) => !isWorkflow(c.path) || used(c.path))
+  plan.conflicts = plan.conflicts.filter((c) => !isWorkflow(c) || used(c))
   if (pr) {
-    const used = (name) => current[name] !== undefined
-    workflowPlan.changes = plan.changes.filter((c) => isWorkflow(c.path) && used(c.path))
+    workflowPlan.changes = plan.changes.filter((c) => isWorkflow(c.path))
     workflowPlan.changes.push(
-      ...plan.conflicts
-        .filter((c) => isWorkflow(c) && used(c))
-        .map((c) => ({ path: c, action: 'write' })),
+      ...plan.conflicts.filter((c) => isWorkflow(c)).map((c) => ({ path: c, action: 'write' })),
     )
     plan.changes = plan.changes.filter((c) => !isWorkflow(c.path))
     plan.conflicts = plan.conflicts.filter((c) => !isWorkflow(c))
   }
+  // Resolve what can be merged safely: package.json entry by entry, the lock file by
+  // regenerating it, and other text files where the site's and upstream's edits don't overlap.
+  const merged = {}
+  let regenerateLock = false
+  if (plan.conflicts.length) {
+    let baseRoot = null
+    try {
+      baseRoot = deployButton
+        ? releaseFiles(`v${release.version}`, temp, true).root
+        : releaseFiles(`v${installation.version}`, temp).root
+    } catch {
+      baseRoot = null
+    }
+    const read = (dir, name) => {
+      const p = dir && path.join(dir, name)
+      return p && existsSync(p) ? readFileSync(p, 'utf8') : null
+    }
+    for (const name of [...plan.conflicts]) {
+      const base = read(baseRoot, name)
+      const mine = read(root, name)
+      const theirs = read(nextRoot, name)
+      if (base === null || mine === null || theirs === null) continue
+      let resolved = null
+      if (name === 'package.json') {
+        const result = mergePackageJson(JSON.parse(base), JSON.parse(mine), JSON.parse(theirs))
+        if (!result.conflicts.length) resolved = JSON.stringify(result.merged, null, 2) + '\n'
+      } else if (name === 'package-lock.json') {
+        regenerateLock = true
+        resolved = mine
+      } else if (textFile(name)) {
+        const result = mergeText(base, mine, theirs)
+        if (result.clean) resolved = result.text
+      }
+      if (resolved !== null) {
+        merged[name] = resolved
+        plan.conflicts = plan.conflicts.filter((c) => c !== name)
+      }
+    }
+    // A merged package.json needs a matching lock file.
+    if (
+      merged['package.json'] &&
+      !regenerateLock &&
+      existsSync(path.join(root, 'package-lock.json'))
+    )
+      regenerateLock = true
+  }
+  plan.merged = Object.keys(merged)
   mkdirSync(path.join(root, '.designos'), { recursive: true })
   writeFileSync(
     path.join(root, '.designos/upgrade-review.json'),
@@ -200,6 +301,13 @@ export async function upgrade(args = process.argv.slice(2), root = process.cwd()
       writeFileSync(destination, readFileSync(safePath(nextRoot, change.path)))
     }
   }
+  for (const [name, text] of Object.entries(merged)) writeFileSync(safePath(root, name), text)
+  // A fixed command string: npm is a .cmd script on Windows, which needs a shell.
+  if (regenerateLock)
+    execSync('npm install --package-lock-only --ignore-scripts --no-audit --no-fund', {
+      cwd: root,
+      stdio: 'pipe',
+    })
   for (const conflict of plan.conflicts) {
     const upstream = safePath(nextRoot, conflict)
     if (existsSync(upstream))
