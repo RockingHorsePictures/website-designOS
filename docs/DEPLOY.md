@@ -80,17 +80,15 @@ For design and development you'll need [Node.js 22+](https://nodejs.org), [Git](
 git clone https://github.com/<you>/<your-site>.git
 cd <your-site>
 npm ci
-npx vercel link                      # choose your Vercel project
-npx vercel env pull .env.production.local --environment=production
-cp .env.example .env                 # local development database (see README → Develop locally)
+npm run ai:connect -- live https://<your-site>   # you approve it in the admin
+cp .env.example .env                 # optional: local database for trying new sections (README → Develop locally)
 npm run db:local                     # keep running in its own terminal
 npm run migrate && npm run seed      # neutral demo content, local only
-npm run ai:connect
 ```
 
-Open the folder in Claude Code and approve the `design-os` tools ([AI_TOOLKIT.md](AI_TOOLKIT.md)). Claude reads your live site's content and approvals **read-only** (Production), designs and edits content against the **local** database, and works on a branch; its code preview is reviewed before you merge. Never copy the production database credentials into `.env`.
+Open the folder in Claude Code and approve the `design-os` tools ([AI_TOOLKIT.md](AI_TOOLKIT.md)). Claude reads your live site's content and approvals and works on code in a branch, whose code preview you review before merging. When you want it to edit content too, switch on **Overview → AI editing** (for a day or a week). Its changes then appear in your workspace as drafts, listed under **Changes by AI** with Undo, and nothing is visible until you **Save to Preview**. No database credentials are needed on your computer.
 
-**Moving content built locally to the live site.** Ask Claude to run `npm run content:export`. It saves a `.zip` bundle in `.designos/` with the pages, records, settings and images. Then, on your live site, sign in as an administrator, choose **Overview → Import content** and pick the bundle. You'll see what will be added and updated before anything changes. Everything lands in your workspace: review it, then **Save to Preview** and **Publish to Live**. You can import an updated bundle again later. It updates what the first import created instead of duplicating it.
+**Moving a large batch of content built locally** (for example everything made while designing a new site). Ask Claude to run `npm run content:export`. It saves a `.zip` bundle in `.designos/` with the pages, records, settings and images. Then, on your live site, sign in as an administrator, choose **Overview → Import content** and pick the bundle. You'll see what will be added and updated before anything changes. Everything lands in your workspace: review it, then **Save to Preview** and **Publish to Live**. You can import an updated bundle again later. It updates what the first import created instead of duplicating it.
 
 ## Languages
 

@@ -9,7 +9,7 @@ Combines measured data (crawler + CMS checks) with specialist review, then turns
 
 ## 1. Gather facts (do not skip)
 
-1. `designos_check` (MCP) or `npm run ai:check` — confirm which environments are reachable. Production is read-only and authoritative.
+1. `designos_check` (MCP) or `npm run ai:check` — confirm which environments are reachable. Use `live` (the live site) as the authoritative source; audits only read.
 2. Decide the URL to crawl. Prefer the **Production URL** for search/AI-visibility conclusions: previews and local sites are deliberately noindex, and the crawler skips launch-only checks there. Ask the owner if unsure.
 3. `audit_site` with that URL (or `npm run audit -- <url>`). Note the report directory it prints.
 4. `site_health` for the CMS environment (or `npm run ai:health -- <environment>`).

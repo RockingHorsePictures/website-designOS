@@ -44,6 +44,7 @@ jobs:
       - run: npm run test:ordering
       - run: npm run test:transfer
       - run: npm run test:ai
+      - run: npm run test:ai-live
       - run: npm run test:installer
       - run: npm run build
       - run: npx playwright install --with-deps chromium

@@ -948,11 +948,16 @@ export interface User {
    * Production AI connections can read content and approvals but cannot change them.
    */
   aiReadOnly?: boolean | null;
+  aiWriteUntil?: string | null;
+  aiConnection?: 'live' | null;
   name: string;
   role: 'admin' | 'editor' | 'ai';
   googleSub?: string | null;
   updatedAt: string;
   createdAt: string;
+  enableAPIKey?: boolean | null;
+  apiKey?: string | null;
+  apiKeyIndex?: string | null;
   email: string;
   resetPasswordToken?: string | null;
   resetPasswordExpiration?: string | null;
@@ -1772,11 +1777,16 @@ export interface RedirectsSelect<T extends boolean = true> {
  */
 export interface UsersSelect<T extends boolean = true> {
   aiReadOnly?: T;
+  aiWriteUntil?: T;
+  aiConnection?: T;
   name?: T;
   role?: T;
   googleSub?: T;
   updatedAt?: T;
   createdAt?: T;
+  enableAPIKey?: T;
+  apiKey?: T;
+  apiKeyIndex?: T;
   email?: T;
   resetPasswordToken?: T;
   resetPasswordExpiration?: T;

@@ -7,7 +7,11 @@ const { getPayload } = await import('payload')
 const { default: config } = await import('../payload.config')
 const payload = await getPayload({ config })
 const suffix = Date.now()
-const users = await payload.find({ collection: 'users', limit: 1 })
+const users = await payload.find({
+  collection: 'users',
+  where: { role: { equals: 'admin' } },
+  limit: 1,
+})
 const admin = users.docs[0]
 assert(admin, 'Seed an administrator first')
 const testUser = await payload.create({

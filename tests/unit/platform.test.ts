@@ -408,3 +408,17 @@ describe('content transfer', () => {
     expect(() => readBundle(new Uint8Array([1, 2, 3]))).toThrow(/not a content bundle/)
   })
 })
+
+describe('AI write access', () => {
+  it('is read-only when marked, or once the owner’s time limit has passed', async () => {
+    const { readOnlyAI } = await import('@/cms/access')
+    const soon = new Date(Date.now() + 60_000).toISOString()
+    const past = new Date(Date.now() - 60_000).toISOString()
+    expect(readOnlyAI({ role: 'ai', aiReadOnly: true })).toBe(true)
+    expect(readOnlyAI({ role: 'ai', aiReadOnly: false, aiWriteUntil: soon })).toBe(false)
+    expect(readOnlyAI({ role: 'ai', aiReadOnly: false, aiWriteUntil: past })).toBe(true)
+    // Installer code-preview contributors have no time limit.
+    expect(readOnlyAI({ role: 'ai', aiReadOnly: false })).toBe(false)
+    expect(readOnlyAI({ role: 'admin', aiWriteUntil: past })).toBe(false)
+  })
+})

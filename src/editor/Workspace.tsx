@@ -3,6 +3,7 @@ import { PublishingPanel } from './PublishingPanel'
 import { BuildGuide } from './BuildGuide'
 import { SiteHealth } from './SiteHealth'
 import { Dashboard } from './Dashboard'
+import { AIEditing } from './AIEditing'
 
 export function WorkspaceIcon() {
   return (
@@ -73,6 +74,11 @@ export function WorkspaceHome() {
   return (
     <div className="dos-home">
       <Dashboard />
+      {!codePreview() && (
+        <div className="dos-reveal" style={{ ['--i' as string]: 4 }}>
+          <AIEditing />
+        </div>
+      )}
       {!codePreview() && (
         <div id="publishing" className="dos-reveal" style={{ ['--i' as string]: 4 }}>
           <PublishingPanel />

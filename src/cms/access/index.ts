@@ -1,8 +1,16 @@
 import type { Access, FieldAccess } from 'payload'
 
+// AI accounts are read-only when marked so, or when the owner's "allow AI edits until" time has
+// passed (live-site connections: see src/lib/ai-live).
 export const readOnlyAI = (
-  user: { role?: string; aiReadOnly?: boolean | null } | null | undefined,
-) => user?.role === 'ai' && user.aiReadOnly === true
+  user:
+    | { role?: string; aiReadOnly?: boolean | null; aiWriteUntil?: string | null }
+    | null
+    | undefined,
+) =>
+  user?.role === 'ai' &&
+  (user.aiReadOnly === true ||
+    (Boolean(user.aiWriteUntil) && new Date(user.aiWriteUntil!).getTime() <= Date.now()))
 
 export const isAI = (user: { role?: string } | null | undefined) => user?.role === 'ai'
 // Human sign-off fields (verification, approvals, factual review) are never writable by AI accounts.

@@ -18,6 +18,8 @@ export const Users: CollectionConfig = {
     maxLoginAttempts: 5,
     lockTime: 600000,
     cookies: { secure: process.env.SITE_ENV !== 'local', sameSite: 'Lax' },
+    // Live-site AI connections authenticate with a key the owner approves (src/lib/ai-live).
+    useAPIKey: true,
   },
   admin: {
     useAsTitle: 'email',
@@ -90,6 +92,15 @@ export const Users: CollectionConfig = {
         return args
       },
     ],
+    beforeChange: [
+      async ({ data, originalDoc }) => {
+        // API keys are only for AI connections, never for people.
+        const role = data.role ?? originalDoc?.role
+        if (data.enableAPIKey && role !== 'ai')
+          throw new APIError('API keys can only be turned on for AI connection accounts.', 400)
+        return data
+      },
+    ],
     beforeLogin: [
       ({ user, req }) => {
         const policy = passwordPolicy()
@@ -109,6 +120,22 @@ export const Users: CollectionConfig = {
         description:
           'Production AI connections can read content and approvals but cannot change them.',
       },
+      access: { create: adminField, update: adminField },
+    },
+    {
+      // Live-site AI connections can write workspace drafts only until this time (set from
+      // Overview → AI editing). Empty means the connection's read-only setting applies.
+      name: 'aiWriteUntil',
+      type: 'date',
+      label: 'AI edits allowed until',
+      admin: { condition: (data) => data?.role === 'ai', readOnly: true },
+      access: { create: adminField, update: adminField },
+    },
+    {
+      name: 'aiConnection',
+      type: 'select',
+      options: [{ label: 'Live site (approved from the admin)', value: 'live' }],
+      admin: { condition: (data) => data?.role === 'ai', readOnly: true },
       access: { create: adminField, update: adminField },
     },
     { name: 'name', type: 'text', required: true },

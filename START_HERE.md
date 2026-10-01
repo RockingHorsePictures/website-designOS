@@ -20,7 +20,7 @@ A new conversation for the same site needs no duplication: the contract lives in
 
 1. Open this website's folder and approve the `design-os` MCP server when prompted (`/mcp` shows it).
 2. Run `/designos-build` to design and build, `/designos-content` to add pages or copy, `/designos-audit` for SEO, AI-search, schema, content and accessibility reviews, and `/designos-launch-check` before going live. See docs/AI_TOOLKIT.md for every tool.
-3. The AI accounts were created by the installer. Never paste a CMS password into chat. If the connection is missing, docs/AI_CONNECTION.md explains the `npm run ai:connect` repair.
+3. Connect to the live site with `npm run ai:connect -- live https://<site>`. The owner approves it in the admin, and no password or key is ever pasted into chat. Content edits are drafts, allowed only while the owner switches on Overview → AI editing. See docs/AI_CONNECTION.md.
 
 ## Read in order
 

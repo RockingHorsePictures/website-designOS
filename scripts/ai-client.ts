@@ -1,7 +1,6 @@
-import { existsSync, readFileSync, mkdirSync, writeFileSync, statSync } from 'node:fs'
-import path from 'node:path'
+import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs'
 import { randomBytes, createHash } from 'node:crypto'
-import type { Payload, CollectionSlug, GlobalSlug, TypedUser } from 'payload'
+import type { Payload, TypedUser } from 'payload'
 
 let payload: Payload | undefined
 const emit = (value: unknown) => console.log('DESIGNOS_RESULT:' + JSON.stringify(value))
@@ -74,7 +73,6 @@ try {
       'The AI account scope changed. Ask the site administrator to review it. No permissions were changed automatically.',
     )
   const user = { ...login.user, collection: 'users' } as TypedUser
-  const options: Record<string, unknown> = { user, overrideAccess: false, depth: 0 }
   if (command === 'context') {
     const { aiContext } = await import('../src/lib/ai-context')
     emit(await aiContext(payload, user))
@@ -84,81 +82,9 @@ try {
   } else if (command === 'request') {
     if (!requestFile)
       throw new Error('Provide a JSON request file. See docs/AI_CONNECTION.md for examples.')
+    const { runAIRequest } = await import('../src/lib/ai-live/request')
     const input = JSON.parse(readFileSync(requestFile, 'utf8'))
-    if (!['read', 'create', 'update', 'upload'].includes(input.action))
-      throw new Error('Supported actions: read, create, update, upload.')
-    if (readOnly && input.action !== 'read')
-      throw new Error('Production AI access is read-only. Use preview for changes.')
-    if (Boolean(input.collection) === Boolean(input.global))
-      throw new Error('Choose one collection or global.')
-    const target = input.collection
-      ? payload.collections[input.collection as CollectionSlug]?.config
-      : payload.config.globals.find((item) => item.slug === input.global)
-    if (!target?.fields.some((field) => 'name' in field && field.name === 'protection'))
-      throw new Error('This target is not available to the AI connection.')
-    // Optional language for translated content (for example "fr"); defaults to the main language.
-    const { isLocale, defaultLocale } = await import('../src/lib/locales')
-    if (input.locale !== undefined && !isLocale(input.locale))
-      throw new Error('Supported actions accept locale as a two-letter language code.')
-    Object.assign(
-      options,
-      input.locale ? { locale: input.locale, fallbackLocale: defaultLocale } : {},
-    )
-    let result
-    if (input.action === 'upload') {
-      // Upload an image from inside this website folder into the media library.
-      if (input.collection !== 'media')
-        throw new Error('Supported actions: uploads go to the media collection only.')
-      const root = process.cwd()
-      const file = path.resolve(root, String(input.file || ''))
-      if (!file.startsWith(root + path.sep) || !existsSync(file) || !statSync(file).isFile())
-        throw new Error(
-          'Provide a JSON request file whose "file" is an image inside this website folder.',
-        )
-      if (!String(input.data?.alt || '').trim() && input.data?.decorative !== true)
-        throw new Error(
-          'Provide a JSON request file with data.alt describing the image, or data.decorative true.',
-        )
-      result = await payload.create({
-        collection: 'media',
-        data: input.data,
-        filePath: file,
-        ...options,
-      })
-    } else if (input.global) {
-      const slug = input.global as GlobalSlug
-      if (input.action === 'create') throw new Error('Globals already exist. Use update.')
-      result =
-        input.action === 'read'
-          ? await payload.findGlobal({ slug, ...options })
-          : await payload.updateGlobal({ slug, data: input.data, ...options })
-    } else {
-      const collection = input.collection as CollectionSlug
-      if (input.action === 'read')
-        result = input.id
-          ? await payload.findByID({ collection, id: input.id, draft: true, ...options })
-          : await payload.find({
-              collection,
-              draft: true,
-              where: input.where,
-              page: input.page || 1,
-              limit: 100,
-              ...options,
-            })
-      else if (input.action === 'create')
-        result = await payload.create({ collection, data: input.data, draft: true, ...options })
-      else {
-        if (!input.id) throw new Error('An individual record ID is required for updates.')
-        result = await payload.update({
-          collection,
-          id: input.id,
-          data: input.data,
-          draft: true,
-          ...options,
-        })
-      }
-    }
-    emit(result)
+    emit(await runAIRequest(payload, user, input, { readOnly }))
   } else
     emit({
       ready: true,

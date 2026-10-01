@@ -38,6 +38,7 @@ export const reservedSlugs = [
   'blog',
   'search',
   'setup',
+  'connect-ai',
   'og',
   // Language prefixes (/fr/…) are routes too.
   ...localeCodes,

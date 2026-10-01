@@ -76,6 +76,17 @@ Where each kind of record appears on the site, **Site Settings → Listing order
 
 As with any change, the new order shows on the site after your next **Save Preview** and **Publish**.
 
+## AI editing
+
+Your AI coding tool can work on your content directly, as drafts in this workspace, so you never upload files or copy and paste.
+
+1. **Connect it once.** In your website's folder, ask your AI to run `npm run ai:connect -- live <your address>`. Open the link it shows, check the code matches, and choose **Connect**.
+2. **Allow edits when you want them.** On **Overview → AI editing**, choose **Allow edits for 1 day** or **7 days**. The rest of the time your AI can read your site but not change it. **Turn off** stops edits at once, and **Disconnect** removes the connection.
+3. **Review what changed.** **Changes by AI since your last Preview** lists each record your AI added or changed, and which fields. Open one to check it, or choose **Undo**. Undo puts back what was there before, except fields you've changed yourself since, which are kept.
+4. **Share and publish as usual.** Nothing your AI writes is visible to anyone until you **Save to Preview** (share `/preview` with your team), and nothing goes live until you **Publish to Live**.
+
+Your AI can't save a Preview, publish, approve, unlock, change locked fields, delete or manage people. If you and your AI edit the same record, its save is refused until it re-reads your version, so your edits are never overwritten.
+
 ## Importing content
 
 Administrators can bring in a **content bundle**: a single `.zip` with pages, records, settings and images, usually made by your AI from the copy of the site it designed (`npm run content:export`).

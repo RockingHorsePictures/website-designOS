@@ -671,6 +671,101 @@ body {
   max-height: calc(100vh - 48px);
   overflow: auto;
 }
+/* AI editing */
+.dos-ai {
+  display: grid;
+  gap: 12px;
+}
+.dos-ai-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.dos-ai h2,
+.dos-ai h3 {
+  margin: 0;
+}
+.dos-ai h3 {
+  font-size: 14px;
+  margin-top: 6px;
+}
+.dos-ai p {
+  margin: 0;
+  line-height: 1.5;
+}
+.dos-muted {
+  color: var(--dos-muted);
+}
+.dos-pill {
+  padding: 5px 11px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--dos-soft);
+}
+.dos-pill--on {
+  background: color-mix(in srgb, var(--dos-green) 16%, transparent);
+  color: var(--dos-green-text);
+}
+.dos-ai-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.dos-link-button {
+  border: 0;
+  background: none;
+  color: var(--dos-accent);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.dos-ai-changes {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+}
+.dos-ai-changes li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--dos-border);
+}
+.dos-ai-changes li > div {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.dos-ai-changes strong {
+  font-weight: 600;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+.dos-ai-changes span {
+  color: var(--dos-muted);
+  font-size: 12px;
+}
+.dos-ai-changes .is-undone strong {
+  text-decoration: line-through;
+  color: var(--dos-muted);
+}
+.dos-ai code {
+  font-size: 12px;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--dos-soft);
+  overflow-wrap: anywhere;
+}
 /* Content import */
 .dos-import p {
   margin: 0;

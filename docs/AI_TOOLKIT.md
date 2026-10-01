@@ -39,7 +39,7 @@ Claude also picks these skills up automatically when a request matches, for exam
 | `site_health`                            | Whole-site CMS checks (links, orphans, duplicates, alt text, claims, brand details)                                                                                                                                             |
 | `audit_site`                             | Crawls a URL and writes `report.md` / `report.json` under `.designos/audits/`                                                                                                                                                   |
 
-Every CMS call goes through `scripts/ai.mjs`, which uses the installer-provisioned AI accounts. Production is read-only. AI accounts cannot approve, unlock, delete, verify facts, sign off factual review or publish. Locked fields are rejected by the CMS itself. Credentials never appear in tool output.
+Every CMS call goes through `scripts/ai.mjs`. On a hosted site that's the `live` environment: an owner-approved connection over HTTPS (`npm run ai:connect -- live https://your-site.com`) that reads the workspace and saves drafts only while the owner allows AI edits, with every change listed for review and undo ([AI_CONNECTION.md](AI_CONNECTION.md)). AI accounts cannot approve, unlock, delete, verify facts, sign off factual review or publish. Locked fields are rejected by the CMS itself. Credentials never appear in tool output.
 
 ## Connect
 

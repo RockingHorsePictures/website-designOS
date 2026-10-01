@@ -72,10 +72,10 @@ const target = {
 }
 const env = (writable) => ({
   type: 'string',
-  enum: writable ? ['preview', 'local'] : ['production', 'preview', 'local'],
+  enum: writable ? ['live', 'preview', 'local'] : ['live', 'production', 'preview', 'local'],
   description: writable
-    ? 'Where to write: preview (code-preview CMS) or local (development database). Production is read-only for AI.'
-    : 'Which CMS: production (authoritative approvals, read-only), preview or local.',
+    ? 'Where to write: live (the live site’s workspace, as drafts; only while the owner allows AI edits), local (development database) or preview (installer sites’ code-preview CMS). Nothing you write is visible until the owner saves a Preview.'
+    : 'Which CMS: live (the live site’s workspace, authoritative approvals), production (installer sites, read-only), preview or local.',
 })
 
 const tools = [
@@ -163,7 +163,7 @@ const tools = [
   {
     name: 'cms_write',
     description:
-      'Create or update CMS content (saved as a workspace draft). Locked fields are rejected; AI accounts cannot approve, delete or publish. A person reviews, saves a site Preview and publishes. Validate page compositions with validate_composition first.',
+      'Create or update CMS content (saved as a workspace draft). Locked fields are rejected; AI accounts cannot approve, delete or publish. A person reviews (Overview → Changes by AI, with Undo), saves a site Preview and publishes. On live, read the record first and pass its updatedAt as expectedUpdatedAt. Validate page compositions with validate_composition first.',
     inputSchema: {
       type: 'object',
       properties: {
@@ -175,7 +175,15 @@ const tools = [
           description: 'Language code to write a translation, e.g. fr. Omit for the main language.',
         },
         id: { type: ['number', 'string'], description: 'Required for collection updates.' },
-        data: { type: 'object' },
+        data: {
+          type: 'object',
+          description: 'Only the fields you are changing. Other fields keep their current values.',
+        },
+        expectedUpdatedAt: {
+          type: 'string',
+          description:
+            'Live updates: the updatedAt of the record when you read it. The write is refused if someone saved it since; read it again and reapply only your change.',
+        },
       },
       required: ['environment', 'action', 'data'],
     },

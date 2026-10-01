@@ -22,7 +22,7 @@ export function proxy(request: NextRequest) {
   let rest = preview
     ? path.slice((workspace ? '/workspace-preview' : '/preview').length) || '/'
     : path
-  if (/^\/(admin|api|editor|_next|setup)(\/|$)/.test(rest)) {
+  if (/^\/(admin|api|editor|_next|setup|connect-ai)(\/|$)/.test(rest)) {
     if (preview) return new NextResponse('Not found', { status: 404 })
     headers.set('x-designos-locale', defaultLocale)
     return NextResponse.next({ request: { headers } })

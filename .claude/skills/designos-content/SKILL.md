@@ -7,8 +7,8 @@ description: Create or edit website content in a Design OS CMS through the AI br
 
 All writes are **workspace drafts** made by a restricted AI account. The owner reviews them, saves a site Preview and publishes. You cannot approve, delete or publish.
 
-1. `designos_check`, then `designos_context`. Note locked and approved fields. Production is read-only; write to `preview` (code-preview CMS) or `local`.
-2. Read what exists before writing (`cms_read`), to avoid duplicates and keep the owner's voice. Read Search Strategy for tone, terminology and prohibited claims.
+1. `designos_check`, then `designos_context`. Note locked and approved fields. Write to `live` (the live workspace, as drafts) when the owner has AI editing switched on; otherwise write to `local`, or give the owner the exact change. Never write to a code preview.
+2. Read what exists before writing (`cms_read`), to avoid duplicates and keep the owner's voice. On `live`, pass the record's `updatedAt` as `expectedUpdatedAt` and send only changed fields; if the write is refused as changed, read again and reapply. Read Search Strategy for tone, terminology and prohibited claims.
 3. Facts: use verified Approved Facts or what the owner tells you in this conversation. Add new facts as Approved Facts with a source note (left `pending`). Set `aiAssisted: true` on records with AI-drafted claims. Never set `claimsReviewed` or verify facts.
 4. **Pages**: `list_sections` for available sections and their props. Build `composition` as `{ "root": { "props": { "pageHeader": "default" } }, "content": [ { "type": "Hero", "props": { "id": "hero-1", … } } ] }`. Every section needs a unique `id` and all its props. Run `validate_composition`, then `cms_write` create on `pages` with `title`, `slug`, `summary` (required, visible), `seo` fields and `composition`.
 5. **Records**: services, case studies and team members are collections. Reference them from sections by ID rather than copying their text.

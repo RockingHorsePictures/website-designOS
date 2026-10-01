@@ -179,6 +179,30 @@ Published v0.2.1 at c4718a2219b5c760bf4f6af45977e1b18e7e065d. The public install
 
 RHP maintenance PR: https://github.com/RockingHorsePictures/rhp-website/pull/1. Its existing design folder now contains the update and working private code-preview AI connection; pre-existing discovery changes are intact. Its GitHub/Vercel link was repaired and verified via the project API. Production rollout/account provisioning is pending the explicit approval requested in this conversation; no RHP Production migration, account creation or deployment has been performed. Private database snapshots were saved before repair.
 
+## 0.7.0 — Live AI editing
+
+Requested 2026-10-01. Routing an AI's content changes through bundle uploads was impractical for frequent iteration, so the AI now works in the live workspace as drafts, behind the owner's Save to Preview / Publish to Live gate.
+
+- **Connection (`src/lib/ai-live/connect.ts`):** `npm run ai:connect -- live <site>` starts a device-style request.
+  - The owner approves it at `/connect-ai?code=…`, signed in as an administrator.
+  - The tool then collects a key once. The key is held AES-GCM sealed in `designos_ai_connect` until collected, and requests expire after 15 minutes.
+  - The key belongs to the single "AI — live site" account (`role: ai`, `aiConnection: live`) through Payload's `useAPIKey`. API keys are refused for non-AI users.
+  - Approving again replaces the key; Disconnect revokes it. No database credentials leave the site.
+- **Write switch:** `readOnlyAI` now also treats an AI account as read-only once its `aiWriteUntil` has passed. Overview → AI editing allows edits for 1 or 7 days (`/api/ai/admin`, administrators). The account starts read-only. Code previews stay read-only regardless.
+- **Requests (`src/lib/ai-live/request.ts`, shared with the local bridge):** live updates require `expectedUpdatedAt` from a prior read and are refused with 409 if the record or global was saved since.
+  - Every live write is logged in `designos_ai_changes` with the changed fields' before and after values.
+  - Uploads go through multipart, up to 4 MB on Vercel.
+- **Review (`src/lib/ai-live/changes.ts`):** Overview lists the AI's changes since the last Preview.
+  - Undo restores only the fields whose current value is still the AI's, so later human edits are kept. Undoing an addition deletes the record as the person.
+- **Bridge:**
+  - `scripts/ai-live.mjs` implements the `live` environment for `ai:check`, `ai:context`, `ai:health` and `ai:request`, and for the MCP tools (`cms_write` gains `expectedUpdatedAt`).
+  - Database profiles remain for installer sites.
+  - `/connect-ai` is reserved in routing.
+- **Verified:**
+  - `test:ai-live` (database): one-time key, decline, read-only by default, time-limited writes, stale-write refusal, locks, change log, undo keeping later human edits, undo of additions, no publishing, read-only code previews, expiry and disconnect.
+  - Browser test: the real `ai:connect` command, approval page, Overview switch, a CLI update, Undo in the panel, turning off, disconnecting.
+  - Existing `test:ai` passes on the shared request logic.
+
 ## 0.6.1 — Updates merge customised files
 
 Every release changes `package.json` (at least its version), and sites add their own packages, so every update pull request flagged `package.json` and `package-lock.json` as conflicts. Releasing 0.6.0 to rhp-website showed it: those two plus `EDITOR_GUIDE.md` needed manual merging.
