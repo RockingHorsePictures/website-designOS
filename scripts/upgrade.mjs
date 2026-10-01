@@ -152,6 +152,21 @@ export async function upgrade(args = process.argv.slice(2), root = process.cwd()
     if (existsSync(filename)) current[name] = hash(readFileSync(filename), name)
   }
   const plan = planUpgrade(installation.files, current, nextInstallation.files)
+  // Update pull requests cannot change workflow files. Sites made with the Deploy Button only
+  // have the updates workflow (added from the Overview); workflows a site doesn't have are not
+  // its concern, and changes to ones it has are listed for a person to copy.
+  const workflowPlan = { changes: [], conflicts: [] }
+  if (pr) {
+    const used = (name) => current[name] !== undefined
+    workflowPlan.changes = plan.changes.filter((c) => isWorkflow(c.path) && used(c.path))
+    workflowPlan.changes.push(
+      ...plan.conflicts
+        .filter((c) => isWorkflow(c) && used(c))
+        .map((c) => ({ path: c, action: 'write' })),
+    )
+    plan.changes = plan.changes.filter((c) => !isWorkflow(c.path))
+    plan.conflicts = plan.conflicts.filter((c) => !isWorkflow(c))
+  }
   mkdirSync(path.join(root, '.designos'), { recursive: true })
   writeFileSync(
     path.join(root, '.designos/upgrade-review.json'),
@@ -176,9 +191,8 @@ export async function upgrade(args = process.argv.slice(2), root = process.cwd()
     }
   }
   git(root, 'switch', '-c', branch)
-  const manual = pr ? plan.changes.filter((c) => isWorkflow(c.path)) : []
+  const manual = workflowPlan.changes
   for (const change of plan.changes) {
-    if (manual.includes(change)) continue
     const destination = safePath(root, change.path)
     if (change.action === 'remove') unlinkSync(destination)
     else {
@@ -187,7 +201,6 @@ export async function upgrade(args = process.argv.slice(2), root = process.cwd()
     }
   }
   for (const conflict of plan.conflicts) {
-    if (pr && isWorkflow(conflict)) continue
     const upstream = safePath(nextRoot, conflict)
     if (existsSync(upstream))
       writeFileSync(`${safePath(root, conflict)}.designos-upstream`, readFileSync(upstream))
