@@ -179,6 +179,20 @@ Published v0.2.1 at c4718a2219b5c760bf4f6af45977e1b18e7e065d. The public install
 
 RHP maintenance PR: https://github.com/RockingHorsePictures/rhp-website/pull/1. Its existing design folder now contains the update and working private code-preview AI connection; pre-existing discovery changes are intact. Its GitHub/Vercel link was repaired and verified via the project API. Production rollout/account provisioning is pending the explicit approval requested in this conversation; no RHP Production migration, account creation or deployment has been performed. Private database snapshots were saved before repair.
 
+## 0.7.1 — Updates keep sites' own migrations
+
+Delivering 0.7.0 to rhp-website, which has six bespoke migrations, exposed two update problems:
+
+- **The migration list:** both sides appended to `src/migrations/index.ts`, so it conflicted.
+- **The schema snapshot:** the release's new snapshot (`20261001_162112_ai_live_editing.json`) knew only Design OS's 116 tables, not the site's 157. As the newest snapshot, it would make the site's next `migrate:create` try to recreate its own tables. Shown on the real site code: drizzle immediately asked about renaming the site's `case_studies_locales.brief`.
+
+`scripts/upgrade.mjs` now handles both:
+
+- **`migrationIndex`:** rebuilds `index.ts` from the migration files present, in order.
+- **`mergeSnapshot`:** applies a release's snapshot change (base → next) to the site's latest snapshot whenever the site has migrations of its own.
+
+Verified on the rhp-website update: 23 migrations ran on a fresh database, and a following `migrate:create` reported "No schema changes detected". Sites get this from the update after they install 0.7.1. rhp-website received this updater in its 0.7.0 update pull request.
+
 ## 0.7.0 — Live AI editing
 
 Requested 2026-10-01. Routing an AI's content changes through bundle uploads was impractical for frequent iteration, so the AI now works in the live workspace as drafts, behind the owner's Save to Preview / Publish to Live gate.

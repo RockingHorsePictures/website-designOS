@@ -7,6 +7,7 @@ import {
   mkdirSync,
   mkdtempSync,
   unlinkSync,
+  readdirSync,
   lstatSync,
 } from 'node:fs'
 import path from 'node:path'
@@ -71,6 +72,49 @@ export function mergeText(base, current, next) {
   )
   return { text: result.stdout, clean: result.status === 0 }
 }
+
+// Database schema snapshots (src/migrations/*.json): the next migration a site generates is diffed
+// against the newest one. A release's snapshot only knows Design OS's own tables, so when a site has
+// its own migrations, the release's change (base → next) is applied to the site's latest snapshot.
+export function mergeSnapshot(base, site, next) {
+  const merge = (b, c, n) => {
+    if (same(b, n)) return c
+    if (plain(b) && plain(n) && plain(c)) {
+      const out = { ...c }
+      for (const k of new Set([...Object.keys(b), ...Object.keys(n)])) {
+        if (!(k in n)) delete out[k]
+        else if (!(k in b) || !(k in c)) out[k] = n[k]
+        else out[k] = merge(b[k], c[k], n[k])
+      }
+      return out
+    }
+    return n
+  }
+  return { ...merge(base, site, next), id: next.id, prevId: next.prevId }
+}
+// src/migrations/index.ts lists every migration in order; it is rebuilt from the files present, so
+// a site's own migrations and a release's new ones never conflict.
+export function migrationIndex(names) {
+  const sorted = [...names].sort()
+  return `${sorted.map((n) => `import * as migration_${n} from './${n}'`).join('\n')}
+
+export const migrations = [
+${sorted
+  .map(
+    (n) =>
+      `  {\n    up: migration_${n}.up,\n    down: migration_${n}.down,\n    name: '${n}',\n  },`,
+  )
+  .join('\n')}
+]
+`
+}
+const migrationDir = 'src/migrations'
+const migrationNames = (dir) =>
+  existsSync(path.join(dir, migrationDir))
+    ? readdirSync(path.join(dir, migrationDir))
+        .filter((f) => /^\d{8}_\d{6}_.+\.ts$/.test(f))
+        .map((f) => f.replace(/\.ts$/, ''))
+    : []
 
 export function planUpgrade(baseline, current, next) {
   const changes = []
@@ -225,15 +269,63 @@ export async function upgrade(args = process.argv.slice(2), root = process.cwd()
   // regenerating it, and other text files where the site's and upstream's edits don't overlap.
   const merged = {}
   let regenerateLock = false
-  if (plan.conflicts.length) {
-    let baseRoot = null
+  let baseRootCache
+  const baseRootOf = () => {
+    if (baseRootCache !== undefined) return baseRootCache
     try {
-      baseRoot = deployButton
+      baseRootCache = deployButton
         ? releaseFiles(`v${release.version}`, temp, true).root
         : releaseFiles(`v${installation.version}`, temp).root
     } catch {
-      baseRoot = null
+      baseRootCache = null
     }
+    return baseRootCache
+  }
+  // The migration list is rebuilt after the files are in place.
+  const indexPath = `${migrationDir}/index.ts`
+  const rebuildIndex =
+    plan.conflicts.includes(indexPath) || plan.changes.some((c) => c.path === indexPath)
+  plan.conflicts = plan.conflicts.filter((c) => c !== indexPath)
+  plan.changes = plan.changes.filter((c) => c.path !== indexPath)
+  // A release's new schema snapshots, merged onto the site's own when it has its own migrations.
+  const releaseMigrations = new Set(
+    Object.keys(nextInstallation.files).filter((f) => f.startsWith(`${migrationDir}/`)),
+  )
+  const ownMigrations = migrationNames(root).filter(
+    (n) =>
+      !releaseMigrations.has(`${migrationDir}/${n}.ts`) &&
+      !installation.files[`${migrationDir}/${n}.ts`],
+  )
+  const newSnapshots = plan.changes
+    .filter((c) => c.action === 'write' && /^src\/migrations\/\d{8}_\d{6}_.+\.json$/.test(c.path))
+    .filter((c) => !installation.files[c.path])
+    .map((c) => c.path)
+    .sort()
+  if (ownMigrations.length && newSnapshots.length) {
+    const baseRoot = baseRootOf()
+    const latest = (dir, names) => {
+      const name = names
+        .filter((n) => existsSync(path.join(dir, migrationDir, `${n}.json`)))
+        .sort()
+        .pop()
+      return name
+        ? JSON.parse(readFileSync(path.join(dir, migrationDir, `${name}.json`), 'utf8'))
+        : null
+    }
+    let base = baseRoot ? latest(baseRoot, migrationNames(baseRoot)) : null
+    let site = latest(root, migrationNames(root))
+    if (base && site)
+      for (const snapshot of newSnapshots) {
+        const next = JSON.parse(readFileSync(safePath(nextRoot, snapshot), 'utf8'))
+        const result = mergeSnapshot(base, site, next)
+        merged[snapshot] = JSON.stringify(result, null, 2) + '\n'
+        plan.changes = plan.changes.filter((c) => c.path !== snapshot)
+        base = next
+        site = result
+      }
+  }
+  if (plan.conflicts.length) {
+    const baseRoot = baseRootOf()
     const read = (dir, name) => {
       const p = dir && path.join(dir, name)
       return p && existsSync(p) ? readFileSync(p, 'utf8') : null
@@ -267,6 +359,7 @@ export async function upgrade(args = process.argv.slice(2), root = process.cwd()
     )
       regenerateLock = true
   }
+  if (rebuildIndex) merged[indexPath] = '(rebuilt)'
   plan.merged = Object.keys(merged)
   mkdirSync(path.join(root, '.designos'), { recursive: true })
   writeFileSync(
@@ -301,7 +394,9 @@ export async function upgrade(args = process.argv.slice(2), root = process.cwd()
       writeFileSync(destination, readFileSync(safePath(nextRoot, change.path)))
     }
   }
-  for (const [name, text] of Object.entries(merged)) writeFileSync(safePath(root, name), text)
+  for (const [name, text] of Object.entries(merged))
+    if (name !== indexPath) writeFileSync(safePath(root, name), text)
+  if (rebuildIndex) writeFileSync(safePath(root, indexPath), migrationIndex(migrationNames(root)))
   // A fixed command string: npm is a .cmd script on Windows, which needs a shell.
   if (regenerateLock)
     execSync('npm install --package-lock-only --ignore-scripts --no-audit --no-fund', {

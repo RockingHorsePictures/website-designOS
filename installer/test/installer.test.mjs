@@ -314,3 +314,48 @@ test('updates merge text files when the site’s and upstream edits do not overl
     false,
   )
 })
+
+test('a release’s schema snapshot is merged onto a site that has its own tables', async () => {
+  const { mergeSnapshot } = await import('../../scripts/upgrade.mjs')
+  const base = { id: 'b', prevId: '0', tables: { users: { columns: { email: {} } } }, enums: {} }
+  const site = {
+    id: 's',
+    prevId: '0',
+    tables: { users: { columns: { email: {} } }, awards: { columns: { title: {} } } },
+    enums: { award_kind: ['gold'] },
+  }
+  const next = {
+    id: 'n',
+    prevId: '0',
+    tables: { users: { columns: { email: {}, api_key: {} } } },
+    enums: { users_ai_connection: ['live'] },
+  }
+  const merged = mergeSnapshot(base, site, next)
+  assert.deepEqual(Object.keys(merged.tables).sort(), ['awards', 'users'], 'the site’s tables stay')
+  assert.deepEqual(
+    Object.keys(merged.tables.users.columns).sort(),
+    ['api_key', 'email'],
+    'the release’s columns arrive',
+  )
+  assert.deepEqual(Object.keys(merged.enums).sort(), ['award_kind', 'users_ai_connection'])
+  assert.equal(merged.id, 'n')
+})
+
+test('the migration list is rebuilt in order from the migration files', async () => {
+  const { migrationIndex } = await import('../../scripts/upgrade.mjs')
+  const text = migrationIndex([
+    '20261001_162112_ai_live_editing',
+    '20260913_090945_initial',
+    '20261001_120554_site_awards',
+  ])
+  const order = [...text.matchAll(/name: '([^']+)'/g)].map((m) => m[1])
+  assert.deepEqual(order, [
+    '20260913_090945_initial',
+    '20261001_120554_site_awards',
+    '20261001_162112_ai_live_editing',
+  ])
+  assert.match(
+    text,
+    /import \* as migration_20261001_120554_site_awards from '\.\/20261001_120554_site_awards'/,
+  )
+})
