@@ -179,6 +179,15 @@ Published v0.2.1 at c4718a2219b5c760bf4f6af45977e1b18e7e065d. The public install
 
 RHP maintenance PR: https://github.com/RockingHorsePictures/rhp-website/pull/1. Its existing design folder now contains the update and working private code-preview AI connection; pre-existing discovery changes are intact. Its GitHub/Vercel link was repaired and verified via the project API. Production rollout/account provisioning is pending the explicit approval requested in this conversation; no RHP Production migration, account creation or deployment has been performed. Private database snapshots were saved before repair.
 
+## 0.7.3 — Deployable again
+
+0.7.2 built but failed at "Deploying outputs" on Vercel with `ENOENT … .next/lock`. Its new storage check called `path.resolve(process.cwd(), …)` in code the import route loads.
+
+- **Cause:** Next's output file tracing treats `process.cwd()` as "the whole project", so the route's function bundle listed 13,229 files (docs, media and `.next` itself). Vercel then tried to copy the `.next/lock` file, which had already been removed.
+- **Fix:** route code no longer uses `process.cwd()`. Local paths are relative, and the shared AI request logic receives upload bytes from its callers. The image-description route was fixed the same way.
+- **Result:** bundles are about 413 files.
+- **Regression test:** a unit test fails if any file under `src/` (except the export CLI module) calls `process.cwd()`.
+
 ## 0.7.2 — Content import uploads every file
 
 A real import into rhp-website (Vercel Blob over OIDC) created all 229 media records, but only the first few files reached storage, and the import reported success.

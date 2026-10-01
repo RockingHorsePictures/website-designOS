@@ -422,3 +422,25 @@ describe('AI write access', () => {
     expect(readOnlyAI({ role: 'admin', aiWriteUntil: past })).toBe(false)
   })
 })
+
+describe('deployment bundles', () => {
+  it('server code never builds file paths from process.cwd() (Vercel would trace the whole site)', async () => {
+    const { readdirSync, readFileSync, statSync } = await import('node:fs')
+    const path = await import('node:path')
+    // Command-line only: never imported by the website.
+    const allowed = new Set([path.join('src', 'lib', 'content-transfer', 'export.ts')])
+    const offenders: string[] = []
+    const walk = (dir: string) => {
+      for (const name of readdirSync(dir)) {
+        const file = path.join(dir, name)
+        if (statSync(file).isDirectory()) walk(file)
+        else if (/\.(ts|tsx|mjs)$/.test(name) && !allowed.has(file)) {
+          const code = readFileSync(file, 'utf8').replace(/\/\/.*$/gm, '')
+          if (/process\.cwd\(\)/.test(code)) offenders.push(file)
+        }
+      }
+    }
+    walk('src')
+    expect(offenders).toEqual([])
+  })
+})

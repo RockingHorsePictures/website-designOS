@@ -1,5 +1,3 @@
-import { existsSync, statSync } from 'node:fs'
-import path from 'node:path'
 import { sql, type PostgresAdapter } from '@payloadcms/db-postgres'
 import {
   APIError,
@@ -115,22 +113,14 @@ export async function runAIRequest(
       throw new APIError('Supported actions: uploads go to the media collection only.', 400)
     if (!String(input.data?.alt || '').trim() && input.data?.decorative !== true)
       throw new APIError('Describe the image in data.alt, or set data.decorative to true.', 400)
-    let file: Record<string, unknown>
-    if (mode.upload) file = { file: mode.upload }
-    else {
-      const root = process.cwd()
-      const filePath = path.resolve(root, String(input.file || ''))
-      if (
-        !filePath.startsWith(root + path.sep) ||
-        !existsSync(filePath) ||
-        !statSync(filePath).isFile()
+    // The caller supplies the file (the live API from the request, the local bridge from disk), so
+    // this module never touches the file system (which would make bundles trace the whole site).
+    if (!mode.upload)
+      throw new APIError(
+        'Provide a JSON request file whose "file" is an image inside this website folder.',
+        400,
       )
-        throw new APIError(
-          'Provide a JSON request file whose "file" is an image inside this website folder.',
-          400,
-        )
-      file = { filePath }
-    }
+    const file = { file: mode.upload }
     const created = (await payload.create({
       collection: 'media',
       data: input.data as never,

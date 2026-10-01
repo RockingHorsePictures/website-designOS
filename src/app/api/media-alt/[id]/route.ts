@@ -40,7 +40,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       const response = await fetch(url, { signal: AbortSignal.timeout(10000), redirect: 'error' })
       if (!response.ok) throw new Error('Image unavailable')
       bytes = Buffer.from(await response.arrayBuffer())
-    } else bytes = await readFile(path.join(process.cwd(), 'media', path.basename(media.filename)))
+    } // Relative to the working directory at run time (process.cwd() would make the bundle trace
+    else
+      // the whole site).
+      bytes = await readFile(path.join('media', path.basename(media.filename)))
     if (bytes.length > 8_000_000)
       return Response.json(
         { error: 'Use an image under 8 MB for automatic descriptions.' },

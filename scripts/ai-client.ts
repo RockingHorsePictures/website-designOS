@@ -1,4 +1,5 @@
-import { existsSync, readFileSync, mkdirSync, writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, mkdirSync, writeFileSync, statSync } from 'node:fs'
+import path from 'node:path'
 import { randomBytes, createHash } from 'node:crypto'
 import type { Payload, TypedUser } from 'payload'
 
@@ -84,7 +85,29 @@ try {
       throw new Error('Provide a JSON request file. See docs/AI_CONNECTION.md for examples.')
     const { runAIRequest } = await import('../src/lib/ai-live/request')
     const input = JSON.parse(readFileSync(requestFile, 'utf8'))
-    emit(await runAIRequest(payload, user, input, { readOnly }))
+    let upload: { data: Buffer; name: string; mimetype: string; size: number } | undefined
+    if (input.action === 'upload') {
+      // Only files inside this website folder.
+      const root = process.cwd()
+      const file = path.resolve(root, String(input.file || ''))
+      if (file.startsWith(root + path.sep) && existsSync(file) && statSync(file).isFile()) {
+        const data = readFileSync(file)
+        const types: Record<string, string> = {
+          '.jpg': 'image/jpeg',
+          '.jpeg': 'image/jpeg',
+          '.png': 'image/png',
+          '.webp': 'image/webp',
+          '.avif': 'image/avif',
+        }
+        upload = {
+          data,
+          name: path.basename(file),
+          mimetype: types[path.extname(file).toLowerCase()] || 'application/octet-stream',
+          size: data.byteLength,
+        }
+      }
+    }
+    emit(await runAIRequest(payload, user, input, { readOnly, upload }))
   } else
     emit({
       ready: true,

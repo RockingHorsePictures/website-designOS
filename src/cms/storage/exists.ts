@@ -27,5 +27,7 @@ export async function storedFileExists(
   }
   const upload = payload.collections[collection as 'media']?.config.upload
   const dir = typeof upload === 'object' && upload.staticDir ? upload.staticDir : collection
-  return existsSync(path.resolve(process.cwd(), dir, prefix, filename))
+  // A relative path resolves against the working directory at run time. Never build it from
+  // process.cwd() here: Vercel's file tracing would then copy the whole project into the function.
+  return existsSync(path.join(dir, prefix, filename))
 }
