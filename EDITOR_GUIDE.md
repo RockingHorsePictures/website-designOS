@@ -95,7 +95,7 @@ Administrators can bring in a **content bundle**: a single `.zip` with pages, re
 2. Check the summary: what will be **new** and what will be **updated** (records with the same web address, name or file). Choose whether to also import site settings, navigation and theme, and whether to remove demo content.
 3. Choose **Import into workspace** and keep the window open until it finishes.
 
-Imported content goes into your workspace, not the live site. Links between records are reconnected, and nothing is marked as approved, so review it first, then **Save to Preview** and **Publish to Live**. Importing the same or an updated bundle again updates what the first import created. Page passwords and form webhook secrets aren't transferred, so set them again if you use them.
+Imported content goes into your workspace, not the live site. Links between records are reconnected, and nothing is marked as approved, so review it first, then **Save to Preview** and **Publish to Live**. Importing the same or an updated bundle again updates what the first import created, and uploads again any image whose file is missing from storage. To keep records exactly as they are (for example after you've started editing them here), untick **Update records this site already has**: only new records are added and missing files re-uploaded. Page passwords and form webhook secrets aren't transferred, so set them again if you use them.
 
 ## Blog
 

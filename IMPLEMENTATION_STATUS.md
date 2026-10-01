@@ -179,6 +179,17 @@ Published v0.2.1 at c4718a2219b5c760bf4f6af45977e1b18e7e065d. The public install
 
 RHP maintenance PR: https://github.com/RockingHorsePictures/rhp-website/pull/1. Its existing design folder now contains the update and working private code-preview AI connection; pre-existing discovery changes are intact. Its GitHub/Vercel link was repaired and verified via the project API. Production rollout/account provisioning is pending the explicit approval requested in this conversation; no RHP Production migration, account creation or deployment has been performed. Private database snapshots were saved before repair.
 
+## 0.7.2 — Content import uploads every file
+
+A real import into rhp-website (Vercel Blob over OIDC) created all 229 media records, but only the first few files reached storage, and the import reported success.
+
+- **Cause:** the import passed one shared `context` object to every Payload save. `@payloadcms/plugin-cloud-storage` keeps the upload's file on `req.context._payloadCloudStorage` and only sets it once, so later uploads were skipped without an error. Reproduced through real Blob storage: a normal upload stored 3 of 3 files, the import stored 1 of 3.
+- **Fix:** each save now gets its own context; after the fix the import stores 3 of 3.
+- **Check:** each file step confirms the file is in storage (`storedFileExists`: Blob by token or OIDC, or local) and reports a problem if it isn't.
+- **Repair:** the plan finds matched file records whose stored file is missing (`missingFiles`), and the import re-uploads them onto the existing record. Verified through real Blob storage: the original file and its sizes were restored with no duplicate record.
+- **Keep existing:** a new option, **Update records this site already has** (untick it), adds only new records and repairs files, leaving existing records, and edits made on the site, unchanged.
+- **Ordering:** the ordering step prepares keys in one request and saves them five records per request. It previously re-saved every record in one request, which hit Vercel's 60-second limit with 47 case studies.
+
 ## 0.7.1 — Updates keep sites' own migrations
 
 Delivering 0.7.0 to rhp-website, which has six bespoke migrations, exposed two update problems:

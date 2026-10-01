@@ -16,6 +16,8 @@ export type Plan = {
   missing: string[]
   warnings: string[]
   maxFileBytes: number | null
+  // Source IDs of matched file records whose stored file is missing (re-uploaded on import).
+  missingFiles?: Record<string, string[]>
 }
 export type Operation =
   | { op: 'plan'; manifest: Bundle['manifest']; keys: Record<string, Doc[]> }
@@ -33,10 +35,12 @@ export type Operation =
       collection: string
       record: Doc
       file: { name: string; data: Uint8Array }
+      targetId?: number | string | null
       source?: string
     }
   | { op: 'global'; slug: string; data: Record<string, unknown>; idMap: IDMap; locale?: string }
   | { op: 'order'; collection: string; ids: (number | string)[] }
+  | { op: 'setOrder'; collection: string; items: { id: number | string; key: string }[] }
   | { op: 'removeDemo'; keep: IDMap }
 export type OpResult = {
   id?: number | string
@@ -44,14 +48,19 @@ export type OpResult = {
   unknown?: string[]
   removed?: string[]
   failed?: string[]
+  keys?: string[]
   error?: string
 }
 export type Exec = (op: Operation) => Promise<OpResult & Partial<Plan>>
-export type ImportOptions = { globals: boolean; removeDemo: boolean }
+// updateExisting false: only add new records and re-upload missing files; records this site already
+// has (and may have edited since) are left exactly as they are.
+export type ImportOptions = { globals: boolean; removeDemo: boolean; updateExisting?: boolean }
 export type ImportReport = {
   created: Record<string, number>
   updated: Record<string, number>
   reusedFiles: number
+  repairedFiles: number
+  kept: number
   errors: string[]
   unresolved: string[]
   unknown: string[]
@@ -94,6 +103,8 @@ export async function runImport(
     created: {},
     updated: {},
     reusedFiles: 0,
+    repairedFiles: 0,
+    kept: 0,
     errors: [],
     unresolved: [],
     unknown: [],
@@ -134,12 +145,17 @@ export async function runImport(
   // 1. Files and records, creating what is new. References to records not created yet are
   //    left out for now and filled in by step 2.
   const incomplete: [string, Doc][] = []
+  const update = options.updateExisting !== false
+  const kept = new Set<string>()
   for (const collection of collections) {
     for (const doc of docs(collection)) {
       const existing = idMap[collection]?.[String(doc.id)]
       const what = label(collection, doc)
       let result: OpResult | null
-      if (planned.uploads.includes(collection) && existing === undefined) {
+      const repair =
+        existing !== undefined &&
+        Boolean(planned.missingFiles?.[collection]?.includes(String(doc.id)))
+      if (planned.uploads.includes(collection) && (existing === undefined || repair)) {
         const file = bundle.files[fileKey(collection, doc.id)]
         if (!file) {
           fail(what, new Error('its file is missing from the bundle'))
@@ -156,9 +172,22 @@ export async function runImport(
           step(what)
           continue
         }
-        result = await run(what, { op: 'file', collection, record: doc, file, source })
-        if (result?.id !== undefined)
-          report.created[collection] = (report.created[collection] || 0) + 1
+        result = await run(what, {
+          op: 'file',
+          collection,
+          record: doc,
+          file,
+          source,
+          targetId: repair ? existing : null,
+        })
+        if (result?.id !== undefined) {
+          if (repair) report.repairedFiles++
+          else report.created[collection] = (report.created[collection] || 0) + 1
+        }
+      } else if (existing !== undefined && !update) {
+        kept.add(`${collection}/${doc.id}`)
+        report.kept++
+        result = { id: existing }
       } else {
         result = await run(what, {
           op: 'record',
@@ -203,7 +232,7 @@ export async function runImport(
       for (const translated of bundle.records[collection]?.[other] || []) {
         const target = idMap[collection]?.[String(translated.id)]
         const what = `${label(collection, translated)} (${other})`
-        if (target !== undefined)
+        if (target !== undefined && !kept.has(`${collection}/${translated.id}`))
           await run(what, {
             op: 'record',
             collection,
@@ -231,12 +260,22 @@ export async function runImport(
       }
       step(slug)
     }
-  // 5. The bundle's custom order.
-  for (const collection of planned.ordered) {
+  // 5. The bundle's custom order (left alone when existing records are kept as they are).
+  for (const collection of update ? planned.ordered : []) {
     const ids = docs(collection)
       .map((doc) => idMap[collection]?.[String(doc.id)])
       .filter((id): id is number | string => id !== undefined)
-    if (ids.length) await run(`${collection} order`, { op: 'order', collection, ids })
+    if (ids.length) {
+      const prepared = await run(`${collection} order`, { op: 'order', collection, ids })
+      const keys = prepared?.keys || []
+      const items = ids.map((id, i) => ({ id, key: keys[i] })).filter((item) => item.key)
+      for (let i = 0; i < items.length; i += 5)
+        await run(`${collection} order`, {
+          op: 'setOrder',
+          collection,
+          items: items.slice(i, i + 5),
+        })
+    }
     step(`${collection} order`)
   }
   // 6. Optionally remove example records the bundle didn't replace.

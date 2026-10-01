@@ -333,6 +333,43 @@ try {
     'same-named records are not duplicated',
   )
 
+  // A file record whose stored file went missing is repaired by importing again.
+  const { rmSync, existsSync } = await import('node:fs')
+  const stored = `media/${(media as { filename?: string }).filename}`
+  rmSync(stored, { force: true })
+  const replanned = await plan(bundle, exec)
+  assert.deepEqual(
+    replanned.missingFiles,
+    { media: [String(source.media)] },
+    'missing files are found',
+  )
+  const repaired = await runImport(bundle, replanned, exec, { globals: false, removeDemo: false })
+  assert.equal(repaired.repairedFiles, 1, 'the missing file is uploaded again')
+  assert.deepEqual(repaired.created, {}, 'no duplicate record')
+  const fixed = await payload.findByID({ collection: 'media', id: media.id, depth: 0 })
+  assert(existsSync(`media/${fixed.filename}`), 'the file is back in storage')
+
+  // Keeping existing records: an edit made on the site survives, and missing files are still repaired.
+  await payload.update({
+    collection: 'services',
+    id: service.id,
+    data: { summary: 'Edited on the site.' } as never,
+    draft: true,
+  })
+  rmSync(`media/${(fixed as { filename?: string }).filename}`, { force: true })
+  const careful = await runImport(bundle, await plan(bundle, exec), exec, {
+    globals: false,
+    removeDemo: false,
+    updateExisting: false,
+  })
+  assert.equal(careful.repairedFiles, 1, 'missing files are repaired without updating records')
+  assert(careful.kept > 0, 'existing records are left alone')
+  assert.equal(
+    (await payload.findByID({ collection: 'services', id: service.id, draft: true })).summary,
+    'Edited on the site.',
+    'an edit made on the site is kept',
+  )
+
   // Removing demo content only removes demo records the bundle did not bring.
   const demo = await create({
     collection: 'clients',
@@ -366,7 +403,7 @@ try {
     'only the unreplaced demo record is removed',
   )
   console.log(
-    'PASS: export → zip → import recreates linked records with new IDs (upload, relationship, group, rich text, section and cyclic references), keeps order, never pre-approves, reruns without duplicates, and removes only unreplaced demo records.',
+    'PASS: export → zip → import recreates linked records with new IDs (upload, relationship, group, rich text, section and cyclic references), keeps order, never pre-approves, reruns without duplicates, repairs missing files, and removes only unreplaced demo records.',
   )
 } finally {
   await remove()

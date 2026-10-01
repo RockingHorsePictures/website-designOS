@@ -35,6 +35,7 @@ export function ContentImport({ onClose }: { onClose: () => void }) {
   const [planned, setPlanned] = useState<Plan | null>(null)
   const [globals, setGlobals] = useState(true)
   const [removeDemo, setRemoveDemo] = useState(true)
+  const [updateExisting, setUpdateExisting] = useState(true)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [progress, setProgress] = useState<{ done: number; total: number; step: string } | null>(
@@ -67,7 +68,7 @@ export function ContentImport({ onClose }: { onClose: () => void }) {
       bundle,
       planned,
       exec,
-      { globals, removeDemo },
+      { globals, removeDemo, updateExisting },
       (done, total, step) => setProgress({ done, total, step }),
     )
     setReport(result)
@@ -78,7 +79,8 @@ export function ContentImport({ onClose }: { onClose: () => void }) {
       ? planned.collections.map((slug) => {
           const total = bundle.manifest.collections[slug] || 0
           const existing = Object.keys(planned.matches[slug] || {}).length
-          return { slug, total, existing, upload: planned.uploads.includes(slug) }
+          const missing = planned.missingFiles?.[slug]?.length || 0
+          return { slug, total, existing, missing, upload: planned.uploads.includes(slug) }
         })
       : []
 
@@ -124,7 +126,11 @@ export function ContentImport({ onClose }: { onClose: () => void }) {
                   <tr key={row.slug}>
                     <th scope="row">{label(row.slug)}</th>
                     <td>{row.total - row.existing}</td>
-                    <td>{row.upload ? `${row.existing} already here` : row.existing}</td>
+                    <td>
+                      {row.upload
+                        ? `${row.existing - row.missing} already here${row.missing ? `, ${row.missing} missing (uploaded again)` : ''}`
+                        : row.existing}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -150,6 +156,22 @@ export function ContentImport({ onClose }: { onClose: () => void }) {
                 <span>
                   <strong>Also import site settings, navigation, theme and search strategy</strong>
                   <span>Replaces those settings with the bundle’s (locked fields are kept).</span>
+                </span>
+              </label>
+            )}
+            {rows.some((row) => row.existing > 0) && (
+              <label className="dos-option">
+                <input
+                  type="checkbox"
+                  checked={updateExisting}
+                  onChange={(e) => setUpdateExisting(e.target.checked)}
+                />
+                <span>
+                  <strong>Update records this site already has</strong>
+                  <span>
+                    Untick to keep them exactly as they are (including edits made here) and only add
+                    what&rsquo;s new and re-upload missing files.
+                  </span>
                 </span>
               </label>
             )}
@@ -206,6 +228,10 @@ export function ContentImport({ onClose }: { onClose: () => void }) {
                   {label(slug)}: {n} updated
                 </li>
               ))}
+              {report.kept > 0 && <li>{report.kept} existing records left as they were</li>}
+              {report.repairedFiles > 0 && (
+                <li>{report.repairedFiles} missing files uploaded again</li>
+              )}
               {report.reusedFiles > 0 && <li>{report.reusedFiles} files were already here</li>}
               {report.removed.length > 0 && <li>{report.removed.length} demo records removed</li>}
             </ul>

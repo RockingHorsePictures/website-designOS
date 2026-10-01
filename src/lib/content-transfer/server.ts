@@ -5,6 +5,7 @@ import { bundleFormat, bundleVersion, type Doc } from './bundle'
 import type { Operation, OpResult, Plan } from './driver'
 import { Remapper, type IDMap } from './remap'
 import { defaultLocale } from '../locales'
+import { storedFileExists } from '../../cms/storage/exists'
 import pkg from '../../../package.json'
 
 // Server half of a content import. Every write goes through Payload as the signed-in
@@ -23,7 +24,6 @@ export const transferable = (payload: Payload): string[] =>
 
 type Slug = 'pages'
 const config = (payload: Payload, slug: string) => payload.collections[slug as Slug]?.config
-const context = { designosImport: true }
 type User = NonNullable<PayloadRequest['user']>
 
 // Collections a collection refers to, so referenced records are created first.
@@ -178,7 +178,10 @@ export async function transferOperation(
   const known = (slug: string) => {
     if (!slugs.includes(slug)) throw new APIError(`This site has no “${slug}” collection.`, 400)
   }
-  const base = { user, overrideAccess: false, depth: 0, context } as const
+  // A fresh context for every save: Payload's storage plugin keeps per-upload state on it, so a
+  // shared object would let the first file's state skip every later file's upload.
+  const base = () =>
+    ({ user, overrideAccess: false, depth: 0, context: { designosImport: true } }) as const
 
   if (op.op === 'plan') {
     const m = op.manifest
@@ -222,9 +225,48 @@ export async function transferOperation(
         if (alive.has(r.target_id) && wanted.has(r.source_id))
           found[slug][r.source_id] = /^\d+$/.test(r.target_id) ? Number(r.target_id) : r.target_id
     }
+    // Files this site has records for but whose stored file is missing (a re-import repairs them).
+    const missingFiles: Record<string, string[]> = {}
+    for (const slug of present.filter((s) => config(payload, s).upload)) {
+      const targets = Object.entries(found[slug] || {})
+      if (!targets.length) continue
+      const docs = new Map(
+        (
+          (
+            await payload.find({
+              collection: slug as Slug,
+              where: { id: { in: targets.map(([, t]) => t) } },
+              pagination: false,
+              depth: 0,
+              overrideAccess: true,
+              select: { filename: true, prefix: true } as never,
+            })
+          ).docs as unknown as Doc[]
+        ).map((d) => [String(d.id), d]),
+      )
+      const queue = [...targets]
+      const missing: string[] = []
+      await Promise.all(
+        Array.from({ length: 8 }, async () => {
+          for (let next = queue.shift(); next; next = queue.shift()) {
+            const doc = docs.get(String(next[1]))
+            if (!doc?.filename) continue
+            const stored = await storedFileExists(
+              payload,
+              slug,
+              String(doc.filename),
+              typeof doc.prefix === 'string' ? doc.prefix : '',
+            ).catch(() => true)
+            if (!stored) missing.push(next[0])
+          }
+        }),
+      )
+      if (missing.length) missingFiles[slug] = missing
+    }
     return {
       collections: present,
       order: importOrder(payload, present),
+      missingFiles,
       uploads: present.filter((s) => config(payload, s).upload),
       ordered: present.filter((s) => config(payload, s).orderable),
       defaultLocale,
@@ -255,22 +297,45 @@ export async function transferOperation(
     let id: number | string
     if (op.op === 'file') {
       if (!file) throw new APIError('The file is missing.', 400)
-      const created = await payload.create({
-        ...base,
-        collection: op.collection as Slug,
-        data: data as never,
-        locale: locale as never,
-        file: {
-          data: file.data,
-          name: file.name,
-          mimetype: String(op.record.mimeType || 'application/octet-stream'),
-          size: file.data.byteLength,
-        },
-      })
-      id = created.id
+      const upload = {
+        data: file.data,
+        name: file.name,
+        mimetype: String(op.record.mimeType || 'application/octet-stream'),
+        size: file.data.byteLength,
+      }
+      // A target means the record exists but its stored file is missing: upload it again.
+      const repair = op.targetId !== null && op.targetId !== undefined
+      const saved = (repair
+        ? await payload.update({
+            ...base(),
+            collection: op.collection as Slug,
+            id: op.targetId!,
+            data: data as never,
+            locale: locale as never,
+            file: upload,
+          })
+        : await payload.create({
+            ...base(),
+            collection: op.collection as Slug,
+            data: data as never,
+            locale: locale as never,
+            file: upload,
+          })) as unknown as Doc
+      id = saved.id
+      const stored = await storedFileExists(
+        payload,
+        op.collection,
+        String(saved.filename),
+        typeof saved.prefix === 'string' ? saved.prefix : '',
+      )
+      if (!stored)
+        throw new APIError(
+          `The record was saved but its file (${String(saved.filename)}) did not reach storage. Import the bundle again to retry.`,
+          502,
+        )
     } else if (op.targetId !== null && op.targetId !== undefined) {
       const updated = await payload.update({
-        ...base,
+        ...base(),
         collection: op.collection as Slug,
         id: op.targetId,
         data: data as never,
@@ -281,7 +346,7 @@ export async function transferOperation(
     } else {
       if (c.upload) throw new APIError('A new file record needs its file.', 400)
       const created = await payload.create({
-        ...base,
+        ...base(),
         collection: op.collection as Slug,
         data: data as never,
         locale: locale as never,
@@ -303,7 +368,7 @@ export async function transferOperation(
     const data = remap.fields(global.fields, op.data, op.slug, true)
     delete data.globalType
     await payload.updateGlobal({
-      ...base,
+      ...base(),
       slug: op.slug as 'site-settings',
       data: data as never,
       locale: (op.locale || defaultLocale) as never,
@@ -325,13 +390,19 @@ export async function transferOperation(
       where: { and: [{ id: { not_in: op.ids } }, { _order: { exists: true } }] },
     })
     const first = (others.docs[0] as { _order?: string } | undefined)?._order || null
-    const keys = generateNKeysBetween(null, first, op.ids.length)
-    for (const [i, id] of op.ids.entries())
+    // Keys only: the driver saves them a few records per request, within the time limit.
+    return { keys: generateNKeysBetween(null, first, op.ids.length) }
+  }
+
+  if (op.op === 'setOrder') {
+    known(op.collection)
+    if (!config(payload, op.collection).orderable) return {}
+    for (const { id, key } of op.items.slice(0, 10))
       await payload.update({
-        ...base,
+        ...base(),
         collection: op.collection as Slug,
         id,
-        data: { _order: keys[i] } as never,
+        data: { _order: key } as never,
         draft: await latestIsDraft(payload, op.collection, id),
       })
     return {}
@@ -356,7 +427,7 @@ export async function transferOperation(
         if (keep.includes(doc.id)) continue
         const name = `${slug} “${String(doc.title || doc.name || doc.filename || doc.id)}”`
         try {
-          await payload.delete({ ...base, collection: slug as Slug, id: doc.id })
+          await payload.delete({ ...base(), collection: slug as Slug, id: doc.id })
           removed.push(name)
         } catch (error) {
           failed.push(
