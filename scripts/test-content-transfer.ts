@@ -10,6 +10,9 @@ const { readBundle, writeBundle } = await import('../src/lib/content-transfer/bu
 const { plan, runImport } = await import('../src/lib/content-transfer/driver')
 const { transferOperation } = await import('../src/lib/content-transfer/server')
 const payload = await getPayload({ config })
+// Loosely typed: sites add their own required fields, and this test must still compile there.
+const create = (args: Record<string, unknown>) =>
+  payload.create(args as never) as Promise<{ id: number }>
 const admin = {
   ...(await payload.find({ collection: 'users', where: { role: { equals: 'admin' } }, limit: 1 }))
     .docs[0],
@@ -61,20 +64,20 @@ try {
     .toBuffer()
   const source: Ids = {}
   source.media = (
-    await payload.create({
+    await create({
       collection: 'media',
       data: { alt: `Transfer test image ${stamp}` },
       file: { data: png, name: `${stamp}.png`, mimetype: 'image/png', size: png.byteLength },
     })
   ).id
   source.client = (
-    await payload.create({
+    await create({
       collection: 'clients',
       data: { name: `Client ${stamp}`, logo: source.media },
     })
   ).id
   source.service = (
-    await payload.create({
+    await create({
       collection: 'services',
       data: {
         title: `Service ${stamp}`,
@@ -86,7 +89,7 @@ try {
     })
   ).id
   source.project = (
-    await payload.create({
+    await create({
       collection: 'case-studies',
       data: {
         title: `Project ${stamp}`,
@@ -146,7 +149,7 @@ try {
     data: { caseStudies: [source.project] },
   })
   source.page = (
-    await payload.create({
+    await create({
       collection: 'pages',
       data: {
         title: `Page ${stamp}`,
@@ -200,7 +203,7 @@ try {
   for (let twin = 0; twin < 2; twin++)
     created.push([
       'clients',
-      (await payload.create({ collection: 'clients', data: { name: `Twin ${stamp}` } })).id,
+      (await create({ collection: 'clients', data: { name: `Twin ${stamp}` } })).id,
     ])
   created.push(
     ['media', source.media],
@@ -331,7 +334,7 @@ try {
   )
 
   // Removing demo content only removes demo records the bundle did not bring.
-  const demo = await payload.create({
+  const demo = await create({
     collection: 'clients',
     data: { name: `Demo client ${stamp}`, demo: true },
   })
