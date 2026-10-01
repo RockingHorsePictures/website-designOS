@@ -57,7 +57,7 @@ Compositions are translatable: each language can have its own sections (untransl
 Rules:
 
 - Props carry content and meaningful options only. No raw CSS, colours, pixel sizes or HTML.
-- Copy and images are props. Records (case studies, services, people, clients) are referenced by ID, never copied.
+- Copy and images are props. Records (case studies, services, people, clients) are referenced by ID, never copied. Name reference props after their collection, `<singular>Id` or `<singular>Ids` (`projectIds`, `serviceIds`, `memberIds`, `clientIds`, `postIds`, `categoryId`, `formId`, or `awardIds` for a bespoke `awards` collection). Content transfer (`npm run content:export` → Import content) then reconnects them to the right records on another site. Other names are reported for checking by hand.
 - Links use `linkRef` (validated). Images use `mediaRef` (media ID, per-use alt, decorative). Long text uses the Markdown subset: blank line for a paragraph, `## ` subheading, `- ` list, `**bold**`, `[label](/path)`. It renders to React only, never raw HTML.
 - Figures and testimonials link to Approved Facts. Structured data comes only from visible content.
 - Defaults are empty. Validation rejects unknown sections and unknown props, so stored data stays trustworthy.

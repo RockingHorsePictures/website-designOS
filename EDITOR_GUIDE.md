@@ -76,6 +76,16 @@ Where each kind of record appears on the site, **Site Settings → Listing order
 
 As with any change, the new order shows on the site after your next **Save Preview** and **Publish**.
 
+## Importing content
+
+Administrators can bring in a **content bundle**: a single `.zip` with pages, records, settings and images, usually made by your AI from the copy of the site it designed (`npm run content:export`).
+
+1. On **Overview**, choose **Import content** and pick the bundle.
+2. Check the summary: what will be **new** and what will be **updated** (records with the same web address, name or file). Choose whether to also import site settings, navigation and theme, and whether to remove demo content.
+3. Choose **Import into workspace** and keep the window open until it finishes.
+
+Imported content goes into your workspace, not the live site. Links between records are reconnected, and nothing is marked as approved, so review it first, then **Save to Preview** and **Publish to Live**. Importing the same or an updated bundle again updates what the first import created. Page passwords and form webhook secrets aren't transferred, so set them again if you use them.
+
 ## Blog
 
 **Blog posts** have a title, address, summary, image, body text, authors (from Team), categories and related posts. They appear at `/blog`, with a page per category, an RSS feed at `/blog/feed.xml`, and a **Blog posts** section you can add to any page. **Publication date shown** overrides the date displayed.

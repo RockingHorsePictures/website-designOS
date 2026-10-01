@@ -1,6 +1,6 @@
 {
   "name": "company-design-os",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -25,6 +25,8 @@
     "migrate": "payload migrate",
     "test:releases": "tsx scripts/test-releases.ts",
     "test:ordering": "tsx scripts/test-ordering.ts",
+    "test:transfer": "tsx scripts/test-content-transfer.ts",
+    "content:export": "tsx scripts/content-export.ts",
     "upgrade": "node scripts/upgrade.mjs",
     "installer:start": "node installer/cli.mjs",
     "test:installer": "node --test installer/test/*.test.mjs",
@@ -53,6 +55,7 @@
     "@payloadcms/ui": "3.89.0",
     "@puckeditor/core": "0.23.0",
     "@vercel/blob": "2.8.0",
+    "fflate": "0.8.3",
     "graphql": "16.11.0",
     "next": "16.3.5",
     "payload": "3.89.0",

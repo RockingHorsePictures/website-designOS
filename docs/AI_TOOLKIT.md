@@ -75,6 +75,7 @@ npm run ai:request -- preview req.json  # read/create/update/upload (see docs/AI
 npm run sections -- catalog           # section library as JSON schema
 npm run sections -- validate page.json
 npm run audit -- https://your-site.com --max 300
+npm run content:export                # content bundle for Overview → Import content on the live site
 ```
 
 Protected Vercel previews: set `VERCEL_AUTOMATION_BYPASS_SECRET` in your shell before `npm run audit` so the crawler can reach them.

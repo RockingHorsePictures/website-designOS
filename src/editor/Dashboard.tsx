@@ -1,7 +1,9 @@
 'use client'
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useState, type FormEvent, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import type { Dashboard as Data } from '../lib/dashboard'
+import { Modal } from './Modal'
+import { ContentImport } from './ContentImport'
 
 const greeting = () => {
   const h = new Date().getHours()
@@ -48,31 +50,6 @@ function Card({
     <section className={`dos-card ${className}`} style={{ ['--i' as string]: i }}>
       {children}
     </section>
-  )
-}
-function Modal({
-  title,
-  onClose,
-  children,
-}: {
-  title: string
-  onClose: () => void
-  children: ReactNode
-}) {
-  const ref = useRef<HTMLDialogElement>(null)
-  useEffect(() => {
-    ref.current?.showModal()
-  }, [])
-  return (
-    <dialog ref={ref} className="dos-dialog" onClose={onClose} aria-labelledby="dos-dialog-title">
-      <div className="dos-dialog-head">
-        <h2 id="dos-dialog-title">{title}</h2>
-        <button type="button" className="dos-icon-button" onClick={onClose} aria-label="Close">
-          ×
-        </button>
-      </div>
-      {children}
-    </dialog>
   )
 }
 const slugify = (s: string) =>
@@ -242,7 +219,7 @@ function Invite({ onClose }: { onClose: () => void }) {
 
 export function Dashboard() {
   const [data, setData] = useState<Data | null>(null)
-  const [dialog, setDialog] = useState<'page' | 'invite' | null>(null)
+  const [dialog, setDialog] = useState<'page' | 'invite' | 'import' | null>(null)
   useEffect(() => {
     const controller = new AbortController()
     fetch('/api/dashboard', { signal: controller.signal })
@@ -445,11 +422,21 @@ export function Dashboard() {
                 <span>Editors and administrators</span>
               </button>
             )}
+            {data.user.role === 'admin' && (
+              <button type="button" className="dos-action" onClick={() => setDialog('import')}>
+                <span className="dos-action-icon" aria-hidden="true">
+                  ⇪
+                </span>
+                <strong>Import content</strong>
+                <span>Bring in a content bundle</span>
+              </button>
+            )}
           </div>
         </Card>
       )}
       {dialog === 'page' && <NewPage templates={data.templates} onClose={() => setDialog(null)} />}
       {dialog === 'invite' && <Invite onClose={() => setDialog(null)} />}
+      {dialog === 'import' && <ContentImport onClose={() => setDialog(null)} />}
     </div>
   )
 }

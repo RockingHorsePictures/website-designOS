@@ -179,6 +179,30 @@ Published v0.2.1 at c4718a2219b5c760bf4f6af45977e1b18e7e065d. The public install
 
 RHP maintenance PR: https://github.com/RockingHorsePictures/rhp-website/pull/1. Its existing design folder now contains the update and working private code-preview AI connection; pre-existing discovery changes are intact. Its GitHub/Vercel link was repaired and verified via the project API. Production rollout/account provisioning is pending the explicit approval requested in this conversation; no RHP Production migration, account creation or deployment has been performed. Private database snapshots were saved before repair.
 
+## 0.6.0 — Content transfer
+
+Requested 2026-10-01. Content built while designing (in the local database) had no supported route to the live site, and the AI's production connection is read-only by design.
+
+- **Export:** `npm run content:export` writes a zip bundle (`src/lib/content-transfer/`).
+  - It contains every collection except users, AI usage, enquiries, releases and the publication pointer; every enabled language; the navigation, site settings, theme and search strategy; and the original upload files.
+  - Demo records are skipped unless `--include-demo` is passed.
+  - Approvals and secrets (webhook secrets, page passwords, Google IDs) never leave the source.
+  - The manifest carries a source identity: a hash of the database host and name, never credentials.
+- **Import:** **Overview → Import content** (administrators; refused on code previews) runs in the browser step by step through `/api/content-import`, so no request nears Vercel's limits.
+  - **Plan:** shows new versus updated records. Matching uses earlier imports from the same source (`designos_import_map`) first, then the web address, the unique title, or an image's filename plus dimensions (images are re-processed on upload, so sizes differ).
+  - **Order of writes:** files first, then records in dependency order, then cyclic references linked in a second pass, then translations (skipped where a record has no translated title), settings, the custom order and optional demo removal.
+  - **Link rewriting:** uses the destination's own field schema, so bespoke collections work. It covers relationship and upload fields (including polymorphic ones), groups, arrays, blocks, tabs, Lexical uploads and internal links, section `mediaRef`s, and section props named `<collection>Id(s)`.
+  - **Unmatched links:** an unresolved reference is removed and reported, never left pointing at an unrelated record. Numeric props whose names match no collection are reported for checking by hand.
+  - **Approvals:** imported values are not stamped as approved (`designosImport` context).
+- **Verified:**
+  - Unit tests: 59, including remapping and the zip round trip.
+  - `test:transfer` (database): linked records with upload, relationship, group, rich-text, section and cyclic references; translations; order; no pre-approval; reruns without duplicates, including same-named records; selective demo removal; the publication pointer refused.
+  - Browser test: imports through the dialog.
+- **Real-data rehearsal:** the rhp-website design branch's local database (392 records, 229 images, 20 MB) was exported and imported into a fresh scratch database built from that site's code.
+  - Result: 0 errors, 0 unresolved links, all 392 records identical field by field with every link mapped to the right record, and the order kept.
+  - A second import created nothing and reused all 229 images.
+  - A Save to Preview release then captured the site. This needed a placeholder summary for one draft case study whose summary is empty at the source.
+
 ## 0.5.1 — Code preview banner on the sign-in page
 
 Payload's admin `header` slot only renders after sign-in, so the code preview banner was missing from the sign-in page, which is the first screen on a code preview. It is now also in `beforeLogin` (checked at desktop and phone widths).

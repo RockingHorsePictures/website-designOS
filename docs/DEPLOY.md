@@ -90,6 +90,8 @@ npm run ai:connect
 
 Open the folder in Claude Code and approve the `design-os` tools ([AI_TOOLKIT.md](AI_TOOLKIT.md)). Claude reads your live site's content and approvals **read-only** (Production), designs and edits content against the **local** database, and works on a branch; its code preview is reviewed before you merge. Never copy the production database credentials into `.env`.
 
+**Moving content built locally to the live site.** Ask Claude to run `npm run content:export`. It saves a `.zip` bundle in `.designos/` with the pages, records, settings and images. Then, on your live site, sign in as an administrator, choose **Overview → Import content** and pick the bundle. You'll see what will be added and updated before anything changes. Everything lands in your workspace: review it, then **Save to Preview** and **Publish to Live**. You can import an updated bundle again later. It updates what the first import created instead of duplicating it.
+
 ## Languages
 
 Add languages in **Site Settings → Additional languages**. Translated pages appear at `/<code>/…` (for example `/fr/about`); untranslated fields show your main language. The main language is English unless you set `DESIGNOS_DEFAULT_LOCALE` (for example `fr`) **before** your first deployment.

@@ -309,3 +309,102 @@ describe('listing order', () => {
     ).toEqual([3, 1])
   })
 })
+
+describe('content transfer', () => {
+  const collections = [
+    'media',
+    'case-studies',
+    'services',
+    'team-members',
+    'awards',
+    'sectors',
+    'categories',
+    'approved-facts',
+    'forms',
+  ]
+  it('recognises section props named after a collection', async () => {
+    const { referencedCollection } = await import('@/lib/content-transfer/remap')
+    expect(referencedCollection('projectIds', collections)).toBe('case-studies')
+    expect(referencedCollection('memberIds', collections)).toBe('team-members')
+    expect(referencedCollection('awardIds', collections)).toBe('awards')
+    expect(referencedCollection('sectorIds', collections)).toBe('sectors')
+    expect(referencedCollection('categoryId', collections)).toBe('categories')
+    expect(referencedCollection('factId', collections)).toBe('approved-facts')
+    expect(referencedCollection('formId', collections)).toBe('forms')
+    expect(referencedCollection('vimeoId', collections)).toBeNull()
+  })
+  it('rewrites references in compositions and never keeps a source ID', async () => {
+    const { Remapper } = await import('@/lib/content-transfer/remap')
+    const remap = new Remapper({ 'case-studies': { '5': 50 }, media: { '7': 70 } }, collections)
+    const out = remap.json(
+      {
+        content: [
+          {
+            type: 'X',
+            props: {
+              projectIds: [5, 6],
+              poster: { image: 7, alt: '', decorative: true },
+              vimeoId: '123456',
+              widgetIds: [3],
+            },
+          },
+        ],
+      },
+      'page',
+    ) as { content: { props: Record<string, unknown> }[] }
+    expect(out.content[0].props.projectIds).toEqual([50])
+    expect(out.content[0].props.poster).toEqual({ image: 70, alt: '', decorative: true })
+    expect(out.content[0].props.vimeoId).toBe('123456')
+    expect(remap.report.unresolved).toEqual(['page.content[0].props.projectIds → case-studies #6'])
+    expect(remap.report.unknown).toEqual(['page.content[0].props.widgetIds'])
+  })
+  it('rewrites rich text uploads and internal links, dropping ones it cannot place', async () => {
+    const { Remapper } = await import('@/lib/content-transfer/remap')
+    const remap = new Remapper({ media: { '1': 10 }, services: { '2': 20 } }, collections)
+    const out = JSON.stringify(
+      remap.richText(
+        {
+          root: {
+            children: [
+              { type: 'upload', relationTo: 'media', value: 1 },
+              { type: 'upload', relationTo: 'media', value: 9 },
+              {
+                type: 'link',
+                fields: { linkType: 'internal', doc: { relationTo: 'services', value: 2 } },
+                children: [],
+              },
+            ],
+          },
+        },
+        'doc',
+      ),
+    )
+    expect(out).toContain('"value":10')
+    expect(out).not.toContain('"value":9')
+    expect(out).toContain('"value":20')
+  })
+  it('round-trips a bundle through a zip', async () => {
+    const { readBundle, writeBundle } = await import('@/lib/content-transfer/bundle')
+    const bundle = {
+      manifest: {
+        format: 'designos-content' as const,
+        version: 1,
+        designos: 'x',
+        exportedAt: 'now',
+        source: 'local',
+        defaultLocale: 'en',
+        locales: ['en'],
+        collections: { media: 1 },
+        globals: [],
+        skippedDemo: {},
+      },
+      records: { media: { en: [{ id: 1, filename: 'a b.png' }] } },
+      globals: {},
+      files: { 'media/1': { name: 'a b.png', data: new Uint8Array([1, 2, 3]) } },
+    }
+    const back = readBundle(writeBundle(bundle))
+    expect(back.records).toEqual(bundle.records)
+    expect([...back.files['media/1'].data]).toEqual([1, 2, 3])
+    expect(() => readBundle(new Uint8Array([1, 2, 3]))).toThrow(/not a content bundle/)
+  })
+})

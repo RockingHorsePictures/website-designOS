@@ -99,6 +99,8 @@ export async function checkProtection({
         `${field.label} is locked. Ask its owner to unlock it in Approvals & locks before changing it.`,
         423,
       )
+    // Imported content is reviewed after the import, so it is not stamped as approved.
+    if (req.context.designosImport) continue
     if (req.user && !isAI(req.user) && !approved)
       next[field.name] = { state: 'approved', by: req.user.email, at: new Date().toISOString() }
     // An AI change is not a human approval: the field returns to an editable default.
