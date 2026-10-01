@@ -179,6 +179,12 @@ Published v0.2.1 at c4718a2219b5c760bf4f6af45977e1b18e7e065d. The public install
 
 RHP maintenance PR: https://github.com/RockingHorsePictures/rhp-website/pull/1. Its existing design folder now contains the update and working private code-preview AI connection; pre-existing discovery changes are intact. Its GitHub/Vercel link was repaired and verified via the project API. Production rollout/account provisioning is pending the explicit approval requested in this conversation; no RHP Production migration, account creation or deployment has been performed. Private database snapshots were saved before repair.
 
+## 0.5.1 — Code preview banner on the sign-in page
+
+Payload's admin `header` slot only renders after sign-in, so the code preview banner was missing from the sign-in page, which is the first screen on a code preview. It is now also in `beforeLogin` (checked at desktop and phone widths).
+
+Releasing 0.5.0 also confirmed on the rhp-website update pull request that the Neon preview branch received both ordering migrations and that the code preview banner links to the live admin. That site's 0.4.1 updater wrongly listed `.github/workflows/ci.yml` (absent from Deploy Button repositories) as a conflict. 0.5.0's updater ignores workflow files a site doesn't have.
+
 ## 0.5.0 — Orderable collections, read-only code previews
 
 **One place to work (requested 2026-10-01).** Owners edit, preview and publish only at the live address (`/admin` → Save to Preview → Publish to Live). Code changes go live by merging their pull request.

@@ -118,7 +118,10 @@ export default buildConfig({
     components: {
       header: ['/src/components/site/CodePreviewBanner#CodePreviewBanner'],
       beforeDashboard: ['/src/editor/Workspace#WorkspaceHome'],
-      beforeLogin: ['/src/editor/SignIn#GoogleSignIn'],
+      beforeLogin: [
+        '/src/components/site/CodePreviewBanner#CodePreviewBanner',
+        '/src/editor/SignIn#GoogleSignIn',
+      ],
       beforeNavLinks: ['/src/editor/Workspace#WorkspaceNav'],
       actions: ['/src/editor/Workspace#EnvironmentBadge'],
       graphics: {
