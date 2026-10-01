@@ -66,7 +66,7 @@ Forms already use a hidden trap field and rate limits. For stronger protection, 
 
 Every week your repository's **Design OS updates** Action checks for a new release and, if there is one, opens a pull request:
 
-- Vercel builds a code preview of the updated site on its own database copy. Open it from the pull request and look around.
+- Vercel builds a code preview of the updated site on its own database copy. Open it from the pull request and look around. It's read-only and shows a **Code preview** banner, because nothing saved there would be kept. Content is always edited at your live address's `/admin`.
 - **Merge** the pull request to update your live site. The database is updated during that deployment.
 - Files you (or your AI) customised are never overwritten. If an update also changed one of them, the pull request says so and saves the new version beside yours as `<file>.designos-upstream`. Ask Claude Code to "merge the Design OS update conflicts" before merging.
 

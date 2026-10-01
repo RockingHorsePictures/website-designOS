@@ -116,6 +116,9 @@ body {
 .dos-environment--production > span {
   background: #2a8b57;
 }
+.dos-environment--code-preview > span {
+  background: #b45309;
+}
 .dos-environment--local > span {
   background: #788780;
 }

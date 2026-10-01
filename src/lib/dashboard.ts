@@ -2,6 +2,7 @@ import type { Payload, TypedUser } from 'payload'
 import { releaseID } from './releases'
 import { googleEnabled } from './auth/google'
 import { enabledLocales } from './locales'
+import { codePreview } from './code-preview'
 import { updateWorkflowLink } from './update-workflow'
 import pkg from '../../package.json'
 
@@ -215,6 +216,8 @@ export async function dashboard(payload: Payload, user: TypedUser) {
     templates,
     aiConnected,
     version: pkg.version,
+    // Code previews are read-only test copies: no creating or publishing there.
+    readOnly: codePreview(),
     update:
       release.version && newer(release.version, pkg.version)
         ? {

@@ -4,6 +4,7 @@ import { cookies, headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { cms } from '@/lib/cms'
 import { initializeSite } from '@/lib/setup'
+import { codePreview, codePreviewMessage } from '@/lib/code-preview'
 import { sessionCookie } from '@/lib/auth/session'
 import { googleEnabled } from '@/lib/auth/google'
 import { clientIP, withinLimit } from '@/lib/rate-limit'
@@ -24,6 +25,7 @@ const sameCode = (given: string, expected: string) => {
 }
 
 export async function createOwner(_: SetupState, form: FormData): Promise<SetupState> {
+  if (codePreview()) return { error: codePreviewMessage() }
   const payload = await cms()
   if (!(await withinLimit(payload, 'setup', clientIP(await headers()), 10, 900)))
     return { error: 'Too many attempts. Wait a few minutes and try again.' }

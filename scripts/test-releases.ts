@@ -263,8 +263,53 @@ try {
     await payload.delete({ collection: 'forms', id: deliveryForm.id })
     await payload.delete({ collection: 'media', id: unused.id }).catch(() => {})
   }
+  // Code previews (Vercel Preview builds of a site) are read-only, even for administrators and
+  // writes that skip access control; the product demo opts out with DESIGNOS_PREVIEW_EDITING.
+  const home = (await payload.find({ collection: 'pages', limit: 1, depth: 0 })).docs[0]
+  const savedEnv = { vercel: process.env.VERCEL_ENV, editing: process.env.DESIGNOS_PREVIEW_EDITING }
+  try {
+    process.env.VERCEL_ENV = 'preview'
+    delete process.env.DESIGNOS_PREVIEW_EDITING
+    const write = () =>
+      payload.update({
+        collection: 'pages',
+        id: home.id,
+        data: { summary: home.summary },
+        user: admin,
+      })
+    await assert.rejects(write(), /code preview/i)
+    await assert.rejects(
+      payload.update({
+        collection: 'pages',
+        id: home.id,
+        data: { summary: home.summary },
+        overrideAccess: true,
+      }),
+      /code preview/i,
+    )
+    await assert.rejects(
+      payload.updateGlobal({ slug: 'site-settings', data: {}, user: admin }),
+      /code preview/i,
+    )
+    await assert.rejects(
+      changePublication(
+        payload,
+        admin,
+        'preview',
+        releaseID((await payload.findGlobal({ slug: 'publication', depth: 0 })).previewRelease),
+      ),
+      /code preview/i,
+    )
+    process.env.DESIGNOS_PREVIEW_EDITING = 'allow'
+    await write()
+  } finally {
+    if (savedEnv.vercel === undefined) delete process.env.VERCEL_ENV
+    else process.env.VERCEL_ENV = savedEnv.vercel
+    if (savedEnv.editing === undefined) delete process.env.DESIGNOS_PREVIEW_EDITING
+    else process.env.DESIGNOS_PREVIEW_EDITING = savedEnv.editing
+  }
   console.log(
-    'PASS: immutable releases, Preview/Live isolation, stale publication rejection, asset retention, AI permissions, enforced locks, private delivery settings and released-only uploads.',
+    'PASS: immutable releases, Preview/Live isolation, stale publication rejection, asset retention, AI permissions, enforced locks, private delivery settings and released-only uploads and read-only code previews.',
   )
 } finally {
   const req = await createLocalReq({ user: admin, context: { policyApproval } }, payload)

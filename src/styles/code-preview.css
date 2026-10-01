@@ -1,0 +1,36 @@
+/* Code preview banner: fixed, high-contrast colours (independent of the site theme). */
+.dos-code-preview {
+  position: relative;
+  z-index: 1000;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+  padding: 10px 16px;
+  background: #1c1917;
+  color: #fafaf9;
+  font:
+    500 14px/1.45 system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
+}
+.dos-code-preview strong {
+  padding: 2px 9px;
+  border-radius: 99px;
+  background: #fde68a;
+  color: #1c1917;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.dos-code-preview a {
+  color: #fde68a;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.dos-code-preview a:focus-visible {
+  outline: 2px solid #fde68a;
+  outline-offset: 3px;
+}

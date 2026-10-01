@@ -8,8 +8,10 @@ import {
 import { advisoryLock } from '../lib/transaction'
 import { protectReleasedAsset } from '../lib/releases'
 import { isAI, readOnlyAI } from './access'
+import { codePreview, codePreviewMessage } from '../lib/code-preview'
 
 function requireWritable(req: PayloadRequest) {
+  if (codePreview()) throw new APIError(codePreviewMessage(), 403)
   if (readOnlyAI(req.user))
     throw new APIError(
       'This AI connection is read-only. Make changes in the code-preview workspace.',
@@ -128,11 +130,11 @@ export function protectCollection(config: CollectionConfig): CollectionConfig {
     access: {
       ...config.access,
       create: (args) =>
-        readOnlyAI(args.req.user)
+        readOnlyAI(args.req.user) || codePreview()
           ? false
           : (config.access?.create?.(args) ?? Boolean(args.req.user)),
       update: (args) =>
-        readOnlyAI(args.req.user)
+        readOnlyAI(args.req.user) || codePreview()
           ? false
           : (config.access?.update?.(args) ?? Boolean(args.req.user)),
       // AI accounts edit unlocked content but never delete records or files.
@@ -214,7 +216,7 @@ export function protectGlobal(config: GlobalConfig): GlobalConfig {
       ...config.access,
       read: ({ req }) => Boolean(req.user),
       update: (args) =>
-        readOnlyAI(args.req.user)
+        readOnlyAI(args.req.user) || codePreview()
           ? false
           : (config.access?.update?.(args) ?? Boolean(args.req.user)),
     },

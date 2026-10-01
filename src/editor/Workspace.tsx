@@ -1,3 +1,4 @@
+import { codePreview } from '../lib/code-preview'
 import { PublishingPanel } from './PublishingPanel'
 import { BuildGuide } from './BuildGuide'
 import { SiteHealth } from './SiteHealth'
@@ -30,6 +31,7 @@ export function WorkspaceLogo() {
 }
 
 function environment() {
+  if (codePreview()) return 'Code preview'
   return process.env.SITE_ENV === 'production'
     ? 'Production'
     : process.env.SITE_ENV === 'preview'
@@ -41,15 +43,17 @@ export function EnvironmentBadge() {
   const label = environment()
   return (
     <span
-      className={`dos-environment dos-environment--${label.toLowerCase()}`}
+      className={`dos-environment dos-environment--${label.toLowerCase().replace(' ', '-')}`}
       title={
         label === 'Production'
           ? 'Live website. Publishing content makes it public.'
-          : 'Test workspace. Content here is separate from the live website.'
+          : label === 'Code preview'
+            ? 'Test copy for checking code changes. Read-only: nothing can be saved here.'
+            : 'Test workspace. Content here is separate from the live website.'
       }
     >
       <span aria-hidden="true" />
-      {label} workspace
+      {label === 'Code preview' ? 'Code preview · read-only' : `${label} workspace`}
     </span>
   )
 }
@@ -69,9 +73,11 @@ export function WorkspaceHome() {
   return (
     <div className="dos-home">
       <Dashboard />
-      <div id="publishing" className="dos-reveal" style={{ ['--i' as string]: 4 }}>
-        <PublishingPanel />
-      </div>
+      {!codePreview() && (
+        <div id="publishing" className="dos-reveal" style={{ ['--i' as string]: 4 }}>
+          <PublishingPanel />
+        </div>
+      )}
       <div className="dos-reveal" style={{ ['--i' as string]: 5 }}>
         <SiteHealth />
       </div>

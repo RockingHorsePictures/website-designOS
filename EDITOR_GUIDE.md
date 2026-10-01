@@ -1,6 +1,6 @@
 # Your website workspace
 
-Open **your-site.com/admin** and sign in, with Google if your administrator has set it up, or with your password. Everything happens here: editing, publishing, enquiries and your team. The workspace has light and dark appearances, separate from your website's branding.
+Open **your-site.com/admin** and sign in, with Google if your administrator has set it up, or with your password. Everything happens here: editing, publishing, enquiries and your team. This is the only place you edit your website. Use the same address every time, whatever you're working on. The workspace has light and dark appearances, separate from your website's branding.
 
 ## Overview
 
@@ -18,10 +18,24 @@ Nothing you edit reaches visitors until you publish the whole site:
 
 New sites show Coming soon until first published. Unsaved changes (including in the composer) are not part of a Preview, so save first. Design OS updates never overwrite your content; they can change how the site looks, which is why each update is reviewed on its own preview before it goes live (see [docs/DEPLOY.md](docs/DEPLOY.md#updates)).
 
-Two kinds of preview:
+Two kinds of preview, both on your normal address:
 
 - **Page preview**: the **Preview / Live Preview** buttons on a page show just that page's saved draft, only to you (at `/workspace-preview`).
 - **Site Preview**: the whole site as a fixed, shareable version (at `/preview`), created with **Save to Preview**.
+
+### Code previews are different
+
+When your website's code changes (a new design from your AI, or a Design OS update), Vercel builds a **code preview** at its own random address and links it from the pull request on GitHub.
+
+- **What it's for:** it shows the code change working, with a dark **Code preview** banner across the top.
+- **Read-only:** it runs on a throwaway copy of your content, so nothing can be saved there.
+- **Making the change live:** merge the pull request on GitHub.
+- **After merging:** if the change adds new sections, place and fill them in your normal admin, then **Save to Preview** and **Publish to Live** as usual.
+
+The rule of thumb:
+
+- **Content** (text, images, pages, order, settings): _your admin → Save to Preview → Publish to Live_.
+- **Code** (designs, new sections, updates): _pull request → check the code preview → merge_.
 
 ## Pages and the composer
 

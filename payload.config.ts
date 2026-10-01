@@ -116,6 +116,7 @@ export default buildConfig({
     importMap: { baseDir: dirname },
     meta: { titleSuffix: ' | Design OS' },
     components: {
+      header: ['/src/components/site/CodePreviewBanner#CodePreviewBanner'],
       beforeDashboard: ['/src/editor/Workspace#WorkspaceHome'],
       beforeLogin: ['/src/editor/SignIn#GoogleSignIn'],
       beforeNavLinks: ['/src/editor/Workspace#WorkspaceNav'],

@@ -81,7 +81,6 @@ Requested by the owner on 2026-09-30:
 - Each release moves the `stable` branch to its tag; the README's Deploy Button clones `stable`.
 - The localization migration drops columns. Existing sites should take a Neon backup before deploying 0.4.
 
-
 ## Version 0.3 (unreleased, branch `feature/v0.3-toolkit`) — section library, forms and AI toolkit
 
 Requested by the owner on 2026-09-29: audit and fix the app, make it a complete framework for bespoke AI-built sites that owners can self-manage, add AI auditing (SEO, AEO, GEO, schema, content, structure), orient tooling to Claude (Claude Code, Desktop, Cowork) while staying tool-neutral, and make Claude Design an optional stage. The owner approved a neutral base section library on the condition that it must not steer design; the contract now states "bespoke first".
@@ -180,7 +179,20 @@ Published v0.2.1 at c4718a2219b5c760bf4f6af45977e1b18e7e065d. The public install
 
 RHP maintenance PR: https://github.com/RockingHorsePictures/rhp-website/pull/1. Its existing design folder now contains the update and working private code-preview AI connection; pre-existing discovery changes are intact. Its GitHub/Vercel link was repaired and verified via the project API. Production rollout/account provisioning is pending the explicit approval requested in this conversation; no RHP Production migration, account creation or deployment has been performed. Private database snapshots were saved before repair.
 
-## 0.5.0 — Orderable collections
+## 0.5.0 — Orderable collections, read-only code previews
+
+**One place to work (requested 2026-10-01).** Owners edit, preview and publish only at the live address (`/admin` → Save to Preview → Publish to Live). Code changes go live by merging their pull request.
+
+- **Read-only code previews:** Vercel Preview builds of a site run on a throwaway Neon branch, so they are now read-only (`src/lib/code-preview.ts`).
+  - **Writes:** protected collection and global writes throw, even with access overridden, and access returns false so the admin renders read-only.
+  - **Also blocked:** publishing, account creation and deletion, and `/setup`.
+  - **Dashboard:** hides New page, quick actions and publishing.
+- **Banner:** a fixed-colour **Code preview** banner on the site, admin, composer and setup links to the live `/admin` (`VERCEL_PROJECT_PRODUCTION_URL`). The environment badge reads "Code preview · read-only".
+- **Opt-out:** the product repository's demo deliberately lives in Vercel's Preview environment. It sets `DESIGNOS_PREVIEW_EDITING=allow` (added to the company-design-os Preview environment) to stay editable.
+- **Unaffected:** the local AI bridge runs outside Vercel. It already refuses a "preview" database that equals production, which is the case on Deploy Button sites.
+- **Verified:** the release regression test confirms that page, global and overridden-access writes and publishing are refused, and that the opt-out allows writes. A local server in code-preview mode showed the banner on the site, admin, edit screen and setup, a read-only edit screen, and a 403 with instructions for API saves.
+
+### Orderable collections
 
 Requested 2026-10-01: a way to order CMS collections, with date and title options and a custom order entered by hand or by drag and drop.
 
@@ -213,6 +225,7 @@ Published v0.4.0 with the installer asset. Development moved to `main` (now the 
 The product repository's Vercel project has no Production environment, so its "Ignored Build Step" skips Production builds from `main`. Branch pushes still build Previews.
 
 The demo database (Vercel Preview environment) was updated:
+
 - A private snapshot was taken first.
 - The three pending migrations were applied.
 - All 90 moved text values match the snapshot.

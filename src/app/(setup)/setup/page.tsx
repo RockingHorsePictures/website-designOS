@@ -2,12 +2,26 @@ import { redirect } from 'next/navigation'
 import { cms } from '@/lib/cms'
 import { googleEnabled } from '@/lib/auth/google'
 import { SetupForm } from './SetupForm'
+import { codePreview, liveAddress } from '@/lib/code-preview'
 import { setupCodeRequired } from './actions'
 
 export const dynamic = 'force-dynamic'
 export const metadata = { title: 'Set up your website', robots: { index: false, follow: false } }
 
 export default async function Setup() {
+  if (codePreview())
+    return (
+      <main className="setup">
+        <div className="setup-card">
+          <h1>Set up your website on its live address</h1>
+          <p className="setup-lead">
+            This is a code preview: a test copy for checking design and code changes, so nothing can
+            be saved here. Create your administrator on your live address instead
+            {liveAddress() ? `: ${liveAddress()}/setup` : ''}.
+          </p>
+        </div>
+      </main>
+    )
   const payload = await cms()
   if ((await payload.count({ collection: 'users', overrideAccess: true })).totalDocs)
     redirect('/admin')

@@ -1,3 +1,4 @@
+import { codePreview, codePreviewMessage } from '../../lib/code-preview'
 import { APIError, type CollectionConfig, type Where } from 'payload'
 import { administrator, adminField, isAI, readOnlyAI } from '../access'
 import { withinLimit, clientIP } from '../../lib/rate-limit'
@@ -42,6 +43,9 @@ export const Users: CollectionConfig = {
     beforeOperation: [
       async ({ operation, req, args }) => {
         const http = req.payloadAPI !== 'local'
+        // Code previews are throwaway copies: accounts are managed on the live site.
+        if (codePreview() && ['create', 'delete'].includes(operation))
+          throw new APIError(codePreviewMessage(), 403)
         // Accounts are created by administrators or the protected /setup page, never by an
         // anonymous "first user" registration on a freshly deployed site.
         if (operation === 'create' && http && !req.user)

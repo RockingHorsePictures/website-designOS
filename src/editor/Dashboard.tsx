@@ -308,13 +308,15 @@ export function Dashboard() {
           <a className="dos-button" href="/" target="_blank" rel="noreferrer">
             View website <span aria-hidden="true">↗</span>
           </a>
-          <button
-            type="button"
-            className="dos-button dos-button--primary"
-            onClick={() => setDialog('page')}
-          >
-            <span aria-hidden="true">＋</span> New page
-          </button>
+          {!data.readOnly && (
+            <button
+              type="button"
+              className="dos-button dos-button--primary"
+              onClick={() => setDialog('page')}
+            >
+              <span aria-hidden="true">＋</span> New page
+            </button>
+          )}
         </div>
       </header>
 
@@ -399,51 +401,53 @@ export function Dashboard() {
         </Card>
       </div>
 
-      <Card i={3} className="dos-actions">
-        <h2>Quick actions</h2>
-        <div className="dos-action-grid">
-          {[
-            [
-              '✎',
-              'Write a blog post',
-              'Share news and insights',
-              '/admin/collections/posts/create',
-            ],
-            [
-              '▧',
-              'Upload images',
-              'Add photos with descriptions',
-              '/admin/collections/media/create',
-            ],
-            [
-              '☰',
-              'Edit navigation',
-              'Menus in the header and footer',
-              '/admin/globals/navigation',
-            ],
-            ['◐', 'Brand and theme', 'Colours, fonts and logos', '/admin/globals/theme'],
-            ['✉', 'Forms', 'Build forms and read enquiries', '/admin/collections/forms'],
-            ['⧉', 'Reusable blocks', 'Edit once, use on many pages', '/admin/collections/blocks'],
-          ].map(([icon, title, hint, href]) => (
-            <a key={href} href={href} className="dos-action">
-              <span className="dos-action-icon" aria-hidden="true">
-                {icon}
-              </span>
-              <strong>{title}</strong>
-              <span>{hint}</span>
-            </a>
-          ))}
-          {data.user.role === 'admin' && (
-            <button type="button" className="dos-action" onClick={() => setDialog('invite')}>
-              <span className="dos-action-icon" aria-hidden="true">
-                ☺
-              </span>
-              <strong>Invite a teammate</strong>
-              <span>Editors and administrators</span>
-            </button>
-          )}
-        </div>
-      </Card>
+      {!data.readOnly && (
+        <Card i={3} className="dos-actions">
+          <h2>Quick actions</h2>
+          <div className="dos-action-grid">
+            {[
+              [
+                '✎',
+                'Write a blog post',
+                'Share news and insights',
+                '/admin/collections/posts/create',
+              ],
+              [
+                '▧',
+                'Upload images',
+                'Add photos with descriptions',
+                '/admin/collections/media/create',
+              ],
+              [
+                '☰',
+                'Edit navigation',
+                'Menus in the header and footer',
+                '/admin/globals/navigation',
+              ],
+              ['◐', 'Brand and theme', 'Colours, fonts and logos', '/admin/globals/theme'],
+              ['✉', 'Forms', 'Build forms and read enquiries', '/admin/collections/forms'],
+              ['⧉', 'Reusable blocks', 'Edit once, use on many pages', '/admin/collections/blocks'],
+            ].map(([icon, title, hint, href]) => (
+              <a key={href} href={href} className="dos-action">
+                <span className="dos-action-icon" aria-hidden="true">
+                  {icon}
+                </span>
+                <strong>{title}</strong>
+                <span>{hint}</span>
+              </a>
+            ))}
+            {data.user.role === 'admin' && (
+              <button type="button" className="dos-action" onClick={() => setDialog('invite')}>
+                <span className="dos-action-icon" aria-hidden="true">
+                  ☺
+                </span>
+                <strong>Invite a teammate</strong>
+                <span>Editors and administrators</span>
+              </button>
+            )}
+          </div>
+        </Card>
+      )}
       {dialog === 'page' && <NewPage templates={data.templates} onClose={() => setDialog(null)} />}
       {dialog === 'invite' && <Invite onClose={() => setDialog(null)} />}
     </div>

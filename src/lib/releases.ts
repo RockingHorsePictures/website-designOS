@@ -5,6 +5,7 @@ import {
   type PayloadRequest,
   type CollectionSlug,
 } from 'payload'
+import { codePreview, codePreviewMessage } from './code-preview'
 import { sql, type PostgresAdapter } from '@payloadcms/db-postgres'
 import { advisoryLock } from './transaction'
 import { auditContent } from './quality'
@@ -210,6 +211,7 @@ export async function changePublication(
   action: string,
   expected: number | null,
 ) {
+  if (codePreview()) throw new APIError(codePreviewMessage(), 403)
   if (!['admin', 'editor'].includes(user.role))
     throw new APIError('Only a person with an editor account can publish.', 403)
   const req = await createLocalReq({ user }, payload)

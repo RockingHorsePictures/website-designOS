@@ -1,3 +1,5 @@
+import { CodePreviewBanner } from '@/components/site/CodePreviewBanner'
+import '@/styles/code-preview.css'
 import { SiteLink } from '@/components/site/SiteLink'
 import { siteCMS, siteView, siteSnapshot, siteLocale, siteLocales } from '@/lib/site'
 import '@/styles/proof.css'
@@ -49,6 +51,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
     return (
       <html lang="en">
         <body>
+          <CodePreviewBanner />
           <main
             id="main"
             style={{
@@ -89,6 +92,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
     >
       <body className="site-typography" style={{ ...tokenStyle(theme), ...typographyStyle(theme) }}>
         <CustomFonts theme={theme} />
+        <CodePreviewBanner />
         {view === 'preview' && (
           <aside className="notice">
             Site Preview — these changes are not Live. <a href="/admin">Return to editor</a>
