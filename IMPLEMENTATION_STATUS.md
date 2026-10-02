@@ -179,6 +179,12 @@ Published v0.2.1 at c4718a2219b5c760bf4f6af45977e1b18e7e065d. The public install
 
 RHP maintenance PR: https://github.com/RockingHorsePictures/rhp-website/pull/1. Its existing design folder now contains the update and working private code-preview AI connection; pre-existing discovery changes are intact. Its GitHub/Vercel link was repaired and verified via the project API. Production rollout/account provisioning is pending the explicit approval requested in this conversation; no RHP Production migration, account creation or deployment has been performed. Private database snapshots were saved before repair.
 
+## 0.8.1 — Delete images freely; Previous / Next on edit screens
+
+- **Deleting:** people can delete images and fonts that a site release uses, singly or in bulk (Payload's list bulk delete previously failed with "An unknown error has occurred", and single deletes with "This file is retained by a site release"). The release keeps its files: the Blob adapter never deletes a released filename, local storage restores them after the delete, and visitors still load them by filename while a current release shows them. AI accounts still can't delete. A locked brand field still blocks changing or deleting its asset (now checked per record, so bulk edits and bulk deletes work). `protectReleasedAsset` became `protectBrandAsset`. A new upload never takes a filename a release still shows or another record uses (it gets `-1`, `-2`…), so Blob never overwrites a released file.
+- **Previous / Next:** `src/editor/RecordNav.tsx` adds ‹ Previous, _n of N_ and Next › before the document controls on every collection's edit screen. A `beforeList` component remembers the list's query (search, filters, sort) per tab; with none, the saved list sort or collection default is used, and the whole list when the record isn't in the remembered filter.
+- **Tests:** `test:releases` (bulk delete of released images keeps and serves their files; AI refused), e2e `media.spec.ts` (bulk delete in the list, Previous / Next).
+
 ## 0.8.0 — Replace image and media folders
 
 - **Replace image:** Media → an image → _Replace image_ → **Choose a new image…** uploads a new file onto the same record, so everything that uses it picks it up at the next Save to Preview. Replacing a file is no longer refused when a release uses the record; deleting such a record still is (`test:releases`).

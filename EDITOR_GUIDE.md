@@ -131,7 +131,11 @@ The media library accepts PNG, WebP, JPEG and AVIF (not SVG). Transparent PNG or
 
 **Folders:** open Media and choose **Browse by folder** to create folders (and folders inside folders), then drag images into them, or pick a folder on the image's edit screen. Folders only organise the library: an image's address and every place it is used stay the same, and deleting a folder moves its images back to the top level rather than deleting them. Content bundles carry folders with them.
 
-Images and fonts used by a saved release can't be deleted. A release keeps the image and font details it was saved with; later changes apply to the next release. Only files used by your published site are publicly accessible.
+**Deleting images:** select any number in the Media list and choose **Delete**, or delete one from its edit screen. Images used by a saved Preview or Live version can be deleted too: that version keeps showing them until you next **Save to Preview**, and their files are kept for as long as a saved version uses them. Pages in your workspace that used a deleted image show no image there, so pick a new one before saving the next Preview. AI contributors can't delete. The only images you can't delete are the ones in a locked brand field (logo, icon or sharing image); unlock that field in Site Settings first.
+
+A release keeps the image and font details it was saved with; later changes apply to the next release. Only files used by your published site are publicly accessible.
+
+**Previous / Next:** every edit screen has **‹ Previous** and **Next ›** buttons, with the record's place (for example _3 of 24_), so you can work through a list without going back to it. They follow the list you came from, including its search, filters and sort. Unsaved changes still ask before you leave.
 
 ## Approvals and locks
 

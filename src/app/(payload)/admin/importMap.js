@@ -1,6 +1,8 @@
 import { CompositionField as CompositionField_64112cfcd012c4b9bc97ea3818e4159a } from '../../../../src/editor/CompositionField'
 import { QualityPanel as QualityPanel_3b8342939f5192e87d588a687f346775 } from '../../../../src/editor/QualityPanel'
 import { ProtectionPanel as ProtectionPanel_e44979153cbb6c6e25a2e4e4085023d2 } from '../../../../src/editor/ProtectionPanel'
+import { ListMemory as ListMemory_af6402ed020a44a63f51a9dcd9c03025 } from '../../../../src/editor/RecordNav'
+import { RecordNav as RecordNav_af6402ed020a44a63f51a9dcd9c03025 } from '../../../../src/editor/RecordNav'
 import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
 import { LexicalDiffComponent as LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e } from '@payloadcms/richtext-lexical/rsc'
@@ -44,6 +46,8 @@ export const importMap = {
   "/src/editor/CompositionField#CompositionField": CompositionField_64112cfcd012c4b9bc97ea3818e4159a,
   "/src/editor/QualityPanel#QualityPanel": QualityPanel_3b8342939f5192e87d588a687f346775,
   "/src/editor/ProtectionPanel#ProtectionPanel": ProtectionPanel_e44979153cbb6c6e25a2e4e4085023d2,
+  "/src/editor/RecordNav#ListMemory": ListMemory_af6402ed020a44a63f51a9dcd9c03025,
+  "/src/editor/RecordNav#RecordNav": RecordNav_af6402ed020a44a63f51a9dcd9c03025,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell": RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalField": RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
   "@payloadcms/richtext-lexical/rsc#LexicalDiffComponent": LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e,

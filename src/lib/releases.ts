@@ -3,10 +3,8 @@ import {
   createLocalReq,
   type Payload,
   type PayloadRequest,
-  type CollectionSlug,
 } from 'payload'
 import { codePreview, codePreviewMessage } from './code-preview'
-import { sql, type PostgresAdapter } from '@payloadcms/db-postgres'
 import { advisoryLock } from './transaction'
 import { auditContent } from './quality'
 import { indexable } from './search/metadata'
@@ -271,12 +269,14 @@ export async function changePublication(
   // Best-effort and after commit: discovery pings never block or undo a publication.
   if (notify.length) await notifyIndexNow(notify.slice(0, 10000), payload.logger)
 }
-export async function protectReleasedAsset(
+// An image or font chosen in a locked brand field (logo, icon, share image, font files) can't be
+// changed or deleted until its owner unlocks that field.
+export async function protectBrandAsset(
   req: PayloadRequest,
-  collection: CollectionSlug,
+  collection: 'media' | 'fonts',
   id: unknown,
-  checkRetainedFile = true,
 ) {
+  // Waits for a release being saved, so it never records a file that is being deleted.
   await releaseLock(req)
   for (const slug of ['theme', 'site-settings'] as const) {
     const settings = await req.payload.findGlobal({ slug, depth: 0, req })
@@ -297,16 +297,4 @@ export async function protectReleasedAsset(
         )
     }
   }
-  if (!checkRetainedFile) return
-  // One indexed JSONB containment query instead of loading every stored snapshot.
-  const db = (req.payload.db as unknown as PostgresAdapter).sessions[(await req.transactionID)!].db
-  const probe = JSON.stringify([{ id: Number(id) }])
-  const { rows } = await db.execute(
-    sql`SELECT 1 FROM site_releases WHERE snapshot -> 'collections' -> ${collection} @> ${probe}::jsonb LIMIT 1`,
-  )
-  if (rows.length)
-    throw new APIError(
-      'This file is retained by a site release. Upload a new file instead; existing releases keep their original assets.',
-      409,
-    )
 }

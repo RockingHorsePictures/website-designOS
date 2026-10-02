@@ -597,3 +597,35 @@ body {
 .dos-site-health li {
   margin-block: 8px;
 }
+
+/* Previous / Next on edit screens */
+.dos-record-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+}
+.dos-record-nav__link {
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: 6px;
+  background: var(--theme-elevation-0);
+  color: var(--theme-elevation-800);
+  text-decoration: none;
+  line-height: 1.2;
+}
+a.dos-record-nav__link:hover {
+  border-color: var(--theme-elevation-400);
+}
+a.dos-record-nav__link:focus-visible {
+  outline: 2px solid var(--theme-success-500);
+  outline-offset: 2px;
+}
+.dos-record-nav__link[aria-disabled='true'] {
+  color: var(--theme-elevation-300);
+  border-color: var(--theme-elevation-100);
+}
+.dos-record-nav__count {
+  color: var(--theme-elevation-500);
+}

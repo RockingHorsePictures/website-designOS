@@ -156,16 +156,6 @@ try {
   assert.equal(releaseID(current.liveRelease), preview, 'Saving Preview must not change Live')
   await assert.rejects(changePublication(payload, admin, 'publish', preview), /Preview changed/)
   const media = (frozen.snapshot as Snapshot).collections.media[0]
-  if (media)
-    await assert.rejects(
-      payload.delete({
-        collection: 'media',
-        id: Number(media.id),
-        user: admin,
-        overrideAccess: false,
-      }),
-      /retained/,
-    )
   if (media) {
     // Replacing a released image is allowed: the record gets a new file under a new name and the
     // releases keep showing (and serving) the old one.
@@ -340,6 +330,111 @@ try {
       anonymous.docs.every((m) => !('context' in m) || m.context === undefined),
       'internal media notes are staff-only',
     )
+
+    // People can delete images a release uses, in bulk; the release keeps showing and serving
+    // the files. AI accounts can't delete.
+    const pixel = Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+      'base64',
+    )
+    const doomed = []
+    for (const n of [1, 2])
+      doomed.push(
+        await payload.create({
+          collection: 'media',
+          data: { alt: `Released delete test ${n}` },
+          file: {
+            data: pixel,
+            name: `released-delete-${stamp}-${n}.png`,
+            size: 68,
+            mimetype: 'image/png',
+          },
+        }),
+      )
+    const usesThem = await payload.create({
+      collection: 'pages',
+      data: {
+        title: 'Released delete test',
+        slug: `released-delete-${stamp}`,
+        summary: 'Uses two images that are deleted after release.',
+        composition: {
+          root: { props: {} },
+          content: doomed.map((m, i) => ({
+            type: 'Hero',
+            props: {
+              id: `h${i}`,
+              eyebrow: '',
+              heading: 'H',
+              body: '',
+              media: { image: m.id, alt: '', decorative: true },
+              primary: { label: '', href: '' },
+              secondary: { label: '', href: '' },
+              layout: 'stacked',
+            },
+          })),
+        },
+        _status: 'published',
+      } as never,
+    })
+    try {
+      current = await payload.findGlobal({ slug: 'publication', depth: 0 })
+      await changePublication(payload, admin, 'preview', releaseID(current.previewRelease))
+      current = await payload.findGlobal({ slug: 'publication', depth: 0 })
+      releases.push(releaseID(current.previewRelease)!)
+      const withImages = (
+        await payload.findByID({
+          collection: 'site-releases',
+          id: releaseID(current.previewRelease)!,
+        })
+      ).snapshot as Snapshot
+      for (const m of doomed)
+        assert(
+          withImages.collections.media.some((r) => r.id === m.id),
+          'the images are released',
+        )
+      await assert.rejects(
+        payload.delete({
+          collection: 'media',
+          id: doomed[0].id,
+          user: aiUser,
+          overrideAccess: false,
+        }),
+      )
+      const removed = await payload.delete({
+        collection: 'media',
+        where: { id: { in: doomed.map((m) => m.id) } },
+        user: admin,
+        overrideAccess: false,
+      })
+      assert.deepEqual(removed.errors, [], 'bulk delete of released images succeeds')
+      assert.equal(removed.docs.length, 2)
+      const visitor = await createLocalReq({}, payload)
+      const read = payload.collections.media.config.access.read!
+      for (const m of doomed) {
+        assert(existsSync(path.join('media', m.filename!)), `released file ${m.filename} is kept`)
+        assert.equal(
+          await read({
+            req: visitor,
+            data: { filename: m.filename },
+            isReadingStaticFile: true,
+          } as never),
+          true,
+          'visitors can still load a deleted image the Preview shows',
+        )
+      }
+      // A new upload with a deleted image's name gets its own name, so the release's file stays.
+      const sameName = await payload.create({
+        collection: 'media',
+        data: { alt: 'Same name as a released file' },
+        file: { data: pixel, name: doomed[0].filename!, size: 68, mimetype: 'image/png' },
+      })
+      doomed.push(sameName)
+      assert.notEqual(sameName.filename, doomed[0].filename, 'a released filename is never reused')
+    } finally {
+      await payload.delete({ collection: 'pages', id: usesThem.id })
+      for (const m of doomed)
+        await payload.delete({ collection: 'media', id: m.id }).catch(() => {})
+    }
   } finally {
     await payload.delete({ collection: 'pages', id: template.id })
     await payload.delete({ collection: 'forms', id: deliveryForm.id })
@@ -391,7 +486,7 @@ try {
     else process.env.DESIGNOS_PREVIEW_EDITING = savedEnv.editing
   }
   console.log(
-    'PASS: immutable releases, Preview/Live isolation, stale publication rejection, asset retention, released image replacement, media folders, AI permissions, enforced locks, private delivery settings and released-only uploads and read-only code previews.',
+    'PASS: immutable releases, Preview/Live isolation, stale publication rejection, asset retention, released image replacement and deletion, media folders, AI permissions, enforced locks, private delivery settings and released-only uploads and read-only code previews.',
   )
 } finally {
   const req = await createLocalReq({ user: admin, context: { policyApproval } }, payload)

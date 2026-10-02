@@ -185,7 +185,28 @@ export default buildConfig({
         ? collection
         : protectCollection(collection),
     )
-    .concat(Releases),
+    .concat(Releases)
+    // Previous / Next on edit screens, following the list the editor came from.
+    .map((collection) => ({
+      ...collection,
+      admin: {
+        ...collection.admin,
+        components: {
+          ...collection.admin?.components,
+          beforeList: [
+            ...(collection.admin?.components?.beforeList || []),
+            '/src/editor/RecordNav#ListMemory',
+          ],
+          edit: {
+            ...collection.admin?.components?.edit,
+            beforeDocumentControls: [
+              ...(collection.admin?.components?.edit?.beforeDocumentControls || []),
+              '/src/editor/RecordNav#RecordNav',
+            ],
+          },
+        },
+      },
+    })),
   globals: [...[Navigation, SiteSettings, Theme, SearchProfile].map(protectGlobal), Publication],
   // Media folders: people and AI contributors may organise them; AI accounts never delete, and
   // read-only AI connections and code previews change nothing.

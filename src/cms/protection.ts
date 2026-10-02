@@ -6,7 +6,7 @@ import {
   type PayloadRequest,
 } from 'payload'
 import { advisoryLock } from '../lib/transaction'
-import { protectReleasedAsset } from '../lib/releases'
+import { protectBrandAsset } from '../lib/releases'
 import { fileInAnyRelease } from '../lib/release-assets'
 import { existsSync } from 'node:fs'
 import { mkdir, readFile, writeFile } from 'node:fs/promises'
@@ -23,20 +23,27 @@ function requireWritable(req: PayloadRequest) {
     )
 }
 
-// Deleting a folder moves its files back to the library root in one bulk update.
-const onlyMovesFolder = (operation: string, args: unknown, req: PayloadRequest) => {
-  const data = (args as { data?: Record<string, unknown> }).data
-  return (
-    operation === 'update' &&
-    !req.file &&
-    Boolean(data) &&
-    Object.keys(data!).every((key) => key === 'folder')
-  )
+// A new upload never takes the name of a file a release still shows (its record may have been
+// deleted, and Blob storage would overwrite the file) or one another record uses.
+async function avoidReleasedName(req: PayloadRequest, collection: 'media' | 'fonts') {
+  const file = req.file!
+  const dot = file.name.lastIndexOf('.')
+  const [base, ext] = dot > 0 ? [file.name.slice(0, dot), file.name.slice(dot)] : [file.name, '']
+  let name = file.name
+  for (let n = 1; ; n++) {
+    const taken =
+      (await fileInAnyRelease(req.payload, collection, name)) ||
+      (await req.payload.count({ collection, where: { filename: { equals: name } }, req }))
+        .totalDocs > 0
+    if (!taken) break
+    name = `${base}-${n}${ext}`
+  }
+  file.name = name
 }
 
-// Replacing a file that a release uses: Blob storage keeps it (the adapter never deletes a released
-// file). Local storage (development) deletes the old files during the update, so they are read
-// here and written back afterwards.
+// Replacing or deleting a file that a release uses: Blob storage keeps it (the adapter never deletes
+// a released file). Local storage (development) deletes the files during the operation, so they are
+// read here and written back afterwards.
 async function keepReleasedFiles(req: PayloadRequest, collection: 'media' | 'fonts', id: unknown) {
   if (process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID) return
   const doc = (await req.payload.findByID({
@@ -57,7 +64,11 @@ async function keepReleasedFiles(req: PayloadRequest, collection: 'media' | 'fon
     if (existsSync(file) && (await fileInAnyRelease(req.payload, collection, name)))
       kept.push({ file, data: await readFile(file) })
   }
-  if (kept.length) req.context.keptFiles = kept
+  if (kept.length)
+    req.context.keptFiles = [
+      ...((req.context.keptFiles as { file: string; data: Buffer }[] | undefined) || []),
+      ...kept,
+    ]
 }
 const restoreKeptFiles = async ({ doc, req }: { doc: unknown; req: PayloadRequest }) => {
   const kept = req.context.keptFiles as { file: string; data: Buffer }[] | undefined
@@ -203,33 +214,32 @@ export function protectCollection(config: CollectionConfig): CollectionConfig {
     hooks: {
       ...config.hooks,
       afterChange: [...(config.hooks?.afterChange || []), restoreKeptFiles],
+      afterDelete: [...(config.hooks?.afterDelete || []), restoreKeptFiles],
       beforeOperation: [
         ...(config.hooks?.beforeOperation || []),
         async ({ req, operation, args }) => {
           if (['create', 'update', 'delete', 'restoreVersion'].includes(operation))
             requireWritable(req)
+          if (
+            ['media', 'fonts'].includes(config.slug) &&
+            ['create', 'update'].includes(operation) &&
+            req.file &&
+            !(args as { overwriteExistingFiles?: boolean }).overwriteExistingFiles
+          )
+            await avoidReleasedName(req, config.slug as 'media' | 'fonts')
           if (['update', 'delete', 'restoreVersion'].includes(operation)) {
             const tx = await req.transactionID
             if (tx) await advisoryLock(req, 742193802)
+            // Images and fonts can be replaced or deleted, one at a time or in bulk. Files a
+            // saved release shows are kept for it (see keepReleasedFiles and the Blob adapter).
+            const id = 'id' in args ? args.id : undefined
             if (
               ['media', 'fonts'].includes(config.slug) &&
-              ['update', 'delete'].includes(operation)
-            ) {
-              const id = 'id' in args ? args.id : undefined
-              if (id) {
-                // Records a release uses can't be deleted. Their file can be replaced: the
-                // old file is kept for the releases that show it (see keepReleasedFiles).
-                await protectReleasedAsset(
-                  req,
-                  config.slug as 'media' | 'fonts',
-                  id,
-                  operation === 'delete',
-                )
-                if (operation === 'update' && req.file)
-                  await keepReleasedFiles(req, config.slug as 'media' | 'fonts', id)
-              } else if (!onlyMovesFolder(operation, args, req))
-                throw new APIError('Change retained files individually.', 400)
-            }
+              operation === 'update' &&
+              id &&
+              req.file
+            )
+              await keepReleasedFiles(req, config.slug as 'media' | 'fonts', id)
           }
           return args
         },
@@ -245,6 +255,8 @@ export function protectCollection(config: CollectionConfig): CollectionConfig {
                 req,
               })
             : originalDoc
+          if (originalDoc?.id && ['media', 'fonts'].includes(config.slug))
+            await protectBrandAsset(req, config.slug as 'media' | 'fonts', originalDoc.id)
           return checkProtection({ data, originalDoc: latest, req, fields: config.fields })
         },
         ...(config.hooks?.beforeChange || []),
@@ -265,6 +277,10 @@ export function protectCollection(config: CollectionConfig): CollectionConfig {
             )
           )
             throw new APIError('Unlock approved fields before deleting this record.', 423)
+          if (['media', 'fonts'].includes(config.slug)) {
+            await protectBrandAsset(req, config.slug as 'media' | 'fonts', id)
+            await keepReleasedFiles(req, config.slug as 'media' | 'fonts', id)
+          }
         },
       ],
     },
