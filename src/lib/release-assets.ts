@@ -74,3 +74,61 @@ export async function publicAssetIDs(payload: Payload, collection: AssetCollecti
   cache.set(key, ids)
   return ids
 }
+
+// Every stored filename (original and sizes) of the records released in a set of snapshots.
+const releasedNames = (collection: AssetCollection, releases: ReturnType<typeof sql>) => sql`
+  SELECT DISTINCT names.f AS filename
+  FROM site_releases r
+  CROSS JOIN LATERAL jsonb_array_elements(COALESCE(r.snapshot -> 'collections' -> ${collection}, '[]'::jsonb)) AS item
+  CROSS JOIN LATERAL (
+    SELECT item ->> 'filename' AS f
+    UNION ALL
+    SELECT s.value ->> 'filename'
+    FROM jsonb_each(CASE WHEN jsonb_typeof(item -> 'sizes') = 'object' THEN item -> 'sizes' ELSE '{}'::jsonb END) AS s
+  ) AS names
+  WHERE names.f IS NOT NULL AND ${releases}`
+
+// Filenames visitors may load: those in the current Live and Preview releases. A replaced image's
+// old file stays loadable for as long as a current release shows it.
+const nameCache = new Map<string, Set<string>>()
+export async function publicAssetFilenames(payload: Payload, collection: AssetCollection) {
+  const db = (payload.db as unknown as PostgresAdapter).drizzle
+  const state = (
+    await db.execute(sql`SELECT live_release_id, preview_release_id FROM publication LIMIT 1`)
+  ).rows[0] as { live_release_id: number | null; preview_release_id: number | null } | undefined
+  const key = `${collection}:${state?.live_release_id}:${state?.preview_release_id}`
+  const hit = nameCache.get(key)
+  if (hit) return hit
+  const ids = [state?.live_release_id, state?.preview_release_id].filter(
+    (id): id is number => typeof id === 'number',
+  )
+  const names = new Set<string>()
+  if (ids.length) {
+    const { rows } = await db.execute(
+      releasedNames(
+        collection,
+        sql`r.id IN (${sql.join(
+          ids.map((id) => sql`${id}`),
+          sql`, `,
+        )})`,
+      ),
+    )
+    for (const row of rows as { filename: string }[]) names.add(row.filename)
+  }
+  if (nameCache.size > 20) nameCache.clear()
+  nameCache.set(key, names)
+  return names
+}
+
+// Whether any release (current or past) still uses a stored file, so it must not be deleted.
+export async function fileInAnyRelease(
+  payload: Payload,
+  collection: AssetCollection,
+  filename: string,
+) {
+  const db = (payload.db as unknown as PostgresAdapter).drizzle
+  const { rows } = await db.execute(
+    sql`SELECT 1 FROM (${releasedNames(collection, sql`true`)}) AS released WHERE filename = ${filename} LIMIT 1`,
+  )
+  return rows.length > 0
+}

@@ -127,7 +127,11 @@ Add languages in **Site Settings → Additional languages**. A language selector
 
 The media library accepts PNG, WebP, JPEG and AVIF (not SVG). Transparent PNG or WebP suits logos; use a square PNG for the icon. Give every meaningful image a description (alt text), or mark it decorative.
 
-Files included in a saved release are kept: upload a new file rather than replacing or deleting one. A release keeps the image and font details it was saved with; later changes apply to the next release. Only files used by your published site are publicly accessible.
+**Replace image:** open the image in Media and choose **Choose a new image…** under _Replace image_. Every page, case study and setting that uses it shows the new image from your next **Save to Preview**; there is nothing to reconnect. Previews and Live versions you have already saved keep showing the old image until then, so the live site never changes by surprise. The new file gets its own name, and the old file is kept for as long as a saved release uses it.
+
+**Folders:** open Media and choose **Browse by folder** to create folders (and folders inside folders), then drag images into them, or pick a folder on the image's edit screen. Folders only organise the library: an image's address and every place it is used stay the same, and deleting a folder moves its images back to the top level rather than deleting them. Content bundles carry folders with them.
+
+Images and fonts used by a saved release can't be deleted. A release keeps the image and font details it was saved with; later changes apply to the next release. Only files used by your published site are publicly accessible.
 
 ## Approvals and locks
 

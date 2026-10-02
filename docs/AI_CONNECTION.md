@@ -53,6 +53,7 @@ If someone saved the record after you read it, the write is refused. Read it aga
 
 - **New records:** `"action": "create"` with `data`.
 - **Images:** `{ "action": "upload", "collection": "media", "file": "brand/team.jpg", "data": { "alt": "Our team outside the studio" } }`. The file must be inside the website folder and under 4 MB.
+- **Media folders:** create one with `{ "action": "create", "collection": "payload-folders", "data": { "name": "Team photos", "folderType": ["media"] } }` (add `"folder": <id>` to nest it), rename it with an update, and move an image by updating the media record's `folder`. Only people delete folders.
 - **Translations:** add `"locale": "fr"`.
 - **Reads:** support `where` and `page` (100 records per page).
 

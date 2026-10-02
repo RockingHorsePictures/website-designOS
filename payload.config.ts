@@ -4,8 +4,7 @@ import { fileURLToPath } from 'node:url'
 import { buildConfig } from 'payload'
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
-import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
-import { vercelBlobOIDCStorage } from './src/cms/storage/vercel-blob-oidc'
+import { vercelBlobStorage } from './src/cms/storage/vercel-blob-oidc'
 import sharp from 'sharp'
 import { Users } from './src/cms/collections/Users'
 import { Pages } from './src/cms/collections/Pages'
@@ -17,6 +16,8 @@ import { Navigation, SiteSettings, Theme, SearchProfile } from './src/cms/global
 import { AIUsage } from './src/cms/collections/AIUsage'
 import { Releases, Publication } from './src/cms/collections/Releases'
 import { protectCollection, protectGlobal } from './src/cms/protection'
+import { isAI, readOnlyAI } from './src/cms/access'
+import { codePreview } from './src/lib/code-preview'
 import { FormSubmissions } from './src/cms/collections/FormSubmissions'
 import { Forms } from './src/cms/collections/Forms'
 import { Posts, Categories } from './src/cms/collections/Blog'
@@ -186,6 +187,22 @@ export default buildConfig({
     )
     .concat(Releases),
   globals: [...[Navigation, SiteSettings, Theme, SearchProfile].map(protectGlobal), Publication],
+  // Media folders: people and AI contributors may organise them; AI accounts never delete, and
+  // read-only AI connections and code previews change nothing.
+  folders: {
+    collectionOverrides: [
+      ({ collection }) => ({
+        ...collection,
+        admin: { ...collection.admin, group: 'Assets' },
+        access: {
+          read: ({ req }) => Boolean(req.user),
+          create: ({ req }) => Boolean(req.user) && !readOnlyAI(req.user) && !codePreview(),
+          update: ({ req }) => Boolean(req.user) && !readOnlyAI(req.user) && !codePreview(),
+          delete: ({ req }) => Boolean(req.user) && !isAI(req.user) && !codePreview(),
+        },
+      }),
+    ],
+  },
   jobs: {
     access: {
       run: ({ req }) =>
@@ -201,13 +218,15 @@ export default buildConfig({
   },
   typescript: { outputFile: path.resolve(dirname, 'src/payload-types.ts') },
   plugins: [
-    blobStoreID
-      ? vercelBlobOIDCStorage(blobStoreID, ['media', 'fonts'])
-      : vercelBlobStorage({
-          enabled: Boolean(blobToken),
-          collections: { media: true, fonts: true },
-          token: blobToken,
-        }),
+    // Without Blob (local development) files are stored in the media/ and font-files/ folders.
+    ...(blobToken || blobStoreID
+      ? [
+          vercelBlobStorage(
+            { storeId: blobToken ? blobToken.split('_')[3] : blobStoreID!, token: blobToken },
+            ['media', 'fonts'],
+          ),
+        ]
+      : []),
   ],
   onInit: async (payload) => {
     if (!process.env.VERCEL) return

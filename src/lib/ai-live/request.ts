@@ -96,7 +96,8 @@ export async function runAIRequest(
   const target = input.collection
     ? payload.collections[input.collection as CollectionSlug]?.config
     : payload.config.globals.find((item) => item.slug === input.global)
-  if (!target?.fields.some((field) => 'name' in field && field.name === 'protection'))
+  const folders = input.collection === 'payload-folders'
+  if (!folders && !target?.fields.some((field) => 'name' in field && field.name === 'protection'))
     throw new APIError('This target is not available to the AI connection.', 400)
   if (input.locale !== undefined && !isLocale(input.locale))
     throw new APIError('Supported actions accept locale as a two-letter language code.', 400)

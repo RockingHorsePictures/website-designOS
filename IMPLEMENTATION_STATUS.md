@@ -179,6 +179,14 @@ Published v0.2.1 at c4718a2219b5c760bf4f6af45977e1b18e7e065d. The public install
 
 RHP maintenance PR: https://github.com/RockingHorsePictures/rhp-website/pull/1. Its existing design folder now contains the update and working private code-preview AI connection; pre-existing discovery changes are intact. Its GitHub/Vercel link was repaired and verified via the project API. Production rollout/account provisioning is pending the explicit approval requested in this conversation; no RHP Production migration, account creation or deployment has been performed. Private database snapshots were saved before repair.
 
+## 0.8.0 — Replace image and media folders
+
+- **Replace image:** Media → an image → _Replace image_ → **Choose a new image…** uploads a new file onto the same record, so everything that uses it picks it up at the next Save to Preview. Replacing a file is no longer refused when a release uses the record; deleting such a record still is (`test:releases`).
+- **Retention:** Payload gives the new upload a new name (a same-named file becomes `name-1.png`), and the old file and sizes stay. On Vercel Blob the storage adapter (`src/cms/storage/vercel-blob-oidc.ts`, now used for both token and OIDC stores in place of `@payloadcms/storage-vercel-blob`) skips deleting any filename found in a site release snapshot. Local storage reads those files before the update and writes them back afterwards. Visitors may load a file by name when the current Live or Preview release shows it (`publicAssetFilenames`). Files no release uses are deleted as before; releases are never deleted, so their files stay.
+- **Folders:** Payload folders are on for Media (`folders: true`, collection `payload-folders`, migration `media_folders`). People and AI contributors (while AI editing is allowed) can create, rename and move; only people delete; code previews are read-only. Deleting a folder moves its images to the top level. Content bundles include folders and remap `folder` references.
+- **The 0.7.4 restore context** (`designosRestoreFile`) is gone: a repair is now an ordinary replacement under the record's own filename.
+- **Tests:** `test:releases` (replacement, kept files, filename access, folders), `test:transfer` (nested folders), `test:ai-live` (AI creates and renames a folder), unit (Blob adapter never deletes released files), e2e `media.spec.ts` (Replace image button, Browse by folder).
+
 ## 0.7.4 — Repair restores files held by a release
 
 On rhp-website the 0.7.2/0.7.3 repair was refused for 224 images with "This file is retained by a site release", because a Preview had been saved after the first import. Release retention correctly blocks replacing a released file, but here the file was missing and the repair puts back the same file.

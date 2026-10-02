@@ -66,10 +66,23 @@ try {
     .png()
     .toBuffer()
   const source: Ids = {}
+  // Media folders travel too, nested, with each image in its folder.
+  source.folder = (
+    await create({
+      collection: 'payload-folders',
+      data: { name: `Folder ${stamp}`, folderType: ['media'] },
+    })
+  ).id
+  source.subfolder = (
+    await create({
+      collection: 'payload-folders',
+      data: { name: `Subfolder ${stamp}`, folderType: ['media'], folder: source.folder },
+    })
+  ).id
   source.media = (
     await create({
       collection: 'media',
-      data: { alt: `Transfer test image ${stamp}` },
+      data: { alt: `Transfer test image ${stamp}`, folder: source.subfolder },
       file: { data: png, name: `${stamp}.png`, mimetype: 'image/png', size: png.byteLength },
     })
   ).id
@@ -209,6 +222,8 @@ try {
       (await create({ collection: 'clients', data: { name: `Twin ${stamp}` } })).id,
     ])
   created.push(
+    ['payload-folders', source.folder],
+    ['payload-folders', source.subfolder],
     ['media', source.media],
     ['clients', source.client],
     ['services', source.service],
@@ -227,6 +242,7 @@ try {
     'clients',
     'media',
     'pages',
+    'payload-folders',
     'services',
   ])
   assert(!('protection' in bundle.records.services.en[0]), 'approvals are not exported')
@@ -253,6 +269,7 @@ try {
     services: 1,
     'case-studies': 1,
     pages: 1,
+    'payload-folders': 2,
   })
 
   const one = async (collection: string, slugOrName: Record<string, unknown>) =>
@@ -272,6 +289,11 @@ try {
   const [service] = await one('services', { slug: { equals: `service-${stamp}` } })
   const [project] = await one('case-studies', { slug: { equals: `project-${stamp}` } })
   const [page] = await one('pages', { slug: { equals: `page-${stamp}` } })
+  const [folder] = await one('payload-folders', { name: { equals: `Folder ${stamp}` } })
+  const [subfolder] = await one('payload-folders', { name: { equals: `Subfolder ${stamp}` } })
+  created.push(['payload-folders', folder.id], ['payload-folders', subfolder.id])
+  assert.equal((subfolder as { folder?: number }).folder, folder.id, 'folders stay nested')
+  assert.equal((media as { folder?: number }).folder, subfolder.id, 'images stay in their folder')
   for (const [c, d] of [
     ['media', media],
     ['clients', client],

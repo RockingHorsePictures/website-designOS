@@ -20,9 +20,18 @@ export const humanField: FieldAccess = ({ req }) => Boolean(req.user) && !isAI(r
 // current Live or Preview release, never the whole library or unreleased uploads.
 export const releasedAsset =
   (collection: 'media' | 'fonts'): Access =>
-  async ({ req }) => {
+  async ({ req, data, isReadingStaticFile }) => {
     if (req.user) return true
-    const { publicAssetIDs } = await import('../../lib/release-assets')
+    const { publicAssetIDs, publicAssetFilenames } = await import('../../lib/release-assets')
+    // Serving a file: allowed when a current release shows that exact file, even if its record has
+    // since been given a new one (the old file is kept for that release).
+    const filename = (data as { filename?: unknown } | undefined)?.filename
+    if (
+      isReadingStaticFile &&
+      typeof filename === 'string' &&
+      (await publicAssetFilenames(req.payload, collection)).has(filename)
+    )
+      return true
     const ids = await publicAssetIDs(req.payload, collection)
     return ids.length ? { id: { in: ids } } : false
   }

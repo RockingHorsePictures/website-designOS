@@ -20,7 +20,9 @@ export const transferableGlobals = (payload: Payload): string[] =>
 export const transferable = (payload: Payload): string[] =>
   payload.config.collections
     .map((c) => c.slug as string)
-    .filter((slug) => !excluded.has(slug) && !slug.startsWith('payload-'))
+    .filter(
+      (slug) => !excluded.has(slug) && (!slug.startsWith('payload-') || slug === 'payload-folders'),
+    )
 
 type Slug = 'pages'
 const config = (payload: Payload, slug: string) => payload.collections[slug as Slug]?.config
@@ -325,7 +327,6 @@ export async function transferOperation(
       const saved = (repair
         ? await payload.update({
             ...base(),
-            context: { designosImport: true, designosRestoreFile: String(op.targetId) },
             collection: op.collection as Slug,
             id: op.targetId!,
             data: {} as never,

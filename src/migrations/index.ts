@@ -10,6 +10,7 @@ import * as migration_20260930_000113_localization from './20260930_000113_local
 import * as migration_20260930_230214_custom_order from './20260930_230214_custom_order';
 import * as migration_20260930_230410_remove_numeric_order from './20260930_230410_remove_numeric_order';
 import * as migration_20261001_162112_ai_live_editing from './20261001_162112_ai_live_editing';
+import * as migration_20261002_090712_media_folders from './20261002_090712_media_folders';
 
 export const migrations = [
   {
@@ -70,6 +71,11 @@ export const migrations = [
   {
     up: migration_20261001_162112_ai_live_editing.up,
     down: migration_20261001_162112_ai_live_editing.down,
-    name: '20261001_162112_ai_live_editing'
+    name: '20261001_162112_ai_live_editing',
+  },
+  {
+    up: migration_20261002_090712_media_folders.up,
+    down: migration_20261002_090712_media_folders.down,
+    name: '20261002_090712_media_folders'
   },
 ];

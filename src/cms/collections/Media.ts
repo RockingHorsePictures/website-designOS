@@ -5,6 +5,9 @@ import { mediaDescription } from '../hooks/media'
 export const Media: CollectionConfig = {
   slug: 'media',
   admin: { group: 'Website', useAsTitle: 'filename' },
+  // Organise the library into folders (Media → Browse by folder). Folders never change an image's
+  // address or anything on the site.
+  folders: true,
   access: {
     read: releasedAsset('media'),
     create: authenticated,

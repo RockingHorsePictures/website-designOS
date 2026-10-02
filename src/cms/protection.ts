@@ -7,6 +7,10 @@ import {
 } from 'payload'
 import { advisoryLock } from '../lib/transaction'
 import { protectReleasedAsset } from '../lib/releases'
+import { fileInAnyRelease } from '../lib/release-assets'
+import { existsSync } from 'node:fs'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import path from 'node:path'
 import { isAI, readOnlyAI } from './access'
 import { codePreview, codePreviewMessage } from '../lib/code-preview'
 
@@ -17,6 +21,55 @@ function requireWritable(req: PayloadRequest) {
       'This AI connection is read-only. Make changes in the code-preview workspace.',
       403,
     )
+}
+
+// Deleting a folder moves its files back to the library root in one bulk update.
+const onlyMovesFolder = (operation: string, args: unknown, req: PayloadRequest) => {
+  const data = (args as { data?: Record<string, unknown> }).data
+  return (
+    operation === 'update' &&
+    !req.file &&
+    Boolean(data) &&
+    Object.keys(data!).every((key) => key === 'folder')
+  )
+}
+
+// Replacing a file that a release uses: Blob storage keeps it (the adapter never deletes a released
+// file). Local storage (development) deletes the old files during the update, so they are read
+// here and written back afterwards.
+async function keepReleasedFiles(req: PayloadRequest, collection: 'media' | 'fonts', id: unknown) {
+  if (process.env.BLOB_READ_WRITE_TOKEN || process.env.BLOB_STORE_ID) return
+  const doc = (await req.payload.findByID({
+    collection,
+    id: id as number,
+    depth: 0,
+    overrideAccess: true,
+    req,
+  })) as { filename?: string; sizes?: Record<string, { filename?: string | null }> }
+  const upload = req.payload.collections[collection].config.upload
+  const dir = typeof upload === 'object' && upload.staticDir ? upload.staticDir : collection
+  const names = [doc.filename, ...Object.values(doc.sizes || {}).map((s) => s?.filename)].filter(
+    (n): n is string => Boolean(n),
+  )
+  const kept: { file: string; data: Buffer }[] = []
+  for (const name of names) {
+    const file = path.join(dir, name)
+    if (existsSync(file) && (await fileInAnyRelease(req.payload, collection, name)))
+      kept.push({ file, data: await readFile(file) })
+  }
+  if (kept.length) req.context.keptFiles = kept
+}
+const restoreKeptFiles = async ({ doc, req }: { doc: unknown; req: PayloadRequest }) => {
+  const kept = req.context.keptFiles as { file: string; data: Buffer }[] | undefined
+  if (kept) {
+    for (const { file, data } of kept)
+      if (!existsSync(file)) {
+        await mkdir(path.dirname(file), { recursive: true })
+        await writeFile(file, data)
+      }
+    delete req.context.keptFiles
+  }
+  return doc
 }
 
 export const policyApproval = Symbol('explicit human policy change')
@@ -149,6 +202,7 @@ export function protectCollection(config: CollectionConfig): CollectionConfig {
     fields: [...config.fields, ...protectionFields()],
     hooks: {
       ...config.hooks,
+      afterChange: [...(config.hooks?.afterChange || []), restoreKeptFiles],
       beforeOperation: [
         ...(config.hooks?.beforeOperation || []),
         async ({ req, operation, args }) => {
@@ -162,17 +216,19 @@ export function protectCollection(config: CollectionConfig): CollectionConfig {
               ['update', 'delete'].includes(operation)
             ) {
               const id = 'id' in args ? args.id : undefined
-              if (id)
+              if (id) {
+                // Records a release uses can't be deleted. Their file can be replaced: the
+                // old file is kept for the releases that show it (see keepReleasedFiles).
                 await protectReleasedAsset(
                   req,
                   config.slug as 'media' | 'fonts',
                   id,
-                  // Restoring a missing file under its own name (content import repair) gives a
-                  // release back exactly the file it recorded, so it is allowed.
-                  operation === 'delete' ||
-                    (Boolean(req.file) && req.context.designosRestoreFile !== String(id)),
+                  operation === 'delete',
                 )
-              else throw new APIError('Change retained files individually.', 400)
+                if (operation === 'update' && req.file)
+                  await keepReleasedFiles(req, config.slug as 'media' | 'fonts', id)
+              } else if (!onlyMovesFolder(operation, args, req))
+                throw new APIError('Change retained files individually.', 400)
             }
           }
           return args

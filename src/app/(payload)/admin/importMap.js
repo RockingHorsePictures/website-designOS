@@ -25,6 +25,9 @@ import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997e
 import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from '@payloadcms/richtext-lexical/client'
 import { MediaActions as MediaActions_5625d81197fd14ec925f801ba4c65ea2 } from '../../../../src/editor/MediaActions'
+import { FolderTableCell as FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
+import { FolderField as FolderField_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
+import { FolderTypeField as FolderTypeField_2b8867833a34864a02ddf429b0728a40 } from '@payloadcms/next/client'
 import { ColorField as ColorField_25a97ef5de04efea1e828c9fe3a483ab } from '../../../../src/editor/ColorField'
 import { TypographyPreview as TypographyPreview_0d876beb142f494e8a71d1b7d6c6c808 } from '../../../../src/editor/TypographyPreview'
 import { CodePreviewBanner as CodePreviewBanner_0d8f1bcfd5a5af9e0d131c2044aad87b } from '../../../../src/components/site/CodePreviewBanner'
@@ -34,7 +37,6 @@ import { EnvironmentBadge as EnvironmentBadge_e3dfc9e9e1ac49569523ec8001d064e2 }
 import { WorkspaceHome as WorkspaceHome_e3dfc9e9e1ac49569523ec8001d064e2 } from '../../../../src/editor/Workspace'
 import { GoogleSignIn as GoogleSignIn_2e57f2afeb20c79b624e4dcacab8a2c3 } from '../../../../src/editor/SignIn'
 import { WorkspaceNav as WorkspaceNav_e3dfc9e9e1ac49569523ec8001d064e2 } from '../../../../src/editor/Workspace'
-import { VercelBlobClientUploadHandler as VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e } from '@payloadcms/storage-vercel-blob/client'
 import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from '@payloadcms/next/rsc'
 
 /** @type import('payload').ImportMap */
@@ -66,6 +68,9 @@ export const importMap = {
   "@payloadcms/richtext-lexical/client#BoldFeatureClient": BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "@payloadcms/richtext-lexical/client#ItalicFeatureClient": ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
   "/src/editor/MediaActions#MediaActions": MediaActions_5625d81197fd14ec925f801ba4c65ea2,
+  "@payloadcms/next/rsc#FolderTableCell": FolderTableCell_f9c02e79a4aed9a3924487c0cd4cafb1,
+  "@payloadcms/next/rsc#FolderField": FolderField_f9c02e79a4aed9a3924487c0cd4cafb1,
+  "@payloadcms/next/client#FolderTypeField": FolderTypeField_2b8867833a34864a02ddf429b0728a40,
   "/src/editor/ColorField#ColorField": ColorField_25a97ef5de04efea1e828c9fe3a483ab,
   "/src/editor/TypographyPreview#TypographyPreview": TypographyPreview_0d876beb142f494e8a71d1b7d6c6c808,
   "/src/components/site/CodePreviewBanner#CodePreviewBanner": CodePreviewBanner_0d8f1bcfd5a5af9e0d131c2044aad87b,
@@ -75,6 +80,5 @@ export const importMap = {
   "/src/editor/Workspace#WorkspaceHome": WorkspaceHome_e3dfc9e9e1ac49569523ec8001d064e2,
   "/src/editor/SignIn#GoogleSignIn": GoogleSignIn_2e57f2afeb20c79b624e4dcacab8a2c3,
   "/src/editor/Workspace#WorkspaceNav": WorkspaceNav_e3dfc9e9e1ac49569523ec8001d064e2,
-  "@payloadcms/storage-vercel-blob/client#VercelBlobClientUploadHandler": VercelBlobClientUploadHandler_16c82c5e25f430251a3e3ba57219ff4e,
   "@payloadcms/next/rsc#CollectionCards": CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1
 }

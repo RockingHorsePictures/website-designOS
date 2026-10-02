@@ -1,5 +1,8 @@
 import nextEnv from '@next/env'
 import assert from 'node:assert/strict'
+import { existsSync } from 'node:fs'
+import { readFile } from 'node:fs/promises'
+import path from 'node:path'
 import { changePublication, releaseID, type Snapshot } from '../src/lib/releases'
 import { policyApproval } from '../src/cms/protection'
 nextEnv.loadEnvConfig(process.cwd())
@@ -163,6 +166,85 @@ try {
       }),
       /retained/,
     )
+  if (media) {
+    // Replacing a released image is allowed: the record gets a new file under a new name and the
+    // releases keep showing (and serving) the old one.
+    const before = await payload.findByID({ collection: 'media', id: Number(media.id), depth: 0 })
+    const oldFiles = [before.filename, ...Object.values(before.sizes || {}).map((s) => s?.filename)]
+      .filter((n): n is string => Boolean(n))
+      .filter((n) => existsSync(path.join('media', n)))
+    const bytes = await readFile(path.join('media', before.filename!))
+    const replaced = await payload.update({
+      collection: 'media',
+      id: before.id,
+      data: {},
+      file: { data: bytes, name: before.filename!, size: bytes.length, mimetype: before.mimeType! },
+      user: admin,
+      overrideAccess: false,
+    })
+    assert.notEqual(replaced.filename, before.filename, 'a same-named replacement gets a new name')
+    assert(existsSync(path.join('media', replaced.filename!)), 'the new file is stored')
+    for (const name of oldFiles)
+      assert(existsSync(path.join('media', name)), `released file ${name} is kept`)
+    const anonymous = await createLocalReq({}, payload)
+    const read = payload.collections.media.config.access.read
+    assert.equal(
+      await read({
+        req: anonymous,
+        data: { filename: before.filename },
+        isReadingStaticFile: true,
+      }),
+      true,
+      'visitors can still load the file a current release shows',
+    )
+    assert.notEqual(
+      await read({
+        req: anonymous,
+        data: { filename: 'never-released.png' },
+        isReadingStaticFile: true,
+      }),
+      true,
+      'unreleased filenames stay private',
+    )
+  }
+  // Media folders: AI contributors may organise but never delete folders.
+  {
+    const folder = await payload.create({
+      collection: 'payload-folders',
+      data: { name: `AI folder ${Date.now()}`, folderType: ['media'] },
+      user: aiUser,
+      overrideAccess: false,
+    })
+    if (media)
+      await payload.update({
+        collection: 'media',
+        id: Number(media.id),
+        data: { folder: folder.id },
+        user: aiUser,
+        overrideAccess: false,
+      })
+    await assert.rejects(
+      payload.delete({
+        collection: 'payload-folders',
+        id: folder.id,
+        user: aiUser,
+        overrideAccess: false,
+      }),
+    )
+    await payload.delete({
+      collection: 'payload-folders',
+      id: folder.id,
+      user: admin,
+      overrideAccess: false,
+    })
+    if (media)
+      assert.equal(
+        (await payload.findByID({ collection: 'media', id: Number(media.id), depth: 0 })).folder ??
+          null,
+        null,
+        'deleting a folder leaves its images in the library',
+      )
+  }
   await assert.rejects(
     payload.update({
       collection: 'site-releases',
@@ -309,7 +391,7 @@ try {
     else process.env.DESIGNOS_PREVIEW_EDITING = savedEnv.editing
   }
   console.log(
-    'PASS: immutable releases, Preview/Live isolation, stale publication rejection, asset retention, AI permissions, enforced locks, private delivery settings and released-only uploads and read-only code previews.',
+    'PASS: immutable releases, Preview/Live isolation, stale publication rejection, asset retention, released image replacement, media folders, AI permissions, enforced locks, private delivery settings and released-only uploads and read-only code previews.',
   )
 } finally {
   const req = await createLocalReq({ user: admin, context: { policyApproval } }, payload)

@@ -116,6 +116,24 @@ try {
     data: { title: `AI title ${stamp}`, summary: 'AI summary.' },
     expectedUpdatedAt: fresh,
   })
+  // The AI can organise media folders (creating and renaming them, never deleting).
+  const folder = (await write(ai!, {
+    action: 'create',
+    collection: 'payload-folders',
+    data: { name: `AI folder ${stamp}`, folderType: ['media'] },
+  })) as { id: number; updatedAt: string }
+  created.push(['payload-folders', folder.id])
+  await write(ai!, {
+    action: 'update',
+    collection: 'payload-folders',
+    id: folder.id,
+    data: { name: `Renamed ${stamp}` },
+    expectedUpdatedAt: folder.updatedAt,
+  })
+  assert.equal(
+    (await payload.findByID({ collection: 'payload-folders', id: folder.id })).name,
+    `Renamed ${stamp}`,
+  )
   // A person edits the summary afterwards.
   const human = await createLocalReq({ user: admin }, payload)
   await payload.update({
