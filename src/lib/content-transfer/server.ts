@@ -303,16 +303,34 @@ export async function transferOperation(
         mimetype: String(op.record.mimeType || 'application/octet-stream'),
         size: file.data.byteLength,
       }
-      // A target means the record exists but its stored file is missing: upload it again.
+      // A target means the record exists but its stored file is missing: put the same file back
+      // under the record's own filename (and sizes), so any release that recorded it works again.
       const repair = op.targetId !== null && op.targetId !== undefined
+      let current: Doc | null = null
+      if (repair) {
+        current = (await payload.findByID({
+          collection: op.collection as Slug,
+          id: op.targetId!,
+          depth: 0,
+          overrideAccess: true,
+        })) as unknown as Doc
+        const already = await storedFileExists(
+          payload,
+          op.collection,
+          String(current.filename),
+          typeof current.prefix === 'string' ? current.prefix : '',
+        )
+        if (already) return { id: current.id }
+      }
       const saved = (repair
         ? await payload.update({
             ...base(),
+            context: { designosImport: true, designosRestoreFile: String(op.targetId) },
             collection: op.collection as Slug,
             id: op.targetId!,
-            data: data as never,
-            locale: locale as never,
-            file: upload,
+            data: {} as never,
+            file: { ...upload, name: String(current!.filename) },
+            overwriteExistingFiles: true,
           })
         : await payload.create({
             ...base(),
@@ -322,6 +340,11 @@ export async function transferOperation(
             file: upload,
           })) as unknown as Doc
       id = saved.id
+      if (repair && saved.filename !== current!.filename)
+        throw new APIError(
+          `The file was restored under a different name (${String(saved.filename)}). Ask your developer to check it.`,
+          500,
+        )
       const stored = await storedFileExists(
         payload,
         op.collection,

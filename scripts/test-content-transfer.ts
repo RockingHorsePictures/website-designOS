@@ -9,6 +9,9 @@ const { exportContent } = await import('../src/lib/content-transfer/export')
 const { readBundle, writeBundle } = await import('../src/lib/content-transfer/bundle')
 const { plan, runImport } = await import('../src/lib/content-transfer/driver')
 const { transferOperation } = await import('../src/lib/content-transfer/server')
+const { changePublication, releaseID } = await import('../src/lib/releases')
+let savedRelease: number | null = null
+let previousPreview: number | null = null
 const payload = await getPayload({ config })
 // Loosely typed: sites add their own required fields, and this test must still compile there.
 const create = (args: Record<string, unknown>) =>
@@ -333,8 +336,15 @@ try {
     'same-named records are not duplicated',
   )
 
-  // A file record whose stored file went missing is repaired by importing again.
+  // A file record whose stored file went missing is repaired by importing again, even when a
+  // saved Preview release retains it (the same file goes back under the same name).
   const { rmSync, existsSync } = await import('node:fs')
+  const before = await payload.findGlobal({ slug: 'publication', depth: 0 })
+  await changePublication(payload, admin, 'preview', releaseID(before.previewRelease))
+  savedRelease = releaseID(
+    (await payload.findGlobal({ slug: 'publication', depth: 0 })).previewRelease,
+  )
+  previousPreview = releaseID(before.previewRelease)
   const stored = `media/${(media as { filename?: string }).filename}`
   rmSync(stored, { force: true })
   const replanned = await plan(bundle, exec)
@@ -347,6 +357,11 @@ try {
   assert.equal(repaired.repairedFiles, 1, 'the missing file is uploaded again')
   assert.deepEqual(repaired.created, {}, 'no duplicate record')
   const fixed = await payload.findByID({ collection: 'media', id: media.id, depth: 0 })
+  assert.equal(
+    fixed.filename,
+    (media as { filename?: string }).filename,
+    'restored under the same name',
+  )
   assert(existsSync(`media/${fixed.filename}`), 'the file is back in storage')
 
   // Keeping existing records: an edit made on the site survives, and missing files are still repaired.
@@ -406,6 +421,10 @@ try {
     'PASS: export → zip → import recreates linked records with new IDs (upload, relationship, group, rich text, section and cyclic references), keeps order, never pre-approves, reruns without duplicates, repairs missing files, and removes only unreplaced demo records.',
   )
 } finally {
+  if (savedRelease) {
+    await payload.updateGlobal({ slug: 'publication', data: { previewRelease: previousPreview } })
+    await payload.delete({ collection: 'site-releases', id: savedRelease }).catch(() => {})
+  }
   await remove()
   for (const slug of ['media', 'clients', 'services', 'case-studies', 'pages'] as const) {
     const { docs } = await payload.find({

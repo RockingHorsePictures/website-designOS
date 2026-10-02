@@ -1,6 +1,6 @@
 {
   "name": "design-os-installer",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "type": "module",
   "description": "Guided setup for independent Design OS websites",
   "license": "MIT",

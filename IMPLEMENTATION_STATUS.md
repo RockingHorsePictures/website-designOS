@@ -179,6 +179,14 @@ Published v0.2.1 at c4718a2219b5c760bf4f6af45977e1b18e7e065d. The public install
 
 RHP maintenance PR: https://github.com/RockingHorsePictures/rhp-website/pull/1. Its existing design folder now contains the update and working private code-preview AI connection; pre-existing discovery changes are intact. Its GitHub/Vercel link was repaired and verified via the project API. Production rollout/account provisioning is pending the explicit approval requested in this conversation; no RHP Production migration, account creation or deployment has been performed. Private database snapshots were saved before repair.
 
+## 0.7.4 — Repair restores files held by a release
+
+On rhp-website the 0.7.2/0.7.3 repair was refused for 224 images with "This file is retained by a site release", because a Preview had been saved after the first import. Release retention correctly blocks replacing a released file, but here the file was missing and the repair puts back the same file.
+
+- **Permission:** a repair now restores the file under the record's own filename (`overwriteExistingFiles`, with the original name), so every size keeps its name. A restore context (`designosRestoreFile`) lets this one write past the retention check, and only after the import confirms the stored file is missing. Any other replacement of a released file is still refused (`test:releases`).
+- **Checks:** a repair that would land under a different name is reported, and a file already present is left alone.
+- **Verified:** locally with a retaining Preview release, and through real Blob storage, where the original and both sizes came back under the same names with "Update records this site already has" unticked.
+
 ## 0.7.3 — Deployable again
 
 0.7.2 built but failed at "Deploying outputs" on Vercel with `ENOENT … .next/lock`. Its new storage check called `path.resolve(process.cwd(), …)` in code the import route loads.

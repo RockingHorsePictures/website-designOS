@@ -167,7 +167,10 @@ export function protectCollection(config: CollectionConfig): CollectionConfig {
                   req,
                   config.slug as 'media' | 'fonts',
                   id,
-                  operation === 'delete' || Boolean(req.file),
+                  // Restoring a missing file under its own name (content import repair) gives a
+                  // release back exactly the file it recorded, so it is allowed.
+                  operation === 'delete' ||
+                    (Boolean(req.file) && req.context.designosRestoreFile !== String(id)),
                 )
               else throw new APIError('Change retained files individually.', 400)
             }
